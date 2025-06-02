@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, Optional, List
 from universal_mcp.applications import APIApplication
 from universal_mcp.integrations import Integration
 
@@ -7,7 +7,7 @@ class DigitaloceanApp(APIApplication):
         super().__init__(name='digitalocean', integration=integration, **kwargs)
         self.base_url = "https://api.digitalocean.com"
 
-    def one_clicks_list(self, type=None) -> Any:
+    def one_clicks_list(self, type: Optional[str] = None) -> Any:
         """
         List 1-Click Applications
 
@@ -17,6 +17,10 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: A JSON object with a key of `1_clicks`.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             1-Click Applications
         """
@@ -24,9 +28,14 @@ class DigitaloceanApp(APIApplication):
         query_params = {k: v for k, v in [('type', type)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def one_clicks_install_kubernetes(self, addon_slugs, cluster_uuid) -> dict[str, Any]:
+    def one_clicks_install_kubernetes(self, addon_slugs: List[str], cluster_uuid: str) -> dict[str, Any]:
         """
         Install Kubernetes 1-Click Applications
 
@@ -40,19 +49,29 @@ class DigitaloceanApp(APIApplication):
         API. For additional details specific to the 1-Click, find and view its
         [DigitalOcean Marketplace](https://marketplace.digitalocean.com) page.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             1-Click Applications
         """
-        request_body = {
+        request_body_data = None
+        request_body_data = {
             'addon_slugs': addon_slugs,
             'cluster_uuid': cluster_uuid,
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
         url = f"{self.base_url}/v2/1-clicks/kubernetes"
         query_params = {}
-        response = self._post(url, data=request_body, params=query_params)
+        response = self._post(url, data=request_body_data, params=query_params, content_type='application/json')
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
     def account_get(self) -> Any:
         """
@@ -61,6 +80,10 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: A JSON object keyed on account with an excerpt of the current user account data.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Account
         """
@@ -68,9 +91,14 @@ class DigitaloceanApp(APIApplication):
         query_params = {}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def ssh_keys_list(self, per_page=None, page=None) -> Any:
+    def ssh_keys_list(self, per_page: Optional[int] = None, page: Optional[int] = None) -> Any:
         """
         List All SSH Keys
 
@@ -81,6 +109,10 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: A JSON object with the key set to `ssh_keys`. The value is an array of `ssh_key` objects, each of which contains the standard `ssh_key` attributes.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             SSH Keys
         """
@@ -88,9 +120,14 @@ class DigitaloceanApp(APIApplication):
         query_params = {k: v for k, v in [('per_page', per_page), ('page', page)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def ssh_keys_create(self, public_key, name, id=None, fingerprint=None) -> Any:
+    def ssh_keys_create(self, public_key: str, name: str, id: Optional[int] = None, fingerprint: Optional[str] = None) -> Any:
         """
         Create a New SSH Key
 
@@ -103,23 +140,33 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: The response body will be a JSON object with a key set to `ssh_key`.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             SSH Keys
         """
-        request_body = {
+        request_body_data = None
+        request_body_data = {
             'id': id,
             'fingerprint': fingerprint,
             'public_key': public_key,
             'name': name,
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
         url = f"{self.base_url}/v2/account/keys"
         query_params = {}
-        response = self._post(url, data=request_body, params=query_params)
+        response = self._post(url, data=request_body_data, params=query_params, content_type='application/json')
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def ssh_keys_get(self, ssh_key_identifier) -> Any:
+    def ssh_keys_get(self, ssh_key_identifier: str) -> Any:
         """
         Retrieve an Existing SSH Key
 
@@ -129,18 +176,27 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: A JSON object with the key set to `ssh_key`. The value is an `ssh_key` object containing the standard `ssh_key` attributes.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             SSH Keys
         """
         if ssh_key_identifier is None:
-            raise ValueError("Missing required parameter 'ssh_key_identifier'")
+            raise ValueError("Missing required parameter 'ssh_key_identifier'.")
         url = f"{self.base_url}/v2/account/keys/{ssh_key_identifier}"
         query_params = {}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def ssh_keys_update(self, ssh_key_identifier, name=None) -> Any:
+    def ssh_keys_update(self, ssh_key_identifier: str, name: Optional[str] = None) -> Any:
         """
         Update an SSH Key's Name
 
@@ -151,22 +207,32 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: A JSON object with the key set to `ssh_key`. The value is an `ssh_key` object containing the standard `ssh_key` attributes.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             SSH Keys
         """
         if ssh_key_identifier is None:
-            raise ValueError("Missing required parameter 'ssh_key_identifier'")
-        request_body = {
+            raise ValueError("Missing required parameter 'ssh_key_identifier'.")
+        request_body_data = None
+        request_body_data = {
             'name': name,
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
         url = f"{self.base_url}/v2/account/keys/{ssh_key_identifier}"
         query_params = {}
-        response = self._put(url, data=request_body, params=query_params)
+        response = self._put(url, data=request_body_data, params=query_params, content_type='application/json')
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def ssh_keys_delete(self, ssh_key_identifier) -> Any:
+    def ssh_keys_delete(self, ssh_key_identifier: str) -> Any:
         """
         Delete an SSH Key
 
@@ -176,18 +242,27 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: The action was successful and the response body is empty.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             SSH Keys
         """
         if ssh_key_identifier is None:
-            raise ValueError("Missing required parameter 'ssh_key_identifier'")
+            raise ValueError("Missing required parameter 'ssh_key_identifier'.")
         url = f"{self.base_url}/v2/account/keys/{ssh_key_identifier}"
         query_params = {}
         response = self._delete(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def actions_list(self, per_page=None, page=None) -> Any:
+    def actions_list(self, per_page: Optional[int] = None, page: Optional[int] = None) -> Any:
         """
         List All Actions
 
@@ -198,6 +273,10 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: The results will be returned as a JSON object with an actions key.  This will be set to an array filled with action objects containing the standard action attributes
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Actions
         """
@@ -205,9 +284,14 @@ class DigitaloceanApp(APIApplication):
         query_params = {k: v for k, v in [('per_page', per_page), ('page', page)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def actions_get(self, action_id) -> Any:
+    def actions_get(self, action_id: str) -> Any:
         """
         Retrieve an Existing Action
 
@@ -217,18 +301,27 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: The result will be a JSON object with an action key.  This will be set to an action object containing the standard action attributes.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Actions
         """
         if action_id is None:
-            raise ValueError("Missing required parameter 'action_id'")
+            raise ValueError("Missing required parameter 'action_id'.")
         url = f"{self.base_url}/v2/actions/{action_id}"
         query_params = {}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def apps_list(self, page=None, per_page=None, with_projects=None) -> Any:
+    def apps_list(self, page: Optional[int] = None, per_page: Optional[int] = None, with_projects: Optional[bool] = None) -> Any:
         """
         List All Apps
 
@@ -240,6 +333,10 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: A JSON object with a `apps` key. This is list of object `apps`.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Apps
         """
@@ -247,65 +344,49 @@ class DigitaloceanApp(APIApplication):
         query_params = {k: v for k, v in [('page', page), ('per_page', per_page), ('with_projects', with_projects)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def apps_create(self, spec, project_id=None) -> dict[str, Any]:
+    def apps_create(self, spec: dict[str, Any], project_id: Optional[str] = None) -> dict[str, Any]:
         """
         Create a New App
 
         Args:
-            spec (object): The desired configuration of an application.
+            spec (object): The desired configuration of an application. Example: {'name': 'web-app', 'region': 'nyc', 'services': [{'name': 'api', 'github': {'branch': 'main', 'deploy_on_push': True, 'repo': 'digitalocean/sample-golang'}, 'run_command': 'bin/api', 'environment_slug': 'node-js', 'instance_count': 2, 'instance_size_slug': 'apps-s-1vcpu-0.5gb', 'routes': [{'path': '/api'}]}], 'egress': {'type': 'DEDICATED_IP'}}.
             project_id (string): The ID of the project the app should be assigned to. If omitted, it will be assigned to your default project.
-                Example:
-                ```json
-                {
-                  "spec": {
-                    "name": "web-app",
-                    "region": "nyc",
-                    "services": [
-                      {
-                        "name": "api",
-                        "github": {
-                          "branch": "main",
-                          "deploy_on_push": true,
-                          "repo": "digitalocean/sample-golang"
-                        },
-                        "run_command": "bin/api",
-                        "environment_slug": "node-js",
-                        "instance_count": 2,
-                        "instance_size_slug": "apps-s-1vcpu-0.5gb",
-                        "routes": [
-                          {
-                            "path": "/api"
-                          }
-                        ]
-                      }
-                    ],
-                    "egress": {
-                      "type": "DEDICATED_IP"
-                    }
-                  }
-                }
-                ```
 
         Returns:
             dict[str, Any]: A JSON or YAML of a `spec` object.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Apps
         """
-        request_body = {
+        request_body_data = None
+        request_body_data = {
             'spec': spec,
             'project_id': project_id,
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
         url = f"{self.base_url}/v2/apps"
         query_params = {}
-        response = self._post(url, data=request_body, params=query_params)
+        response = self._post(url, data=request_body_data, params=query_params, content_type='application/json')
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def apps_delete(self, id) -> dict[str, Any]:
+    def apps_delete(self, id: str) -> dict[str, Any]:
         """
         Delete an App
 
@@ -315,18 +396,27 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: the ID of the app deleted.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Apps
         """
         if id is None:
-            raise ValueError("Missing required parameter 'id'")
+            raise ValueError("Missing required parameter 'id'.")
         url = f"{self.base_url}/v2/apps/{id}"
         query_params = {}
         response = self._delete(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def apps_get(self, id, name=None) -> dict[str, Any]:
+    def apps_get(self, id: str, name: Optional[str] = None) -> dict[str, Any]:
         """
         Retrieve an Existing App
 
@@ -337,18 +427,27 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: A JSON with key `app`
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Apps
         """
         if id is None:
-            raise ValueError("Missing required parameter 'id'")
+            raise ValueError("Missing required parameter 'id'.")
         url = f"{self.base_url}/v2/apps/{id}"
         query_params = {k: v for k, v in [('name', name)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def apps_update(self, id, spec, update_all_source_versions=None) -> dict[str, Any]:
+    def apps_update(self, id: str, spec: dict[str, Any], update_all_source_versions: Optional[bool] = None) -> dict[str, Any]:
         """
         Update an App
 
@@ -360,23 +459,33 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: A JSON object of the updated `app`
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Apps
         """
         if id is None:
-            raise ValueError("Missing required parameter 'id'")
-        request_body = {
+            raise ValueError("Missing required parameter 'id'.")
+        request_body_data = None
+        request_body_data = {
             'spec': spec,
             'update_all_source_versions': update_all_source_versions,
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
         url = f"{self.base_url}/v2/apps/{id}"
         query_params = {}
-        response = self._put(url, data=request_body, params=query_params)
+        response = self._put(url, data=request_body_data, params=query_params, content_type='application/json')
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def apps_restart(self, app_id, components=None) -> dict[str, Any]:
+    def apps_restart(self, app_id: str, components: Optional[List[str]] = None) -> dict[str, Any]:
         """
         Restart an App
 
@@ -387,22 +496,32 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: A JSON object with a `deployment` key.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Apps
         """
         if app_id is None:
-            raise ValueError("Missing required parameter 'app_id'")
-        request_body = {
+            raise ValueError("Missing required parameter 'app_id'.")
+        request_body_data = None
+        request_body_data = {
             'components': components,
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
         url = f"{self.base_url}/v2/apps/{app_id}/restart"
         query_params = {}
-        response = self._post(url, data=request_body, params=query_params)
+        response = self._post(url, data=request_body_data, params=query_params, content_type='application/json')
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def apps_get_logs_active_deployment(self, app_id, component_name, type, follow=None, pod_connection_timeout=None) -> dict[str, Any]:
+    def get_app_component_logs(self, app_id: str, component_name: str, type: str, follow: Optional[bool] = None, pod_connection_timeout: Optional[str] = None) -> dict[str, Any]:
         """
         Retrieve Active Deployment Logs
 
@@ -420,20 +539,29 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: A JSON object with urls that point to archived logs
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Apps
         """
         if app_id is None:
-            raise ValueError("Missing required parameter 'app_id'")
+            raise ValueError("Missing required parameter 'app_id'.")
         if component_name is None:
-            raise ValueError("Missing required parameter 'component_name'")
+            raise ValueError("Missing required parameter 'component_name'.")
         url = f"{self.base_url}/v2/apps/{app_id}/components/{component_name}/logs"
         query_params = {k: v for k, v in [('follow', follow), ('type', type), ('pod_connection_timeout', pod_connection_timeout)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def apps_get_exec_active_deployment(self, app_id, component_name) -> dict[str, Any]:
+    def get_component_execution_details(self, app_id: str, component_name: str) -> dict[str, Any]:
         """
         Retrieve Exec URL
 
@@ -444,20 +572,59 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: A JSON object with a websocket URL that allows sending/receiving console input and output.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Apps
         """
         if app_id is None:
-            raise ValueError("Missing required parameter 'app_id'")
+            raise ValueError("Missing required parameter 'app_id'.")
         if component_name is None:
-            raise ValueError("Missing required parameter 'component_name'")
+            raise ValueError("Missing required parameter 'component_name'.")
         url = f"{self.base_url}/v2/apps/{app_id}/components/{component_name}/exec"
         query_params = {}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def apps_list_deployments(self, app_id, page=None, per_page=None) -> Any:
+    def apps_get_instances(self, app_id: str) -> dict[str, Any]:
+        """
+        Retrieve App Instances
+
+        Args:
+            app_id (string): app_id
+
+        Returns:
+            dict[str, Any]: A JSON with key `instances`
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
+        Tags:
+            Apps
+        """
+        if app_id is None:
+            raise ValueError("Missing required parameter 'app_id'.")
+        url = f"{self.base_url}/v2/apps/{app_id}/instances"
+        query_params = {}
+        response = self._get(url, params=query_params)
+        response.raise_for_status()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
+
+    def apps_list_deployments(self, app_id: str, page: Optional[int] = None, per_page: Optional[int] = None) -> Any:
         """
         List App Deployments
 
@@ -469,18 +636,27 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: A JSON object with a `deployments` key. This will be a list of all app deployments
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Apps
         """
         if app_id is None:
-            raise ValueError("Missing required parameter 'app_id'")
+            raise ValueError("Missing required parameter 'app_id'.")
         url = f"{self.base_url}/v2/apps/{app_id}/deployments"
         query_params = {k: v for k, v in [('page', page), ('per_page', per_page)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def apps_create_deployment(self, app_id, force_build=None) -> dict[str, Any]:
+    def apps_create_deployment(self, app_id: str, force_build: Optional[bool] = None) -> dict[str, Any]:
         """
         Create an App Deployment
 
@@ -491,22 +667,32 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: A JSON object with a `deployment` key.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Apps
         """
         if app_id is None:
-            raise ValueError("Missing required parameter 'app_id'")
-        request_body = {
+            raise ValueError("Missing required parameter 'app_id'.")
+        request_body_data = None
+        request_body_data = {
             'force_build': force_build,
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
         url = f"{self.base_url}/v2/apps/{app_id}/deployments"
         query_params = {}
-        response = self._post(url, data=request_body, params=query_params)
+        response = self._post(url, data=request_body_data, params=query_params, content_type='application/json')
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def apps_get_deployment(self, app_id, deployment_id) -> dict[str, Any]:
+    def apps_get_deployment(self, app_id: str, deployment_id: str) -> dict[str, Any]:
         """
         Retrieve an App Deployment
 
@@ -517,20 +703,29 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: A JSON of the requested deployment
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Apps
         """
         if app_id is None:
-            raise ValueError("Missing required parameter 'app_id'")
+            raise ValueError("Missing required parameter 'app_id'.")
         if deployment_id is None:
-            raise ValueError("Missing required parameter 'deployment_id'")
+            raise ValueError("Missing required parameter 'deployment_id'.")
         url = f"{self.base_url}/v2/apps/{app_id}/deployments/{deployment_id}"
         query_params = {}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def apps_cancel_deployment(self, app_id, deployment_id) -> dict[str, Any]:
+    def apps_cancel_deployment(self, app_id: str, deployment_id: str) -> dict[str, Any]:
         """
         Cancel a Deployment
 
@@ -541,20 +736,30 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: A JSON the `deployment` that was just cancelled.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Apps
         """
         if app_id is None:
-            raise ValueError("Missing required parameter 'app_id'")
+            raise ValueError("Missing required parameter 'app_id'.")
         if deployment_id is None:
-            raise ValueError("Missing required parameter 'deployment_id'")
+            raise ValueError("Missing required parameter 'deployment_id'.")
+        request_body_data = None
         url = f"{self.base_url}/v2/apps/{app_id}/deployments/{deployment_id}/cancel"
         query_params = {}
-        response = self._post(url, data={}, params=query_params)
+        response = self._post(url, data=request_body_data, params=query_params, content_type='application/json')
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def apps_get_logs(self, app_id, deployment_id, component_name, type, follow=None, pod_connection_timeout=None) -> dict[str, Any]:
+    def apps_get_logs(self, app_id: str, deployment_id: str, component_name: str, type: str, follow: Optional[bool] = None, pod_connection_timeout: Optional[str] = None) -> dict[str, Any]:
         """
         Retrieve Deployment Logs
 
@@ -573,22 +778,31 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: A JSON object with urls that point to archived logs
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Apps
         """
         if app_id is None:
-            raise ValueError("Missing required parameter 'app_id'")
+            raise ValueError("Missing required parameter 'app_id'.")
         if deployment_id is None:
-            raise ValueError("Missing required parameter 'deployment_id'")
+            raise ValueError("Missing required parameter 'deployment_id'.")
         if component_name is None:
-            raise ValueError("Missing required parameter 'component_name'")
+            raise ValueError("Missing required parameter 'component_name'.")
         url = f"{self.base_url}/v2/apps/{app_id}/deployments/{deployment_id}/components/{component_name}/logs"
         query_params = {k: v for k, v in [('follow', follow), ('type', type), ('pod_connection_timeout', pod_connection_timeout)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def apps_get_logs_aggregate(self, app_id, deployment_id, type, follow=None, pod_connection_timeout=None) -> dict[str, Any]:
+    def apps_get_logs_aggregate(self, app_id: str, deployment_id: str, type: str, follow: Optional[bool] = None, pod_connection_timeout: Optional[str] = None) -> dict[str, Any]:
         """
         Retrieve Aggregate Deployment Logs
 
@@ -606,20 +820,29 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: A JSON object with urls that point to archived logs
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Apps
         """
         if app_id is None:
-            raise ValueError("Missing required parameter 'app_id'")
+            raise ValueError("Missing required parameter 'app_id'.")
         if deployment_id is None:
-            raise ValueError("Missing required parameter 'deployment_id'")
+            raise ValueError("Missing required parameter 'deployment_id'.")
         url = f"{self.base_url}/v2/apps/{app_id}/deployments/{deployment_id}/logs"
         query_params = {k: v for k, v in [('follow', follow), ('type', type), ('pod_connection_timeout', pod_connection_timeout)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def apps_get_exec(self, app_id, deployment_id, component_name, instance_name=None) -> dict[str, Any]:
+    def apps_get_exec(self, app_id: str, deployment_id: str, component_name: str, instance_name: Optional[str] = None) -> dict[str, Any]:
         """
         Retrieve Exec URL for Deployment
 
@@ -632,22 +855,31 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: A JSON object with a websocket URL that allows sending/receiving console input and output.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Apps
         """
         if app_id is None:
-            raise ValueError("Missing required parameter 'app_id'")
+            raise ValueError("Missing required parameter 'app_id'.")
         if deployment_id is None:
-            raise ValueError("Missing required parameter 'deployment_id'")
+            raise ValueError("Missing required parameter 'deployment_id'.")
         if component_name is None:
-            raise ValueError("Missing required parameter 'component_name'")
+            raise ValueError("Missing required parameter 'component_name'.")
         url = f"{self.base_url}/v2/apps/{app_id}/deployments/{deployment_id}/components/{component_name}/exec"
         query_params = {k: v for k, v in [('instance_name', instance_name)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def apps_get_logs_active_deployment_aggregate(self, app_id, type, follow=None, pod_connection_timeout=None) -> dict[str, Any]:
+    def get_app_logs(self, app_id: str, type: str, follow: Optional[bool] = None, pod_connection_timeout: Optional[str] = None) -> dict[str, Any]:
         """
         Retrieve Active Deployment Aggregate Logs
 
@@ -664,16 +896,25 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: A JSON object with urls that point to archived logs
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Apps
         """
         if app_id is None:
-            raise ValueError("Missing required parameter 'app_id'")
+            raise ValueError("Missing required parameter 'app_id'.")
         url = f"{self.base_url}/v2/apps/{app_id}/logs"
         query_params = {k: v for k, v in [('follow', follow), ('type', type), ('pod_connection_timeout', pod_connection_timeout)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
     def apps_list_instance_sizes(self) -> dict[str, Any]:
         """
@@ -682,6 +923,10 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: A JSON with key `instance_sizes`
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Apps
         """
@@ -689,9 +934,14 @@ class DigitaloceanApp(APIApplication):
         query_params = {}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def apps_get_instance_size(self, slug) -> dict[str, Any]:
+    def apps_get_instance_size(self, slug: str) -> dict[str, Any]:
         """
         Retrieve an Instance Size
 
@@ -701,16 +951,25 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: A JSON with key `instance_size`
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Apps
         """
         if slug is None:
-            raise ValueError("Missing required parameter 'slug'")
+            raise ValueError("Missing required parameter 'slug'.")
         url = f"{self.base_url}/v2/apps/tiers/instance_sizes/{slug}"
         query_params = {}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
     def apps_list_regions(self) -> dict[str, Any]:
         """
@@ -719,6 +978,10 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: A JSON object with key `regions`
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Apps
         """
@@ -726,63 +989,49 @@ class DigitaloceanApp(APIApplication):
         query_params = {}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def apps_validate_app_spec(self, spec, app_id=None) -> dict[str, Any]:
+    def apps_validate_app_spec(self, spec: dict[str, Any], app_id: Optional[str] = None) -> dict[str, Any]:
         """
         Propose an App Spec
 
         Args:
-            spec (object): The desired configuration of an application.
-            app_id (string): An optional ID of an existing app. If set, the spec will be treated as a proposed update to the specified app. The existing app is not modified using this method.
-                Example:
-                ```json
-                {
-                  "spec": {
-                    "name": "web-app",
-                    "region": "nyc",
-                    "services": [
-                      {
-                        "name": "api",
-                        "github": {
-                          "branch": "main",
-                          "deploy_on_push": true,
-                          "repo": "digitalocean/sample-golang"
-                        },
-                        "run_command": "bin/api",
-                        "environment_slug": "node-js",
-                        "instance_count": 2,
-                        "instance_size_slug": "apps-s-1vcpu-0.5gb",
-                        "routes": [
-                          {
-                            "path": "/api"
-                          }
-                        ]
-                      }
-                    ]
-                  },
-                  "app_id": "b6bdf840-2854-4f87-a36c-5f231c617c84"
-                }
-                ```
+            spec (object): The desired configuration of an application. Example: {'name': 'web-app', 'region': 'nyc', 'services': [{'name': 'api', 'github': {'branch': 'main', 'deploy_on_push': True, 'repo': 'digitalocean/sample-golang'}, 'run_command': 'bin/api', 'environment_slug': 'node-js', 'instance_count': 2, 'instance_size_slug': 'apps-s-1vcpu-0.5gb', 'routes': [{'path': '/api'}]}]}.
+            app_id (string): An optional ID of an existing app. If set, the spec will be treated as a proposed update to the specified app. The existing app is not modified using this method. Example: 'b6bdf840-2854-4f87-a36c-5f231c617c84'.
 
         Returns:
             dict[str, Any]: A JSON object.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Apps
         """
-        request_body = {
+        request_body_data = None
+        request_body_data = {
             'spec': spec,
             'app_id': app_id,
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
         url = f"{self.base_url}/v2/apps/propose"
         query_params = {}
-        response = self._post(url, data=request_body, params=query_params)
+        response = self._post(url, data=request_body_data, params=query_params, content_type='application/json')
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def apps_list_alerts(self, app_id) -> dict[str, Any]:
+    def apps_list_alerts(self, app_id: str) -> dict[str, Any]:
         """
         List all app alerts
 
@@ -792,18 +1041,27 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: A JSON object with a `alerts` key. This is list of object `alerts`.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Apps
         """
         if app_id is None:
-            raise ValueError("Missing required parameter 'app_id'")
+            raise ValueError("Missing required parameter 'app_id'.")
         url = f"{self.base_url}/v2/apps/{app_id}/alerts"
         query_params = {}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def apps_assign_alert_destinations(self, app_id, alert_id, emails=None, slack_webhooks=None) -> dict[str, Any]:
+    def apps_assign_alert_destinations(self, app_id: str, alert_id: str, emails: Optional[List[str]] = None, slack_webhooks: Optional[List[dict[str, Any]]] = None) -> dict[str, Any]:
         """
         Update destinations for alerts
 
@@ -816,25 +1074,35 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: A JSON object with an `alert` key. This is an object of type `alert`.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Apps
         """
         if app_id is None:
-            raise ValueError("Missing required parameter 'app_id'")
+            raise ValueError("Missing required parameter 'app_id'.")
         if alert_id is None:
-            raise ValueError("Missing required parameter 'alert_id'")
-        request_body = {
+            raise ValueError("Missing required parameter 'alert_id'.")
+        request_body_data = None
+        request_body_data = {
             'emails': emails,
             'slack_webhooks': slack_webhooks,
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
         url = f"{self.base_url}/v2/apps/{app_id}/alerts/{alert_id}/destinations"
         query_params = {}
-        response = self._post(url, data=request_body, params=query_params)
+        response = self._post(url, data=request_body_data, params=query_params, content_type='application/json')
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def apps_create_rollback(self, app_id, deployment_id=None, skip_pin=None) -> dict[str, Any]:
+    def apps_create_rollback(self, app_id: str, deployment_id: Optional[str] = None, skip_pin: Optional[bool] = None) -> dict[str, Any]:
         """
         Rollback App
 
@@ -846,23 +1114,33 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: A JSON object with a `deployment` key.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Apps
         """
         if app_id is None:
-            raise ValueError("Missing required parameter 'app_id'")
-        request_body = {
+            raise ValueError("Missing required parameter 'app_id'.")
+        request_body_data = None
+        request_body_data = {
             'deployment_id': deployment_id,
             'skip_pin': skip_pin,
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
         url = f"{self.base_url}/v2/apps/{app_id}/rollback"
         query_params = {}
-        response = self._post(url, data=request_body, params=query_params)
+        response = self._post(url, data=request_body_data, params=query_params, content_type='application/json')
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def apps_validate_rollback(self, app_id, deployment_id=None, skip_pin=None) -> dict[str, Any]:
+    def apps_validate_rollback(self, app_id: str, deployment_id: Optional[str] = None, skip_pin: Optional[bool] = None) -> dict[str, Any]:
         """
         Validate App Rollback
 
@@ -874,23 +1152,33 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: A JSON object with the validation results.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Apps
         """
         if app_id is None:
-            raise ValueError("Missing required parameter 'app_id'")
-        request_body = {
+            raise ValueError("Missing required parameter 'app_id'.")
+        request_body_data = None
+        request_body_data = {
             'deployment_id': deployment_id,
             'skip_pin': skip_pin,
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
         url = f"{self.base_url}/v2/apps/{app_id}/rollback/validate"
         query_params = {}
-        response = self._post(url, data=request_body, params=query_params)
+        response = self._post(url, data=request_body_data, params=query_params, content_type='application/json')
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def apps_commit_rollback(self, app_id) -> Any:
+    def apps_commit_rollback(self, app_id: str) -> Any:
         """
         Commit App Rollback
 
@@ -900,18 +1188,28 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: The action was successful and the response body is empty.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Apps
         """
         if app_id is None:
-            raise ValueError("Missing required parameter 'app_id'")
+            raise ValueError("Missing required parameter 'app_id'.")
+        request_body_data = None
         url = f"{self.base_url}/v2/apps/{app_id}/rollback/commit"
         query_params = {}
-        response = self._post(url, data={}, params=query_params)
+        response = self._post(url, data=request_body_data, params=query_params, content_type='application/json')
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def apps_revert_rollback(self, app_id) -> dict[str, Any]:
+    def apps_revert_rollback(self, app_id: str) -> dict[str, Any]:
         """
         Revert App Rollback
 
@@ -921,18 +1219,28 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: A JSON object with a `deployment` key.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Apps
         """
         if app_id is None:
-            raise ValueError("Missing required parameter 'app_id'")
+            raise ValueError("Missing required parameter 'app_id'.")
+        request_body_data = None
         url = f"{self.base_url}/v2/apps/{app_id}/rollback/revert"
         query_params = {}
-        response = self._post(url, data={}, params=query_params)
+        response = self._post(url, data=request_body_data, params=query_params, content_type='application/json')
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def apps_get_metrics_bandwidth_daily(self, app_id, date=None) -> dict[str, Any]:
+    def get_app_bandwidth_daily(self, app_id: str, date: Optional[str] = None) -> dict[str, Any]:
         """
         Retrieve App Daily Bandwidth Metrics
 
@@ -943,53 +1251,62 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: A JSON object with a `app_bandwidth_usage` key
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Apps
         """
         if app_id is None:
-            raise ValueError("Missing required parameter 'app_id'")
+            raise ValueError("Missing required parameter 'app_id'.")
         url = f"{self.base_url}/v2/apps/{app_id}/metrics/bandwidth_daily"
         query_params = {k: v for k, v in [('date', date)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def apps_list_metrics_bandwidth_daily(self, app_ids, date=None) -> dict[str, Any]:
+    def create_daily_bandwidth_metrics(self, app_ids: List[str], date: Optional[str] = None) -> dict[str, Any]:
         """
         Retrieve Multiple Apps' Daily Bandwidth Metrics
 
         Args:
             app_ids (array): A list of app IDs to query bandwidth metrics for. Example: "['4f6c71e2-1e90-4762-9fee-6cc4a0a9f2cf', 'c2a93513-8d9b-4223-9d61-5e7272c81cf5']".
-            date (string): Optional day to query. Only the date component of the timestamp will be considered. Default: yesterday.
-                Example:
-                ```json
-                {
-                  "app_ids": [
-                    "4f6c71e2-1e90-4762-9fee-6cc4a0a9f2cf",
-                    "c2a93513-8d9b-4223-9d61-5e7272c81cf5"
-                  ],
-                  "date": "2023-01-17T00:00:00Z"
-                }
-                ```
+            date (string): Optional day to query. Only the date component of the timestamp will be considered. Default: yesterday. Example: '2023-01-17T00:00:00Z'.
 
         Returns:
             dict[str, Any]: A JSON object with a `app_bandwidth_usage` key
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Apps
         """
-        request_body = {
+        request_body_data = None
+        request_body_data = {
             'app_ids': app_ids,
             'date': date,
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
         url = f"{self.base_url}/v2/apps/metrics/bandwidth_daily"
         query_params = {}
-        response = self._post(url, data=request_body, params=query_params)
+        response = self._post(url, data=request_body_data, params=query_params, content_type='application/json')
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def apps_get_health(self, app_id) -> dict[str, Any]:
+    def apps_get_health(self, app_id: str) -> dict[str, Any]:
         """
         Retrieve App Health
 
@@ -999,18 +1316,27 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: A JSON with key `app_health`
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Apps
         """
         if app_id is None:
-            raise ValueError("Missing required parameter 'app_id'")
+            raise ValueError("Missing required parameter 'app_id'.")
         url = f"{self.base_url}/v2/apps/{app_id}/health"
         query_params = {}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def cdn_list_endpoints(self, per_page=None, page=None) -> Any:
+    def cdn_list_endpoints(self, per_page: Optional[int] = None, page: Optional[int] = None) -> Any:
         """
         List All CDN Endpoints
 
@@ -1021,6 +1347,10 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: The result will be a JSON object with an `endpoints` key. This will be set to an array of endpoint objects, each of which will contain the standard CDN endpoint attributes.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             CDN Endpoints
         """
@@ -1028,9 +1358,14 @@ class DigitaloceanApp(APIApplication):
         query_params = {k: v for k, v in [('per_page', per_page), ('page', page)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def cdn_create_endpoint(self, origin, id=None, endpoint=None, ttl=None, certificate_id=None, custom_domain=None, created_at=None) -> Any:
+    def cdn_create_endpoint(self, origin: str, id: Optional[str] = None, endpoint: Optional[str] = None, ttl: Optional[int] = None, certificate_id: Optional[str] = None, custom_domain: Optional[str] = None, created_at: Optional[str] = None) -> Any:
         """
         Create a New CDN Endpoint
 
@@ -1041,22 +1376,20 @@ class DigitaloceanApp(APIApplication):
             ttl (integer): The amount of time the content is cached by the CDN's edge servers in seconds. TTL must be one of 60, 600, 3600, 86400, or 604800. Defaults to 3600 (one hour) when excluded. Example: '3600'.
             certificate_id (string): The ID of a DigitalOcean managed TLS certificate used for SSL when a custom subdomain is provided. Example: '892071a0-bb95-49bc-8021-3afd67a210bf'.
             custom_domain (string): The fully qualified domain name (FQDN) of the custom subdomain used with the CDN endpoint. Example: 'static.example.com'.
-            created_at (string): A time value given in ISO8601 combined date and time format that represents when the CDN endpoint was created.
-                Example:
-                ```json
-                {
-                  "origin": "static-images.nyc3.digitaloceanspaces.com",
-                  "ttl": 3600
-                }
-                ```
+            created_at (string): A time value given in ISO8601 combined date and time format that represents when the CDN endpoint was created. Example: '2018-03-21T16:02:37Z'.
 
         Returns:
             Any: The response will be a JSON object with an `endpoint` key. This will be set to an object containing the standard CDN endpoint attributes.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             CDN Endpoints
         """
-        request_body = {
+        request_body_data = None
+        request_body_data = {
             'id': id,
             'origin': origin,
             'endpoint': endpoint,
@@ -1065,14 +1398,19 @@ class DigitaloceanApp(APIApplication):
             'custom_domain': custom_domain,
             'created_at': created_at,
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
         url = f"{self.base_url}/v2/cdn/endpoints"
         query_params = {}
-        response = self._post(url, data=request_body, params=query_params)
+        response = self._post(url, data=request_body_data, params=query_params, content_type='application/json')
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def cdn_get_endpoint(self, cdn_id) -> Any:
+    def cdn_get_endpoint(self, cdn_id: str) -> Any:
         """
         Retrieve an Existing CDN Endpoint
 
@@ -1082,18 +1420,27 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: The response will be a JSON object with an `endpoint` key. This will be set to an object containing the standard CDN endpoint attributes.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             CDN Endpoints
         """
         if cdn_id is None:
-            raise ValueError("Missing required parameter 'cdn_id'")
+            raise ValueError("Missing required parameter 'cdn_id'.")
         url = f"{self.base_url}/v2/cdn/endpoints/{cdn_id}"
         query_params = {}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def cdn_update_endpoints(self, cdn_id, ttl=None, certificate_id=None, custom_domain=None) -> Any:
+    def cdn_update_endpoints(self, cdn_id: str, ttl: Optional[int] = None, certificate_id: Optional[str] = None, custom_domain: Optional[str] = None) -> Any:
         """
         Update a CDN Endpoint
 
@@ -1106,24 +1453,34 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: The response will be a JSON object with an `endpoint` key. This will be set to an object containing the standard CDN endpoint attributes.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             CDN Endpoints
         """
         if cdn_id is None:
-            raise ValueError("Missing required parameter 'cdn_id'")
-        request_body = {
+            raise ValueError("Missing required parameter 'cdn_id'.")
+        request_body_data = None
+        request_body_data = {
             'ttl': ttl,
             'certificate_id': certificate_id,
             'custom_domain': custom_domain,
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
         url = f"{self.base_url}/v2/cdn/endpoints/{cdn_id}"
         query_params = {}
-        response = self._put(url, data=request_body, params=query_params)
+        response = self._put(url, data=request_body_data, params=query_params, content_type='application/json')
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def cdn_delete_endpoint(self, cdn_id) -> Any:
+    def cdn_delete_endpoint(self, cdn_id: str) -> Any:
         """
         Delete a CDN Endpoint
 
@@ -1133,18 +1490,27 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: The action was successful and the response body is empty.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             CDN Endpoints
         """
         if cdn_id is None:
-            raise ValueError("Missing required parameter 'cdn_id'")
+            raise ValueError("Missing required parameter 'cdn_id'.")
         url = f"{self.base_url}/v2/cdn/endpoints/{cdn_id}"
         query_params = {}
         response = self._delete(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def cdn_purge_cache(self, cdn_id, files) -> Any:
+    def cdn_purge_cache(self, cdn_id: str, files: List[str]) -> Any:
         """
         Purge the Cache for an Existing CDN Endpoint
 
@@ -1155,22 +1521,31 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: The action was successful and the response body is empty.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             CDN Endpoints
         """
         if cdn_id is None:
-            raise ValueError("Missing required parameter 'cdn_id'")
-        request_body = {
+            raise ValueError("Missing required parameter 'cdn_id'.")
+        request_body_data = {
             'files': files,
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
         url = f"{self.base_url}/v2/cdn/endpoints/{cdn_id}/cache"
         query_params = {}
         response = self._delete(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def certificates_list(self, per_page=None, page=None, name=None) -> Any:
+    def certificates_list(self, per_page: Optional[int] = None, page: Optional[int] = None, name: Optional[str] = None) -> Any:
         """
         List All Certificates
 
@@ -1182,6 +1557,10 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: The result will be a JSON object with a `certificates` key. This will be set to an array of certificate objects, each of which will contain the standard certificate attributes.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Certificates
         """
@@ -1189,9 +1568,58 @@ class DigitaloceanApp(APIApplication):
         query_params = {k: v for k, v in [('per_page', per_page), ('page', page), ('name', name)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def certificates_get(self, certificate_id) -> dict[str, Any]:
+    def certificates_create(self, name: Optional[str] = None, type: Optional[str] = None, dns_names: Optional[List[str]] = None, private_key: Optional[str] = None, leaf_certificate: Optional[str] = None, certificate_chain: Optional[str] = None) -> dict[str, Any]:
+        """
+        Create a New Certificate
+
+        Args:
+            name (string): A unique human-readable name referring to a certificate. Example: 'web-cert-01'.
+            type (string): A string representing the type of the certificate. The value will be `custom` for a user-uploaded certificate or `lets_encrypt` for one automatically generated with Let's Encrypt. Example: 'lets_encrypt'.
+            dns_names (array): An array of fully qualified domain names (FQDNs) for which the certificate was issued. A certificate covering all subdomains can be issued using a wildcard (e.g. `*.example.com`). Example: "['www.example.com', 'example.com']".
+            private_key (string): The contents of a PEM-formatted private-key corresponding to the SSL certificate. Example: '-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQDBIZMz8pnK6V52\nSVf+CYssOfCQHAx5f0Ou5rYbq3xNh8VHAIYJCQ1QxQIxKSP6+uODSYrb2KWyurP1\nDwGb8OYm0J3syEDtCUQik1cpCzpeNlAZ2f8FzXyYQAqPopxdRpsFz8DtZnVvu86X\nwrE4oFPl9MReICmZfBNWylpV5qgFPoXyJ70ZAsTm3cEe3n+LBXEnY4YrVDRWxA3w\nZ2mzZ03HZ1hHrxK9CMnS829U+8sK+UneZpCO7yLRPuxwhmps0wpK/YuZZfRAKF1F\nZRnak/SIQ28rnWufmdg16YqqHgl5JOgnb3aslKRvL4dI2Gwnkd2IHtpZnTR0gxFX\nfqqbQwuRAgMBAAECggEBAILLmkW0JzOkmLTDNzR0giyRkLoIROqDpfLtjKdwm95l\n9NUBJcU4vCvXQITKt/NhtnNTexcowg8pInb0ksJpg3UGE+4oMNBXVi2UW5MQZ5cm\ncVkQqgXkBF2YAY8FMaB6EML+0En2+dGR/3gIAr221xsFiXe1kHbB8Nb2c/d5HpFt\neRpLVJnK+TxSr78PcZA8DDGlSgwvgimdAaFUNO2OqB9/0E9UPyKk2ycdff/Z6ldF\n0hkCLtdYTTl8Kf/OwjcuTgmA2O3Y8/CoQX/L+oP9Rvt9pWCEfuebiOmHJVPO6Y6x\ngtQVEXwmF1pDHH4Qtz/e6UZTdYeMl9G4aNO2CawwcaYECgYEA57imgSOG4XsJLRh\nGGncV9R/xhy4AbDWLtAMzQRX4ktvKCaHWyQV2XK2we/cu29NLv2Y89WmerTNPOU+\nP8+pB31uty2ELySVn15QhKpQClVEAlxCnnNjXYrii5LOM80+lVmxvQwxVd8Yz8nj\nIntyioXNBEnYS7V2RxxFGgFun1cCgYEA1V3W+Uyamhq8JS5EY0FhyGcXdHd70K49\nW1ou7McIpncf9tM9acLS1hkI98rd2T69Zo8mKoV1V2hjFaKUYfNys6tTkYWeZCcJ\n3rW44j9DTD+FmmjcX6b8DzfybGLehfNbCw6n67/r45DXIV/fk6XZfkx6IEGO4ODt\nNfnvx4TuI1cCgYBACDiKqwSUvmkUuweOo4IuCxyb5Ee8v98P5JIE/VRDxlCbKbpx\npxEam6aBBQVcDi+n8o0H3WjjlKc6UqbW/01YMoMrvzotxNBLz8Y0QtQHZvR6KoCG\nRKCKstxTcWflzKuknbqN4RapAhNbKBDJ8PMSWfyDWNyaXzSmBdvaidbF1QKBgDI0\no4oD0Xkjg1QIYAUu9FBQmb9JAjRnW36saNBEQS/SZg4RRKknM683MtoDvVIKJk0E\nsAlfX+4SXQZRPDMUMtA+Jyrd0xhj6zmhbwClvDMr20crF3fWdgcqtft1BEFmsuyW\nJUMe5OWmRkjPI2+9ncDPRAllA7a8lnSV/Crph5N/AoGBAIK249temKrGe9pmsmAo\nQbNuYSmwpnMoAqdHTrl70HEmK7ob6SIVmsR8QFAkH7xkYZc4Bxbx4h1bdpozGB+/\nAangbiaYJcAOD1QyfiFbflvI1RFeHgrk7VIafeSeQv6qu0LLMi2zUbpgVzxt78Wg\neTuK2xNR0PIM8OI7pRpgyj1I\n-----END PRIVATE KEY-----'.
+            leaf_certificate (string): The contents of a PEM-formatted public SSL certificate. Example: '-----BEGIN CERTIFICATE-----\nMIIFFjCCA/6gAwIBAgISA0AznUJmXhu08/89ZuSPC/kRMA0GCSqGSIb3DQEBCwUA\nMEoxCzAJBgNVBAYTAlVTMRYwFAYDVQQKEw1MZXQncyBFbmNyeXB0MSMwIQYDVQQD\nExpMZXQncyBFbmNyeXB0IEF1dGhvcml0eSBYMzAeFw0xNjExMjQwMDIzMDBaFw0x\nNzAyMjIwMDIzMDBaMCQxIjAgBgNVBAMTGWNsb3VkLmFuZHJld3NvbWV0aGluZy5j\nb20wggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQDBIZMz8pnK6V52SVf+\nCYssOfCQHAx5f0Ou5rYbq3xNh8VWHIYJCQ1QxQIxKSP6+uODSYrb2KWyurP1DwGb\n8OYm0J3syEDtCUQik1cpCzpeNlAZ2f8FzXyYQAqPopxdRpsFz8DtZnVvu86XwrE4\noFPl9MReICmZfBNWylpV5qgFPoXyJ70ZAsTm3cEe3n+LBXEnY4YrVDRWxA3wZ2mz\nZ03HZ1hHrxK9CMnS829U+8sK+UneZpCO7yLRPuxwhmps0wpK/YuZZfRAKF1FZRna\nk/SIQ28rnWufmdg16YqqHgl5JOgnb3aslKRvL4dI2Gwnkd2IHtpZnTR0gxFXfqqb\nQwuRAgMBAAGjggIaMIICFjAOBgNVHQ8BAf8EBAMCBaAwHQYDVR0lBBYwFAYIKwYB\nBQUHAwEGCCsGAQUFBwMCMAwGA1UdEwEB/wQCMAAwHQYDVR0OBBYEFLsAFcxAhFX1\nMbCnzr9hEO5rL4jqMB8GA1UdIwQYMBaAFKhKamMEfd265tE5t6ZFZe/zqOyhMHAG\nCCsGAQUFBwEBBGQwYjAvBggrBgEFBQcwAYYjaHR0cDovL29jc3AuaW50LXgzLmxl\ndHNlbmNyeXB0Lm9yZy8wLwYIKwYBBQUHMAKGI2h0dHA6Ly9jZXJ0LmludC14My5s\nZXRzZW5jcnlwdC5vcmcvMCQGA1UdEQQdMBuCGWNsb3VkLmFuZHJld3NvbWV0aGlu\nZy5jb20wgf4GA1UdIASB9jCB8zAIBgZngQwBAgWrgeYGCysGAQQBgt8TAQEBMIHW\nMCYGCCsGAQUFBwIBFhpodHRwOi8vY3BzLmxldHNlbmNyeXB0Lm9yZzCBqwYIKwYB\nBQUHAgIwgZ4MgZtUaGlzIENlcnRpZmljYXRlIG1heSBvbmx5IGJlIHJlbGllZCB1\ncG9uIGJ5IFJlbHlpbmcgUGFydGllcyBhbmQgb25seSQ2ziBhY2NvcmRhbmNlIHdp\ndGggdGhlIENlcnRpZmljYXRlIFBvbGljeSBmb3VuZCBhdCBodHRwczovL2xldHNl\nbmNyeXB0Lm9yZy9yZXBvc2l0b3J5LzANBgkqhkiG9w0BAQsFAAOCAQEAOZVQvrjM\nPKXLARTjB5XsgfyDN3/qwLl7SmwGkPe+B+9FJpfScYG1JzVuCj/SoaPaK34G4x/e\niXwlwOXtMOtqjQYzNu2Pr2C+I+rVmaxIrCUXFmC205IMuUBEeWXG9Y/HvXQLPabD\nD3Gdl5+Feink9SDRP7G0HaAwq13hI7ARxkL9p+UIY39X0dV3WOboW2Re8nrkFXJ7\nq9Z6shK5QgpBfsLjtjNsQzaGV3ve1gOg25aTJGearBWOvEjJNA1wGMoKVXOtYwm/\nWyWoVdCQ8HmconcbJB6xc0UZ1EjvzRr5ZIvSa5uHZD0L3m7/kpPWlAlFJ7hHASPu\nUlF1zblDmg2Iaw==\n-----END CERTIFICATE-----'.
+            certificate_chain (string): The full PEM-formatted trust chain between the certificate authority's certificate and your domain's SSL certificate. Example: '-----BEGIN CERTIFICATE-----\nMIIFFjCCA/6gAwIBAgISA0AznUJmXhu08/89ZuSPC/kRMA0GCSqGSIb3DQEBCwUA\nMEoxCzAJBgNVBAYTAlVTMRYwFAYDVQQKEw1MZXQncyBFbmNyeXB0MSMwIQYDVQQD\nExpMZXQncyBFbmNyeXB0IEF1dGhvcml0eSBYMzAeFw0xNjExMjQwMDIzMDBaFw0x\nNzAyMjIwMDIzMDBaMCQxIjAgBgNVBAMTGWNsb3VkLmFuZHJld3NvbWV0aGluZy5j\nb20wggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQDBIZMz7tnK6V52SVf+\nCYssOfCQHAx5f0Ou5rYbq3xNh8VHAIYJCQ1QxQIxKSP6+uODSYrb2KWyurP1DwGb\n8OYm0J3syEDtCUQik1cpCzpeNlAZ2f8FzXyYQAqPopxdRpsFz8DtZnVvu86XwrE4\noFPl9MReICmZfBNWylpV5qgFPoXyJ70ZAsTm3cEe3n+LBXEnY4YrVDRWxA3wZ2mz\nZ03HZ1hHrxK9CMnS829U+8sK+UneZpCO7yLRPuxwhmps0wpK/YuZZfRAKF1FZRna\nk/SIQ28rnWufmdg16YqqHgl5JOgnb3aslKRvL4dI2Gwnkd2IHtpZnTR0gxFXfqqb\nQwuRAgMBAAGjggIaMIICFjAOBgNVHQ8BAf8EBAMCBaAwHQYDVR0lBBYwFAYIKwYB\nBQUHAwEGCCsGAQUFBwMCMAwGA1UdEwEB/wQCMAAwHQYDVR0OBBYEFLsAFcxAhFX1\nMbCnzr9hEO5rL4jqMB8GA1UdIwQYMBaAFKhKamMEfd265tE5t6ZFZe/zqOyhMHAG\nCCsGAQUFBwEBBGQwYjAvBggrBgEFBQcwAYYjaHR0cDovL29jc3AuaW50LXgzLmxl\ndHNlbmNyeXB0Lm9yZy8wLwYIKwYBBQUHMAKGI2h0dHA6Ly9jZXJ0LmludC14My5s\nZXRzZW5jcnlwdC5vcmcvMCQGA1UdEQQdMBuCGWNsb3VkLmFuZHJld3NvbWV0aGlu\nZy5jb20wgf4GA1UdIASB9jCB8zAIBgZngQwBAgEwgeWECysGAQQBgt8TAQEBMIHW\nMCYGCCsGAQUFBwIBFhpodHRwOi8vY3BzLmxldHNlbmNyeXB0Lm9yZzCBqwYIKwYB\nBQUHAgIwgZ4MgZtUaGlzIENlcnRpZmljYXRlIG1heSBvbmx5IGJlIHJlbGllZCB1\ncG9uIGJ5IFJlbHlpbmcgUGFydGllcyBhbmQgb25seSQ2ziBhY2NvcmRhbmNlIHdp\ndGggdGhlIENlcnRpZmljYXRlIFBvbGljeSBmb3VuZCBhdCBsdHRwczovL2xldHNl\nbmNyeXB0Lm9yZy9yZXBvc2l0b3J5LzANBgkqhkiG9w0BAQsFAAOCAQEAOZVQvrjM\nPKXLARTjB5XsgfyDN3/qwLl7SmwGkPe+B+9FJpfScYG1JzVuCj/SoaPaK34G4x/e\niXwlwOXtMOtqjQYzNu2Pr2C+I+rVmaxIrCUXFmC205IMuUBEeWXG9Y/HvXQLPabD\nD3Gdl5+Feink9SDRP7G0HaAwq13hI7ARxkL3o+UIY39X0dV3WOboW2Re8nrkFXJ7\nq9Z6shK5QgpBfsLjtjNsQzaGV3ve1gOg25aTJGearBWOvEjJNA1wGMoKVXOtYwm/\nWyWoVdCQ8HmconcbJB6xc0UZ1EjvzRr5ZIvSa5uHZD0L3m7/kpPWlAlFJ7hHASPu\nUlF1zblDmg2Iaw==\n-----END CERTIFICATE-----\n-----BEGIN CERTIFICATE-----\nMIIEkjCCA3qgAwIBAgIQCgFBQgAAAVOFc2oLheynCDANBgkqhkiG9w0BAQsFADA/\nMSQwIgYDVQQKExtEaWdpdGFsIFNpZ25hdHVyZSBUcnVzdCBDby4xFzAVBgNVBAMT\nDkRTVCBSb290IENBIFgzMB4XDTE2MDMxNzE2NDA0NloXDTIxMDMxNzE2NDA0Nlow\nSjELMAkGA1UEBhMCVVMxFjAUBgNVBAoTDUxldCdzIEVuY3J5cHQxIzAhBgNVBAMT\nGkxldCdzIEVuY3J5cHQgQXV0aG9yaXR5IFgzMIIBIjANBgkqhkiG9w0BAQEFAAOC\nAQ8AMIIBCgKCAQEAnNMM8FrlLsd3cl03g7NoYzDq1zUmGSXhvb418XCSL7e4S0EF\nq6meNQhY7LEqxGiHC6PjdeTm86dicbp5gWAf15Gan/PQeGdxyGkOlZHP/uaZ6WA8\nSMx+yk13EiSdRxta67nsHjcAHJyse6cF6s5K671B5TaYucv9bTyWaN8jKkKQDIZ0\nZ8h/pZq4UmEUEz9l6YKHy9v6Dlb2honzhT+Xhq+w3Brvaw2VFn3EK6BlspkENnWA\na6xK8xuQSXgvopZPKiAlKQTGdMDQMc2PMTiVFrqoM7hD8bEfwzB/onkxEz0tNvjj\n/PIzark5McWvxI0NHWQWM6r6hCm21AvA2H3DkwIPOIUo4IBfTCCAXkwEgYDVR0T\nAQH/BAgwBgEB/wIBADAOBgNVHQ8BAf8EBAMCAYYwfwYIKwYBBQUHAQEEczBxMDIG\nCCsGAQUFBzABhiZodHRwOi8vaXNyZy50cnVzdGlkLm9jc3AuaWRlbnRydXN0LmNv\nbTA7BggrBgEFBQcwAoYvaHR0cDovL2FwcHMuaWRlbnRydXN0LmNvbS9yb290cy9k\nc3Ryb290Y2F4My5wN2MwHwYDVR0jBBgwFoAUxKexpHsscfrb4UuQdf/EFWCFiRAw\nVAYDVR0gBE0wSzAIBgZngQwBAgEwPwYLKwYBBAGC3xMBAQEwMDAuBggrBgEFBQcC\nARYiaHR0cDovL2Nwcy5yb290LXgxLmxldHNlbmNyeXB0Lm9yZzA8BgNVHR8ENTAz\nMDGgL6AthitodHRwOi8vY3JsLmlkZW50cnVzdC5jb20vRFNUUk9PVENBWDNDUkwu\nY3JsMB0GA1UdDgQWBBSoSmpjBH3duubRObemRWXv86jsoTANBgkqhkiG9w0BAQsF\nAAOCAQEA3TPXEfNjWDjdGBX7CVW+dla5cEilaUcne8IkCJLxWh9KEik3JHRRHGJo\nuM2VcGfl96S8TihRzZvoroed6ti6WqEBmtzw3Wodatg+VyOeph4EYpr/1wXKtx8/\nwApIvJSwtmVi4MFU5aMqrSDE6ea73Mj2tcMyo5jMd6jmeWUHK8so/joWUoHOUgwu\nX4Po1QYz+3dszkDqMp4fklxBwXRsW10KXzPMTZ+sOPAveyxindmjkW8lGy+QsRlG\nPfZ+G6Z6h7mjem0Y+iWlkYcV4PIWL1iwBi8saCbGS5jN2p8M+X+Q7UNKEkROb3N6\nKOqkqm57TH2H3eDJAkSnh6/DNFu0Qg==\n-----END CERTIFICATE-----'.
+
+        Returns:
+            dict[str, Any]: The response will be a JSON object with a key called `certificate`. The value of this will be an object that contains the standard attributes associated with a certificate.
+        When using Let's Encrypt, the initial value of the certificate's `state` attribute will be `pending`. When the certificate has been successfully issued by Let's Encrypt, this will transition to `verified` and be ready for use.
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
+        Tags:
+            Certificates
+        """
+        request_body_data = None
+        request_body_data = {
+            'name': name,
+            'type': type,
+            'dns_names': dns_names,
+            'private_key': private_key,
+            'leaf_certificate': leaf_certificate,
+            'certificate_chain': certificate_chain,
+        }
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
+        url = f"{self.base_url}/v2/certificates"
+        query_params = {}
+        response = self._post(url, data=request_body_data, params=query_params, content_type='application/json')
+        response.raise_for_status()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
+
+    def certificates_get(self, certificate_id: str) -> dict[str, Any]:
         """
         Retrieve an Existing Certificate
 
@@ -1201,18 +1629,27 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: The response will be a JSON object with a `certificate` key. This will be set to an object containing the standard certificate attributes.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Certificates
         """
         if certificate_id is None:
-            raise ValueError("Missing required parameter 'certificate_id'")
+            raise ValueError("Missing required parameter 'certificate_id'.")
         url = f"{self.base_url}/v2/certificates/{certificate_id}"
         query_params = {}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def certificates_delete(self, certificate_id) -> Any:
+    def certificates_delete(self, certificate_id: str) -> Any:
         """
         Delete a Certificate
 
@@ -1222,16 +1659,25 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: The action was successful and the response body is empty.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Certificates
         """
         if certificate_id is None:
-            raise ValueError("Missing required parameter 'certificate_id'")
+            raise ValueError("Missing required parameter 'certificate_id'.")
         url = f"{self.base_url}/v2/certificates/{certificate_id}"
         query_params = {}
         response = self._delete(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
     def balance_get(self) -> dict[str, Any]:
         """
@@ -1240,6 +1686,10 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: The response will be a JSON object that contains the following attributes
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Billing
         """
@@ -1247,7 +1697,12 @@ class DigitaloceanApp(APIApplication):
         query_params = {}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
     def billing_history_list(self) -> Any:
         """
@@ -1256,6 +1711,10 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: The response will be a JSON object that contains the following attributes
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Billing
         """
@@ -1263,9 +1722,14 @@ class DigitaloceanApp(APIApplication):
         query_params = {}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def invoices_list(self, per_page=None, page=None) -> Any:
+    def invoices_list(self, per_page: Optional[int] = None, page: Optional[int] = None) -> Any:
         """
         List All Invoices
 
@@ -1277,6 +1741,10 @@ class DigitaloceanApp(APIApplication):
             Any: The response will be a JSON object contains that contains a list of invoices under the `invoices` key, and the invoice preview under the `invoice_preview` key.
         Each element contains the invoice summary attributes.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Billing
         """
@@ -1284,9 +1752,14 @@ class DigitaloceanApp(APIApplication):
         query_params = {k: v for k, v in [('per_page', per_page), ('page', page)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def invoices_get_by_uuid(self, invoice_uuid, per_page=None, page=None) -> Any:
+    def invoices_get_by_uuid(self, invoice_uuid: str, per_page: Optional[int] = None, page: Optional[int] = None) -> Any:
         """
         Retrieve an Invoice by UUID
 
@@ -1298,18 +1771,27 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: The response will be a JSON object with a key called `invoice_items`. This will be set to an array of invoice item objects.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Billing
         """
         if invoice_uuid is None:
-            raise ValueError("Missing required parameter 'invoice_uuid'")
+            raise ValueError("Missing required parameter 'invoice_uuid'.")
         url = f"{self.base_url}/v2/customers/my/invoices/{invoice_uuid}"
         query_params = {k: v for k, v in [('per_page', per_page), ('page', page)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def invoices_get_csv_by_uuid(self, invoice_uuid) -> Any:
+    def invoices_get_csv_by_uuid(self, invoice_uuid: str) -> Any:
         """
         Retrieve an Invoice CSV by UUID
 
@@ -1319,18 +1801,27 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: The response will be a CSV file.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Billing
         """
         if invoice_uuid is None:
-            raise ValueError("Missing required parameter 'invoice_uuid'")
+            raise ValueError("Missing required parameter 'invoice_uuid'.")
         url = f"{self.base_url}/v2/customers/my/invoices/{invoice_uuid}/csv"
         query_params = {}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def invoices_get_pdf_by_uuid(self, invoice_uuid) -> Any:
+    def invoices_get_pdf_by_uuid(self, invoice_uuid: str) -> Any:
         """
         Retrieve an Invoice PDF by UUID
 
@@ -1340,18 +1831,27 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: The response will be a PDF file.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Billing
         """
         if invoice_uuid is None:
-            raise ValueError("Missing required parameter 'invoice_uuid'")
+            raise ValueError("Missing required parameter 'invoice_uuid'.")
         url = f"{self.base_url}/v2/customers/my/invoices/{invoice_uuid}/pdf"
         query_params = {}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def invoices_get_summary_by_uuid(self, invoice_uuid) -> dict[str, Any]:
+    def invoices_get_summary_by_uuid(self, invoice_uuid: str) -> dict[str, Any]:
         """
         Retrieve an Invoice Summary by UUID
 
@@ -1361,16 +1861,25 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: To retrieve a summary for an invoice, send a GET request to  `/v2/customers/my/invoices/$INVOICE_UUID/summary`.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Billing
         """
         if invoice_uuid is None:
-            raise ValueError("Missing required parameter 'invoice_uuid'")
+            raise ValueError("Missing required parameter 'invoice_uuid'.")
         url = f"{self.base_url}/v2/customers/my/invoices/{invoice_uuid}/summary"
         query_params = {}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
     def databases_list_options(self) -> dict[str, Any]:
         """
@@ -1379,6 +1888,10 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: A JSON string with a key of `options`.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Databases
         """
@@ -1386,9 +1899,14 @@ class DigitaloceanApp(APIApplication):
         query_params = {}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def databases_list_clusters(self, tag_name=None) -> Any:
+    def databases_list_clusters(self, tag_name: Optional[str] = None) -> Any:
         """
         List All Database Clusters
 
@@ -1398,6 +1916,10 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: A JSON object with a key of `databases`.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Databases
         """
@@ -1405,9 +1927,14 @@ class DigitaloceanApp(APIApplication):
         query_params = {k: v for k, v in [('tag_name', tag_name)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def databases_create_cluster(self, name, engine, num_nodes, size, region, id=None, version=None, semantic_version=None, status=None, created_at=None, private_network_uuid=None, tags=None, db_names=None, ui_connection=None, connection=None, private_connection=None, standby_connection=None, standby_private_connection=None, users=None, maintenance_window=None, project_id=None, rules=None, version_end_of_life=None, version_end_of_availability=None, storage_size_mib=None, metrics_endpoints=None, backup_restore=None) -> dict[str, Any]:
+    def databases_create_cluster(self, name: str, engine: str, num_nodes: int, size: str, region: str, id: Optional[str] = None, version: Optional[str] = None, semantic_version: Optional[str] = None, status: Optional[str] = None, created_at: Optional[str] = None, private_network_uuid: Optional[str] = None, tags: Optional[List[str]] = None, db_names: Optional[List[str]] = None, ui_connection: Optional[Any] = None, connection: Optional[Any] = None, private_connection: Optional[Any] = None, standby_connection: Optional[Any] = None, standby_private_connection: Optional[Any] = None, users: Optional[List[dict[str, Any]]] = None, maintenance_window: Optional[Any] = None, project_id: Optional[str] = None, rules: Optional[List[dict[str, Any]]] = None, version_end_of_life: Optional[str] = None, version_end_of_availability: Optional[str] = None, storage_size_mib: Optional[int] = None, metrics_endpoints: Optional[List[dict[str, Any]]] = None, backup_restore: Optional[dict[str, Any]] = None) -> dict[str, Any]:
         """
         Create a New Database Cluster
 
@@ -1439,29 +1966,19 @@ class DigitaloceanApp(APIApplication):
             storage_size_mib (integer): Additional storage added to the cluster, in MiB. If null, no additional storage is added to the cluster, beyond what is provided as a base amount from the 'size' and any previously added additional storage. Example: '61440'.
             metrics_endpoints (array): Public hostname and port of the cluster's metrics endpoint(s). Includes one record for the cluster's primary node and a second entry for the cluster's standby node(s).
             backup_restore (object): backup_restore
-                Example:
-                ```json
-                {
-                  "name": "backend",
-                  "engine": "pg",
-                  "version": "14",
-                  "region": "nyc3",
-                  "size": "db-s-2vcpu-4gb",
-                  "storage_size_mib": 61440,
-                  "num_nodes": 2,
-                  "tags": [
-                    "production"
-                  ]
-                }
-                ```
 
         Returns:
             dict[str, Any]: A JSON object with a key of `database`.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Databases
         """
-        request_body = {
+        request_body_data = None
+        request_body_data = {
             'id': id,
             'name': name,
             'engine': engine,
@@ -1490,14 +2007,19 @@ class DigitaloceanApp(APIApplication):
             'metrics_endpoints': metrics_endpoints,
             'backup_restore': backup_restore,
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
         url = f"{self.base_url}/v2/databases"
         query_params = {}
-        response = self._post(url, data=request_body, params=query_params)
+        response = self._post(url, data=request_body_data, params=query_params, content_type='application/json')
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def databases_get_cluster(self, database_cluster_uuid) -> dict[str, Any]:
+    def databases_get_cluster(self, database_cluster_uuid: str) -> dict[str, Any]:
         """
         Retrieve an Existing Database Cluster
 
@@ -1507,18 +2029,27 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: A JSON object with a key of `database`.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Databases
         """
         if database_cluster_uuid is None:
-            raise ValueError("Missing required parameter 'database_cluster_uuid'")
+            raise ValueError("Missing required parameter 'database_cluster_uuid'.")
         url = f"{self.base_url}/v2/databases/{database_cluster_uuid}"
         query_params = {}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def databases_destroy_cluster(self, database_cluster_uuid) -> Any:
+    def databases_destroy_cluster(self, database_cluster_uuid: str) -> Any:
         """
         Destroy a Database Cluster
 
@@ -1528,18 +2059,27 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: The action was successful and the response body is empty.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Databases
         """
         if database_cluster_uuid is None:
-            raise ValueError("Missing required parameter 'database_cluster_uuid'")
+            raise ValueError("Missing required parameter 'database_cluster_uuid'.")
         url = f"{self.base_url}/v2/databases/{database_cluster_uuid}"
         query_params = {}
         response = self._delete(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def databases_get_config(self, database_cluster_uuid) -> dict[str, Any]:
+    def databases_get_config(self, database_cluster_uuid: str) -> dict[str, Any]:
         """
         Retrieve an Existing Database Cluster Configuration
 
@@ -1549,53 +2089,63 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: A JSON object with a key of `config`.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Databases
         """
         if database_cluster_uuid is None:
-            raise ValueError("Missing required parameter 'database_cluster_uuid'")
+            raise ValueError("Missing required parameter 'database_cluster_uuid'.")
         url = f"{self.base_url}/v2/databases/{database_cluster_uuid}/config"
         query_params = {}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def databases_patch_config(self, database_cluster_uuid, config=None) -> Any:
+    def databases_patch_config(self, database_cluster_uuid: str, config: Optional[Any] = None) -> Any:
         """
         Update the Database Configuration for an Existing Database
 
         Args:
             database_cluster_uuid (string): database_cluster_uuid
-            config (string): config
-                Example:
-                ```json
-                {
-                  "config": {
-                    "sql_mode": "ANSI,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION,NO_ZERO_DATE,NO_ZERO_IN_DATE,STRICT_ALL_TABLES",
-                    "sql_require_primary_key": true
-                  }
-                }
-                ```
+            config (string): config Example: {'sql_mode': 'ANSI,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION,NO_ZERO_DATE,NO_ZERO_IN_DATE,STRICT_ALL_TABLES', 'sql_require_primary_key': True}.
 
         Returns:
             Any: The action was successful and the response body is empty.
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
 
         Tags:
             Databases
         """
         if database_cluster_uuid is None:
-            raise ValueError("Missing required parameter 'database_cluster_uuid'")
-        request_body = {
+            raise ValueError("Missing required parameter 'database_cluster_uuid'.")
+        request_body_data = None
+        request_body_data = {
             'config': config,
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
         url = f"{self.base_url}/v2/databases/{database_cluster_uuid}/config"
         query_params = {}
-        response = self._patch(url, data=request_body, params=query_params)
+        response = self._patch(url, data=request_body_data, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def databases_get_ca(self, database_cluster_uuid) -> dict[str, Any]:
+    def databases_get_ca(self, database_cluster_uuid: str) -> dict[str, Any]:
         """
         Retrieve the Public Certificate
 
@@ -1605,18 +2155,27 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: A JSON object with a key of `ca`.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Databases
         """
         if database_cluster_uuid is None:
-            raise ValueError("Missing required parameter 'database_cluster_uuid'")
+            raise ValueError("Missing required parameter 'database_cluster_uuid'.")
         url = f"{self.base_url}/v2/databases/{database_cluster_uuid}/ca"
         query_params = {}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def databases_get_migration_status(self, database_cluster_uuid) -> dict[str, Any]:
+    def databases_get_migration_status(self, database_cluster_uuid: str) -> dict[str, Any]:
         """
         Retrieve the Status of an Online Migration
 
@@ -1626,65 +2185,67 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: A JSON object.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Databases
         """
         if database_cluster_uuid is None:
-            raise ValueError("Missing required parameter 'database_cluster_uuid'")
+            raise ValueError("Missing required parameter 'database_cluster_uuid'.")
         url = f"{self.base_url}/v2/databases/{database_cluster_uuid}/online-migration"
         query_params = {}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def databases_update_online_migration(self, database_cluster_uuid, source, disable_ssl=None, ignore_dbs=None) -> dict[str, Any]:
+    def start_online_migration(self, database_cluster_uuid: str, source: dict[str, Any], disable_ssl: Optional[bool] = None, ignore_dbs: Optional[List[str]] = None) -> dict[str, Any]:
         """
         Start an Online Migration
 
         Args:
             database_cluster_uuid (string): database_cluster_uuid
-            source (object): source
+            source (object): source Example: {'host': 'source-do-user-6607903-0.b.db.ondigitalocean.com', 'dbname': 'defaultdb', 'port': 25060, 'username': 'doadmin', 'password': 'paakjnfe10rsrsmf'}.
             disable_ssl (boolean): Enables SSL encryption when connecting to the source database. Example: 'False'.
-            ignore_dbs (array): List of databases that should be ignored during migration.
-                Example:
-                ```json
-                {
-                  "source": {
-                    "host": "source-do-user-6607903-0.b.db.ondigitalocean.com",
-                    "dbname": "defaultdb",
-                    "port": 25060,
-                    "username": "doadmin",
-                    "password": "paakjnfe10rsrsmf"
-                  },
-                  "disable_ssl": false,
-                  "ignore_dbs": [
-                    "db0",
-                    "db1"
-                  ]
-                }
-                ```
+            ignore_dbs (array): List of databases that should be ignored during migration. Example: "['db0', 'db1']".
 
         Returns:
             dict[str, Any]: A JSON object.
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
 
         Tags:
             Databases
         """
         if database_cluster_uuid is None:
-            raise ValueError("Missing required parameter 'database_cluster_uuid'")
-        request_body = {
+            raise ValueError("Missing required parameter 'database_cluster_uuid'.")
+        request_body_data = None
+        request_body_data = {
             'source': source,
             'disable_ssl': disable_ssl,
             'ignore_dbs': ignore_dbs,
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
         url = f"{self.base_url}/v2/databases/{database_cluster_uuid}/online-migration"
         query_params = {}
-        response = self._put(url, data=request_body, params=query_params)
+        response = self._put(url, data=request_body_data, params=query_params, content_type='application/json')
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def databases_delete_online_migration(self, database_cluster_uuid, migration_id) -> Any:
+    def delete_online_migration_by_id(self, database_cluster_uuid: str, migration_id: str) -> Any:
         """
         Stop an Online Migration
 
@@ -1695,20 +2256,29 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: The action was successful and the response body is empty.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Databases
         """
         if database_cluster_uuid is None:
-            raise ValueError("Missing required parameter 'database_cluster_uuid'")
+            raise ValueError("Missing required parameter 'database_cluster_uuid'.")
         if migration_id is None:
-            raise ValueError("Missing required parameter 'migration_id'")
+            raise ValueError("Missing required parameter 'migration_id'.")
         url = f"{self.base_url}/v2/databases/{database_cluster_uuid}/online-migration/{migration_id}"
         query_params = {}
         response = self._delete(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def databases_update_region(self, database_cluster_uuid, region) -> Any:
+    def databases_update_region(self, database_cluster_uuid: str, region: str) -> Any:
         """
         Migrate a Database Cluster to a New Region
 
@@ -1719,22 +2289,32 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: This does not indicate the success or failure of any operation, just that the request has been accepted for processing.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Databases
         """
         if database_cluster_uuid is None:
-            raise ValueError("Missing required parameter 'database_cluster_uuid'")
-        request_body = {
+            raise ValueError("Missing required parameter 'database_cluster_uuid'.")
+        request_body_data = None
+        request_body_data = {
             'region': region,
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
         url = f"{self.base_url}/v2/databases/{database_cluster_uuid}/migrate"
         query_params = {}
-        response = self._put(url, data=request_body, params=query_params)
+        response = self._put(url, data=request_body_data, params=query_params, content_type='application/json')
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def databases_update_cluster_size(self, database_cluster_uuid, size, num_nodes, storage_size_mib=None) -> Any:
+    def databases_update_cluster_size(self, database_cluster_uuid: str, size: str, num_nodes: int, storage_size_mib: Optional[int] = None) -> Any:
         """
         Resize a Database Cluster
 
@@ -1742,37 +2322,39 @@ class DigitaloceanApp(APIApplication):
             database_cluster_uuid (string): database_cluster_uuid
             size (string): A slug identifier representing desired the size of the nodes in the database cluster. Example: 'db-s-4vcpu-8gb'.
             num_nodes (integer): The number of nodes in the database cluster. Valid values are are 1-3. In addition to the primary node, up to two standby nodes may be added for highly available configurations. Example: '3'.
-            storage_size_mib (integer): Additional storage added to the cluster, in MiB. If null, no additional storage is added to the cluster, beyond what is provided as a base amount from the 'size' and any previously added additional storage.
-                Example:
-                ```json
-                {
-                  "size": "db-s-4vcpu-8gb",
-                  "num_nodes": 3,
-                  "storage_size_mib": 163840
-                }
-                ```
+            storage_size_mib (integer): Additional storage added to the cluster, in MiB. If null, no additional storage is added to the cluster, beyond what is provided as a base amount from the 'size' and any previously added additional storage. Example: '61440'.
 
         Returns:
             Any: The action was successful and the response body is empty.
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
 
         Tags:
             Databases
         """
         if database_cluster_uuid is None:
-            raise ValueError("Missing required parameter 'database_cluster_uuid'")
-        request_body = {
+            raise ValueError("Missing required parameter 'database_cluster_uuid'.")
+        request_body_data = None
+        request_body_data = {
             'size': size,
             'num_nodes': num_nodes,
             'storage_size_mib': storage_size_mib,
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
         url = f"{self.base_url}/v2/databases/{database_cluster_uuid}/resize"
         query_params = {}
-        response = self._put(url, data=request_body, params=query_params)
+        response = self._put(url, data=request_body_data, params=query_params, content_type='application/json')
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def databases_list_firewall_rules(self, database_cluster_uuid) -> Any:
+    def databases_list_firewall_rules(self, database_cluster_uuid: str) -> Any:
         """
         List Firewall Rules (Trusted Sources) for a Database Cluster
 
@@ -1782,67 +2364,63 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: A JSON object with a key of `rules`.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Databases
         """
         if database_cluster_uuid is None:
-            raise ValueError("Missing required parameter 'database_cluster_uuid'")
+            raise ValueError("Missing required parameter 'database_cluster_uuid'.")
         url = f"{self.base_url}/v2/databases/{database_cluster_uuid}/firewall"
         query_params = {}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def databases_update_firewall_rules(self, database_cluster_uuid, rules=None) -> Any:
+    def update_database_cluster_firewall(self, database_cluster_uuid: str, rules: Optional[List[dict[str, Any]]] = None) -> Any:
         """
         Update Firewall Rules (Trusted Sources) for a Database
 
         Args:
             database_cluster_uuid (string): database_cluster_uuid
-            rules (array): rules
-                Example:
-                ```json
-                {
-                  "rules": [
-                    {
-                      "type": "ip_addr",
-                      "value": "192.168.1.1"
-                    },
-                    {
-                      "type": "k8s",
-                      "value": "ff2a6c52-5a44-4b63-b99c-0e98e7a63d61"
-                    },
-                    {
-                      "type": "droplet",
-                      "value": "163973392"
-                    },
-                    {
-                      "type": "tag",
-                      "value": "backend"
-                    }
-                  ]
-                }
-                ```
+            rules (array): rules Example: [{'type': 'ip_addr', 'value': '192.168.1.1'}, {'type': 'k8s', 'value': 'ff2a6c52-5a44-4b63-b99c-0e98e7a63d61'}, {'type': 'droplet', 'value': '163973392'}, {'type': 'tag', 'value': 'backend'}].
 
         Returns:
             Any: The action was successful and the response body is empty.
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
 
         Tags:
             Databases
         """
         if database_cluster_uuid is None:
-            raise ValueError("Missing required parameter 'database_cluster_uuid'")
-        request_body = {
+            raise ValueError("Missing required parameter 'database_cluster_uuid'.")
+        request_body_data = None
+        request_body_data = {
             'rules': rules,
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
         url = f"{self.base_url}/v2/databases/{database_cluster_uuid}/firewall"
         query_params = {}
-        response = self._put(url, data=request_body, params=query_params)
+        response = self._put(url, data=request_body_data, params=query_params, content_type='application/json')
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def databases_update_maintenance_window(self, database_cluster_uuid, day, hour, pending=None, description=None) -> Any:
+    def update_database_maintenance(self, database_cluster_uuid: str, day: str, hour: str, pending: Optional[bool] = None, description: Optional[List[str]] = None) -> Any:
         """
         Configure a Database Cluster's Maintenance Window
 
@@ -1851,37 +2429,40 @@ class DigitaloceanApp(APIApplication):
             day (string): The day of the week on which to apply maintenance updates. Example: 'tuesday'.
             hour (string): The hour in UTC at which maintenance updates will be applied in 24 hour format. Example: '14:00'.
             pending (boolean): A boolean value indicating whether any maintenance is scheduled to be performed in the next window. Example: 'True'.
-            description (array): A list of strings, each containing information about a pending maintenance update.
-                Example:
-                ```json
-                {
-                  "day": "tuesday",
-                  "hour": "14:00"
-                }
-                ```
+            description (array): A list of strings, each containing information about a pending maintenance update. Example: "['Update TimescaleDB to version 1.2.1', 'Upgrade to PostgreSQL 11.2 and 10.7 bugfix releases']".
 
         Returns:
             Any: The action was successful and the response body is empty.
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
 
         Tags:
             Databases
         """
         if database_cluster_uuid is None:
-            raise ValueError("Missing required parameter 'database_cluster_uuid'")
-        request_body = {
+            raise ValueError("Missing required parameter 'database_cluster_uuid'.")
+        request_body_data = None
+        request_body_data = {
             'day': day,
             'hour': hour,
             'pending': pending,
             'description': description,
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
         url = f"{self.base_url}/v2/databases/{database_cluster_uuid}/maintenance"
         query_params = {}
-        response = self._put(url, data=request_body, params=query_params)
+        response = self._put(url, data=request_body_data, params=query_params, content_type='application/json')
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def databases_install_update(self, database_cluster_uuid) -> Any:
+    def databases_install_update(self, database_cluster_uuid: str) -> Any:
         """
         Start Database Maintenance
 
@@ -1891,18 +2472,28 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: The action was successful and the response body is empty.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Databases
         """
         if database_cluster_uuid is None:
-            raise ValueError("Missing required parameter 'database_cluster_uuid'")
+            raise ValueError("Missing required parameter 'database_cluster_uuid'.")
+        request_body_data = None
         url = f"{self.base_url}/v2/databases/{database_cluster_uuid}/install_update"
         query_params = {}
-        response = self._put(url, data={}, params=query_params)
+        response = self._put(url, data=request_body_data, params=query_params, content_type='application/json')
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def databases_list_backups(self, database_cluster_uuid) -> dict[str, Any]:
+    def databases_list_backups(self, database_cluster_uuid: str) -> dict[str, Any]:
         """
         List Backups for a Database Cluster
 
@@ -1912,18 +2503,27 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: A JSON object with a key of `database_backups`.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Databases
         """
         if database_cluster_uuid is None:
-            raise ValueError("Missing required parameter 'database_cluster_uuid'")
+            raise ValueError("Missing required parameter 'database_cluster_uuid'.")
         url = f"{self.base_url}/v2/databases/{database_cluster_uuid}/backups"
         query_params = {}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def databases_list_replicas(self, database_cluster_uuid) -> Any:
+    def databases_list_replicas(self, database_cluster_uuid: str) -> Any:
         """
         List All Read-only Replicas
 
@@ -1933,18 +2533,27 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: A JSON object with a key of `replicas`.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Databases
         """
         if database_cluster_uuid is None:
-            raise ValueError("Missing required parameter 'database_cluster_uuid'")
+            raise ValueError("Missing required parameter 'database_cluster_uuid'.")
         url = f"{self.base_url}/v2/databases/{database_cluster_uuid}/replicas"
         query_params = {}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def databases_create_replica(self, database_cluster_uuid, id=None, name=None, region=None, size=None, status=None, tags=None, created_at=None, private_network_uuid=None, connection=None, private_connection=None, storage_size_mib=None) -> dict[str, Any]:
+    def databases_create_replica(self, database_cluster_uuid: str, id: Optional[str] = None, name: Optional[str] = None, region: Optional[str] = None, size: Optional[str] = None, status: Optional[str] = None, tags: Optional[List[str]] = None, created_at: Optional[str] = None, private_network_uuid: Optional[str] = None, connection: Optional[Any] = None, private_connection: Optional[Any] = None, storage_size_mib: Optional[int] = None) -> dict[str, Any]:
         """
         Create a Read-only Replica
 
@@ -1960,26 +2569,22 @@ class DigitaloceanApp(APIApplication):
             private_network_uuid (string): A string specifying the UUID of the VPC to which the read-only replica will be assigned. If excluded, the replica will be assigned to your account's default VPC for the region. Example: '9423cbad-9211-442f-820b-ef6915e99b5f'.
             connection (string): connection
             private_connection (string): private_connection
-            storage_size_mib (integer): Additional storage added to the cluster, in MiB. If null, no additional storage is added to the cluster, beyond what is provided as a base amount from the 'size' and any previously added additional storage.
-                Example:
-                ```json
-                {
-                  "name": "read-nyc3-01",
-                  "region": "nyc3",
-                  "size": "db-s-2vcpu-4gb",
-                  "storage_size_mib": 61440
-                }
-                ```
+            storage_size_mib (integer): Additional storage added to the cluster, in MiB. If null, no additional storage is added to the cluster, beyond what is provided as a base amount from the 'size' and any previously added additional storage. Example: '61440'.
 
         Returns:
             dict[str, Any]: A JSON object with a key of `replica`.
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
 
         Tags:
             Databases
         """
         if database_cluster_uuid is None:
-            raise ValueError("Missing required parameter 'database_cluster_uuid'")
-        request_body = {
+            raise ValueError("Missing required parameter 'database_cluster_uuid'.")
+        request_body_data = None
+        request_body_data = {
             'id': id,
             'name': name,
             'region': region,
@@ -1992,14 +2597,19 @@ class DigitaloceanApp(APIApplication):
             'private_connection': private_connection,
             'storage_size_mib': storage_size_mib,
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
         url = f"{self.base_url}/v2/databases/{database_cluster_uuid}/replicas"
         query_params = {}
-        response = self._post(url, data=request_body, params=query_params)
+        response = self._post(url, data=request_body_data, params=query_params, content_type='application/json')
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def databases_list_events_logs(self, database_cluster_uuid) -> Any:
+    def databases_list_events_logs(self, database_cluster_uuid: str) -> Any:
         """
         List all Events Logs
 
@@ -2009,18 +2619,27 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: A JSON object with a key of `events`.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Databases
         """
         if database_cluster_uuid is None:
-            raise ValueError("Missing required parameter 'database_cluster_uuid'")
+            raise ValueError("Missing required parameter 'database_cluster_uuid'.")
         url = f"{self.base_url}/v2/databases/{database_cluster_uuid}/events"
         query_params = {}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def databases_get_replica(self, database_cluster_uuid, replica_name) -> dict[str, Any]:
+    def databases_get_replica(self, database_cluster_uuid: str, replica_name: str) -> dict[str, Any]:
         """
         Retrieve an Existing Read-only Replica
 
@@ -2031,20 +2650,29 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: A JSON object with a key of `replica`.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Databases
         """
         if database_cluster_uuid is None:
-            raise ValueError("Missing required parameter 'database_cluster_uuid'")
+            raise ValueError("Missing required parameter 'database_cluster_uuid'.")
         if replica_name is None:
-            raise ValueError("Missing required parameter 'replica_name'")
+            raise ValueError("Missing required parameter 'replica_name'.")
         url = f"{self.base_url}/v2/databases/{database_cluster_uuid}/replicas/{replica_name}"
         query_params = {}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def databases_destroy_replica(self, database_cluster_uuid, replica_name) -> Any:
+    def databases_destroy_replica(self, database_cluster_uuid: str, replica_name: str) -> Any:
         """
         Destroy a Read-only Replica
 
@@ -2055,20 +2683,29 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: The action was successful and the response body is empty.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Databases
         """
         if database_cluster_uuid is None:
-            raise ValueError("Missing required parameter 'database_cluster_uuid'")
+            raise ValueError("Missing required parameter 'database_cluster_uuid'.")
         if replica_name is None:
-            raise ValueError("Missing required parameter 'replica_name'")
+            raise ValueError("Missing required parameter 'replica_name'.")
         url = f"{self.base_url}/v2/databases/{database_cluster_uuid}/replicas/{replica_name}"
         query_params = {}
         response = self._delete(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def databases_promote_replica(self, database_cluster_uuid, replica_name) -> Any:
+    def databases_promote_replica(self, database_cluster_uuid: str, replica_name: str) -> Any:
         """
         Promote a Read-only Replica to become a Primary Cluster
 
@@ -2079,20 +2716,30 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: The action was successful and the response body is empty.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Databases
         """
         if database_cluster_uuid is None:
-            raise ValueError("Missing required parameter 'database_cluster_uuid'")
+            raise ValueError("Missing required parameter 'database_cluster_uuid'.")
         if replica_name is None:
-            raise ValueError("Missing required parameter 'replica_name'")
+            raise ValueError("Missing required parameter 'replica_name'.")
+        request_body_data = None
         url = f"{self.base_url}/v2/databases/{database_cluster_uuid}/replicas/{replica_name}/promote"
         query_params = {}
-        response = self._put(url, data={}, params=query_params)
+        response = self._put(url, data=request_body_data, params=query_params, content_type='application/json')
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def databases_list_users(self, database_cluster_uuid) -> Any:
+    def databases_list_users(self, database_cluster_uuid: str) -> Any:
         """
         List all Database Users
 
@@ -2102,18 +2749,27 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: A JSON object with a key of `users`.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Databases
         """
         if database_cluster_uuid is None:
-            raise ValueError("Missing required parameter 'database_cluster_uuid'")
+            raise ValueError("Missing required parameter 'database_cluster_uuid'.")
         url = f"{self.base_url}/v2/databases/{database_cluster_uuid}/users"
         query_params = {}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def databases_add_user(self, database_cluster_uuid, name, role=None, password=None, access_cert=None, access_key=None, mysql_settings=None, settings=None, readonly=None) -> dict[str, Any]:
+    def databases_add_user(self, database_cluster_uuid: str, name: str, role: Optional[str] = None, password: Optional[str] = None, access_cert: Optional[str] = None, access_key: Optional[str] = None, mysql_settings: Optional[dict[str, Any]] = None, settings: Optional[dict[str, Any]] = None, readonly: Optional[bool] = None) -> dict[str, Any]:
         """
         Add a Database User
 
@@ -2132,23 +2788,22 @@ class DigitaloceanApp(APIApplication):
         For MongoDB clusters, set to `true` to create a read-only user.
         This option is not currently supported for other database engines.
            
-
-                Example:
-                ```json
-                {
-                  "name": "app-01"
-                }
-                ```
+         Example: 'True'.
 
         Returns:
             dict[str, Any]: A JSON object with a key of `user`.
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
 
         Tags:
             Databases
         """
         if database_cluster_uuid is None:
-            raise ValueError("Missing required parameter 'database_cluster_uuid'")
-        request_body = {
+            raise ValueError("Missing required parameter 'database_cluster_uuid'.")
+        request_body_data = None
+        request_body_data = {
             'name': name,
             'role': role,
             'password': password,
@@ -2158,14 +2813,19 @@ class DigitaloceanApp(APIApplication):
             'settings': settings,
             'readonly': readonly,
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
         url = f"{self.base_url}/v2/databases/{database_cluster_uuid}/users"
         query_params = {}
-        response = self._post(url, data=request_body, params=query_params)
+        response = self._post(url, data=request_body_data, params=query_params, content_type='application/json')
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def databases_get_user(self, database_cluster_uuid, username) -> dict[str, Any]:
+    def databases_get_user(self, database_cluster_uuid: str, username: str) -> dict[str, Any]:
         """
         Retrieve an Existing Database User
 
@@ -2176,20 +2836,29 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: A JSON object with a key of `user`.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Databases
         """
         if database_cluster_uuid is None:
-            raise ValueError("Missing required parameter 'database_cluster_uuid'")
+            raise ValueError("Missing required parameter 'database_cluster_uuid'.")
         if username is None:
-            raise ValueError("Missing required parameter 'username'")
+            raise ValueError("Missing required parameter 'username'.")
         url = f"{self.base_url}/v2/databases/{database_cluster_uuid}/users/{username}"
         query_params = {}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def databases_delete_user(self, database_cluster_uuid, username) -> Any:
+    def databases_delete_user(self, database_cluster_uuid: str, username: str) -> Any:
         """
         Remove a Database User
 
@@ -2200,110 +2869,107 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: The action was successful and the response body is empty.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Databases
         """
         if database_cluster_uuid is None:
-            raise ValueError("Missing required parameter 'database_cluster_uuid'")
+            raise ValueError("Missing required parameter 'database_cluster_uuid'.")
         if username is None:
-            raise ValueError("Missing required parameter 'username'")
+            raise ValueError("Missing required parameter 'username'.")
         url = f"{self.base_url}/v2/databases/{database_cluster_uuid}/users/{username}"
         query_params = {}
         response = self._delete(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def databases_update_user(self, database_cluster_uuid, username, settings) -> dict[str, Any]:
+    def databases_update_user(self, database_cluster_uuid: str, username: str, settings: dict[str, Any]) -> dict[str, Any]:
         """
         Update a Database User
 
         Args:
             database_cluster_uuid (string): database_cluster_uuid
             username (string): username
-            settings (object): settings
-                Example:
-                ```json
-                {
-                  "settings": {
-                    "acl": [
-                      {
-                        "id": "acl128aaaa99239",
-                        "permission": "produceconsume",
-                        "topic": "customer-events"
-                      },
-                      {
-                        "id": "acl293098flskdf",
-                        "permission": "produce",
-                        "topic": "customer-events.*"
-                      },
-                      {
-                        "id": "acl128ajei20123",
-                        "permission": "consume",
-                        "topic": "customer-events"
-                      }
-                    ]
-                  }
-                }
-                ```
+            settings (object): settings Example: {'acl': [{'id': 'acl128aaaa99239', 'permission': 'produceconsume', 'topic': 'customer-events'}, {'id': 'acl293098flskdf', 'permission': 'produce', 'topic': 'customer-events.*'}, {'id': 'acl128ajei20123', 'permission': 'consume', 'topic': 'customer-events'}]}.
 
         Returns:
             dict[str, Any]: A JSON object with a key of `user`.
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
 
         Tags:
             Databases
         """
         if database_cluster_uuid is None:
-            raise ValueError("Missing required parameter 'database_cluster_uuid'")
+            raise ValueError("Missing required parameter 'database_cluster_uuid'.")
         if username is None:
-            raise ValueError("Missing required parameter 'username'")
-        request_body = {
+            raise ValueError("Missing required parameter 'username'.")
+        request_body_data = None
+        request_body_data = {
             'settings': settings,
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
         url = f"{self.base_url}/v2/databases/{database_cluster_uuid}/users/{username}"
         query_params = {}
-        response = self._put(url, data=request_body, params=query_params)
+        response = self._put(url, data=request_body_data, params=query_params, content_type='application/json')
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def databases_reset_auth(self, database_cluster_uuid, username, mysql_settings=None) -> dict[str, Any]:
+    def databases_reset_auth(self, database_cluster_uuid: str, username: str, mysql_settings: Optional[dict[str, Any]] = None) -> dict[str, Any]:
         """
         Reset a Database User's Password or Authentication Method
 
         Args:
             database_cluster_uuid (string): database_cluster_uuid
             username (string): username
-            mysql_settings (object): mysql_settings
-                Example:
-                ```json
-                {
-                  "mysql_settings": {
-                    "auth_plugin": "caching_sha2_password"
-                  }
-                }
-                ```
+            mysql_settings (object): mysql_settings Example: {'auth_plugin': 'caching_sha2_password'}.
 
         Returns:
             dict[str, Any]: A JSON object with a key of `user`.
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
 
         Tags:
             Databases
         """
         if database_cluster_uuid is None:
-            raise ValueError("Missing required parameter 'database_cluster_uuid'")
+            raise ValueError("Missing required parameter 'database_cluster_uuid'.")
         if username is None:
-            raise ValueError("Missing required parameter 'username'")
-        request_body = {
+            raise ValueError("Missing required parameter 'username'.")
+        request_body_data = None
+        request_body_data = {
             'mysql_settings': mysql_settings,
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
         url = f"{self.base_url}/v2/databases/{database_cluster_uuid}/users/{username}/reset_auth"
         query_params = {}
-        response = self._post(url, data=request_body, params=query_params)
+        response = self._post(url, data=request_body_data, params=query_params, content_type='application/json')
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def databases_list(self, database_cluster_uuid) -> Any:
+    def databases_list(self, database_cluster_uuid: str) -> Any:
         """
         List All Databases
 
@@ -2313,50 +2979,63 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: A JSON object with a key of `databases`.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Databases
         """
         if database_cluster_uuid is None:
-            raise ValueError("Missing required parameter 'database_cluster_uuid'")
+            raise ValueError("Missing required parameter 'database_cluster_uuid'.")
         url = f"{self.base_url}/v2/databases/{database_cluster_uuid}/dbs"
         query_params = {}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def databases_add(self, database_cluster_uuid, name) -> dict[str, Any]:
+    def databases_add(self, database_cluster_uuid: str, name: str) -> dict[str, Any]:
         """
         Add a New Database
 
         Args:
             database_cluster_uuid (string): database_cluster_uuid
-            name (string): The name of the database.
-                Example:
-                ```json
-                {
-                  "name": "alpha"
-                }
-                ```
+            name (string): The name of the database. Example: 'alpha'.
 
         Returns:
             dict[str, Any]: A JSON object with a key of `db`.
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
 
         Tags:
             Databases
         """
         if database_cluster_uuid is None:
-            raise ValueError("Missing required parameter 'database_cluster_uuid'")
-        request_body = {
+            raise ValueError("Missing required parameter 'database_cluster_uuid'.")
+        request_body_data = None
+        request_body_data = {
             'name': name,
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
         url = f"{self.base_url}/v2/databases/{database_cluster_uuid}/dbs"
         query_params = {}
-        response = self._post(url, data=request_body, params=query_params)
+        response = self._post(url, data=request_body_data, params=query_params, content_type='application/json')
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def databases_get(self, database_cluster_uuid, database_name) -> dict[str, Any]:
+    def databases_get(self, database_cluster_uuid: str, database_name: str) -> dict[str, Any]:
         """
         Retrieve an Existing Database
 
@@ -2367,20 +3046,29 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: A JSON object with a key of `db`.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Databases
         """
         if database_cluster_uuid is None:
-            raise ValueError("Missing required parameter 'database_cluster_uuid'")
+            raise ValueError("Missing required parameter 'database_cluster_uuid'.")
         if database_name is None:
-            raise ValueError("Missing required parameter 'database_name'")
+            raise ValueError("Missing required parameter 'database_name'.")
         url = f"{self.base_url}/v2/databases/{database_cluster_uuid}/dbs/{database_name}"
         query_params = {}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def databases_delete(self, database_cluster_uuid, database_name) -> Any:
+    def databases_delete(self, database_cluster_uuid: str, database_name: str) -> Any:
         """
         Delete a Database
 
@@ -2391,20 +3079,29 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: The action was successful and the response body is empty.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Databases
         """
         if database_cluster_uuid is None:
-            raise ValueError("Missing required parameter 'database_cluster_uuid'")
+            raise ValueError("Missing required parameter 'database_cluster_uuid'.")
         if database_name is None:
-            raise ValueError("Missing required parameter 'database_name'")
+            raise ValueError("Missing required parameter 'database_name'.")
         url = f"{self.base_url}/v2/databases/{database_cluster_uuid}/dbs/{database_name}"
         query_params = {}
         response = self._delete(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def databases_list_connection_pools(self, database_cluster_uuid) -> dict[str, Any]:
+    def databases_list_connection_pools(self, database_cluster_uuid: str) -> dict[str, Any]:
         """
         List Connection Pools (PostgreSQL)
 
@@ -2414,18 +3111,27 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: A JSON object with a key of `pools`.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Databases
         """
         if database_cluster_uuid is None:
-            raise ValueError("Missing required parameter 'database_cluster_uuid'")
+            raise ValueError("Missing required parameter 'database_cluster_uuid'.")
         url = f"{self.base_url}/v2/databases/{database_cluster_uuid}/pools"
         query_params = {}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def databases_add_connection_pool(self, database_cluster_uuid, name, mode, size, db, user=None, connection=None, private_connection=None, standby_connection=None, standby_private_connection=None) -> dict[str, Any]:
+    def databases_add_connection_pool(self, database_cluster_uuid: str, name: str, mode: str, size: int, db: str, user: Optional[str] = None, connection: Optional[Any] = None, private_connection: Optional[Any] = None, standby_connection: Optional[Any] = None, standby_private_connection: Optional[Any] = None) -> dict[str, Any]:
         """
         Add a New Connection Pool (PostgreSQL)
 
@@ -2440,26 +3146,21 @@ class DigitaloceanApp(APIApplication):
             private_connection (string): private_connection
             standby_connection (string): standby_connection
             standby_private_connection (string): standby_private_connection
-                Example:
-                ```json
-                {
-                  "name": "backend-pool",
-                  "mode": "transaction",
-                  "size": 10,
-                  "db": "defaultdb",
-                  "user": "doadmin"
-                }
-                ```
 
         Returns:
             dict[str, Any]: A JSON object with a key of `pool`.
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
 
         Tags:
             Databases
         """
         if database_cluster_uuid is None:
-            raise ValueError("Missing required parameter 'database_cluster_uuid'")
-        request_body = {
+            raise ValueError("Missing required parameter 'database_cluster_uuid'.")
+        request_body_data = None
+        request_body_data = {
             'name': name,
             'mode': mode,
             'size': size,
@@ -2470,14 +3171,19 @@ class DigitaloceanApp(APIApplication):
             'standby_connection': standby_connection,
             'standby_private_connection': standby_private_connection,
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
         url = f"{self.base_url}/v2/databases/{database_cluster_uuid}/pools"
         query_params = {}
-        response = self._post(url, data=request_body, params=query_params)
+        response = self._post(url, data=request_body_data, params=query_params, content_type='application/json')
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def databases_get_connection_pool(self, database_cluster_uuid, pool_name) -> dict[str, Any]:
+    def databases_get_connection_pool(self, database_cluster_uuid: str, pool_name: str) -> dict[str, Any]:
         """
         Retrieve Existing Connection Pool (PostgreSQL)
 
@@ -2488,20 +3194,29 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: A JSON object with a key of `pool`.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Databases
         """
         if database_cluster_uuid is None:
-            raise ValueError("Missing required parameter 'database_cluster_uuid'")
+            raise ValueError("Missing required parameter 'database_cluster_uuid'.")
         if pool_name is None:
-            raise ValueError("Missing required parameter 'pool_name'")
+            raise ValueError("Missing required parameter 'pool_name'.")
         url = f"{self.base_url}/v2/databases/{database_cluster_uuid}/pools/{pool_name}"
         query_params = {}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def databases_update_connection_pool(self, database_cluster_uuid, pool_name, mode, size, db, user=None) -> Any:
+    def update_database_pool(self, database_cluster_uuid: str, pool_name: str, mode: str, size: int, db: str, user: Optional[str] = None) -> Any:
         """
         Update Connection Pools (PostgreSQL)
 
@@ -2511,41 +3226,42 @@ class DigitaloceanApp(APIApplication):
             mode (string): The PGBouncer transaction mode for the connection pool. The allowed values are session, transaction, and statement. Example: 'transaction'.
             size (integer): The desired size of the PGBouncer connection pool. The maximum allowed size is determined by the size of the cluster's primary node. 25 backend server connections are allowed for every 1GB of RAM. Three are reserved for maintenance. For example, a primary node with 1 GB of RAM allows for a maximum of 22 backend server connections while one with 4 GB would allow for 97. Note that these are shared across all connection pools in a cluster. Example: '10'.
             db (string): The database for use with the connection pool. Example: 'defaultdb'.
-            user (string): The name of the user for use with the connection pool. When excluded, all sessions connect to the database as the inbound user.
-                Example:
-                ```json
-                {
-                  "mode": "transaction",
-                  "size": 10,
-                  "db": "defaultdb",
-                  "user": "doadmin"
-                }
-                ```
+            user (string): The name of the user for use with the connection pool. When excluded, all sessions connect to the database as the inbound user. Example: 'doadmin'.
 
         Returns:
             Any: The action was successful and the response body is empty.
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
 
         Tags:
             Databases
         """
         if database_cluster_uuid is None:
-            raise ValueError("Missing required parameter 'database_cluster_uuid'")
+            raise ValueError("Missing required parameter 'database_cluster_uuid'.")
         if pool_name is None:
-            raise ValueError("Missing required parameter 'pool_name'")
-        request_body = {
+            raise ValueError("Missing required parameter 'pool_name'.")
+        request_body_data = None
+        request_body_data = {
             'mode': mode,
             'size': size,
             'db': db,
             'user': user,
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
         url = f"{self.base_url}/v2/databases/{database_cluster_uuid}/pools/{pool_name}"
         query_params = {}
-        response = self._put(url, data=request_body, params=query_params)
+        response = self._put(url, data=request_body_data, params=query_params, content_type='application/json')
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def databases_delete_connection_pool(self, database_cluster_uuid, pool_name) -> Any:
+    def delete_pool(self, database_cluster_uuid: str, pool_name: str) -> Any:
         """
         Delete a Connection Pool (PostgreSQL)
 
@@ -2556,20 +3272,29 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: The action was successful and the response body is empty.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Databases
         """
         if database_cluster_uuid is None:
-            raise ValueError("Missing required parameter 'database_cluster_uuid'")
+            raise ValueError("Missing required parameter 'database_cluster_uuid'.")
         if pool_name is None:
-            raise ValueError("Missing required parameter 'pool_name'")
+            raise ValueError("Missing required parameter 'pool_name'.")
         url = f"{self.base_url}/v2/databases/{database_cluster_uuid}/pools/{pool_name}"
         query_params = {}
         response = self._delete(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def databases_get_eviction_policy(self, database_cluster_uuid) -> Any:
+    def databases_get_eviction_policy(self, database_cluster_uuid: str) -> Any:
         """
         Retrieve the Eviction Policy for a Redis or Valkey Cluster
 
@@ -2579,18 +3304,27 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: A JSON string with a key of `eviction_policy`.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Databases
         """
         if database_cluster_uuid is None:
-            raise ValueError("Missing required parameter 'database_cluster_uuid'")
+            raise ValueError("Missing required parameter 'database_cluster_uuid'.")
         url = f"{self.base_url}/v2/databases/{database_cluster_uuid}/eviction_policy"
         query_params = {}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def databases_update_eviction_policy(self, database_cluster_uuid, eviction_policy) -> Any:
+    def update_eviction_policy(self, database_cluster_uuid: str, eviction_policy: str) -> Any:
         """
         Configure the Eviction Policy for a Redis or Valkey Cluster
 
@@ -2603,33 +3337,37 @@ class DigitaloceanApp(APIApplication):
         - `allkeys_random`: Evict keys in a random order.
         - `volatile_lru`: Evict keys with expiration only, least recently used (LRU) first.
         - `volatile_random`: Evict keys with expiration only in a random order.
-        - `volatile_ttl`: Evict keys with expiration only, shortest time-to-live (TTL) first.
-                Example:
-                ```json
-                {
-                  "eviction_policy": "allkeys_lru"
-                }
-                ```
+        - `volatile_ttl`: Evict keys with expiration only, shortest time-to-live (TTL) first. Example: 'allkeys_lru'.
 
         Returns:
             Any: The action was successful and the response body is empty.
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
 
         Tags:
             Databases
         """
         if database_cluster_uuid is None:
-            raise ValueError("Missing required parameter 'database_cluster_uuid'")
-        request_body = {
+            raise ValueError("Missing required parameter 'database_cluster_uuid'.")
+        request_body_data = None
+        request_body_data = {
             'eviction_policy': eviction_policy,
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
         url = f"{self.base_url}/v2/databases/{database_cluster_uuid}/eviction_policy"
         query_params = {}
-        response = self._put(url, data=request_body, params=query_params)
+        response = self._put(url, data=request_body_data, params=query_params, content_type='application/json')
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def databases_get_sql_mode(self, database_cluster_uuid) -> dict[str, Any]:
+    def databases_get_sql_mode(self, database_cluster_uuid: str) -> dict[str, Any]:
         """
         Retrieve the SQL Modes for a MySQL Cluster
 
@@ -2639,82 +3377,99 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: A JSON string with a key of `sql_mode`.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Databases
         """
         if database_cluster_uuid is None:
-            raise ValueError("Missing required parameter 'database_cluster_uuid'")
+            raise ValueError("Missing required parameter 'database_cluster_uuid'.")
         url = f"{self.base_url}/v2/databases/{database_cluster_uuid}/sql_mode"
         query_params = {}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def databases_update_sql_mode(self, database_cluster_uuid, sql_mode) -> Any:
+    def databases_update_sql_mode(self, database_cluster_uuid: str, sql_mode: str) -> Any:
         """
         Update SQL Mode for a Cluster
 
         Args:
             database_cluster_uuid (string): database_cluster_uuid
-            sql_mode (string): A string specifying the configured SQL modes for the MySQL cluster.
-                Example:
-                ```json
-                {
-                  "sql_mode": "ANSI,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION,NO_ZERO_DATE,NO_ZERO_IN_DATE"
-                }
-                ```
+            sql_mode (string): A string specifying the configured SQL modes for the MySQL cluster. Example: 'ANSI,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION,NO_ZERO_DATE,NO_ZERO_IN_DATE,STRICT_ALL_TABLES'.
 
         Returns:
             Any: The action was successful and the response body is empty.
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
 
         Tags:
             Databases
         """
         if database_cluster_uuid is None:
-            raise ValueError("Missing required parameter 'database_cluster_uuid'")
-        request_body = {
+            raise ValueError("Missing required parameter 'database_cluster_uuid'.")
+        request_body_data = None
+        request_body_data = {
             'sql_mode': sql_mode,
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
         url = f"{self.base_url}/v2/databases/{database_cluster_uuid}/sql_mode"
         query_params = {}
-        response = self._put(url, data=request_body, params=query_params)
+        response = self._put(url, data=request_body_data, params=query_params, content_type='application/json')
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def databases_update_major_version(self, database_cluster_uuid, version=None) -> Any:
+    def databases_update_major_version(self, database_cluster_uuid: str, version: Optional[str] = None) -> Any:
         """
         Upgrade Major Version for a Database
 
         Args:
             database_cluster_uuid (string): database_cluster_uuid
-            version (string): A string representing the version of the database engine in use for the cluster.
-                Example:
-                ```json
-                {
-                  "version": "14"
-                }
-                ```
+            version (string): A string representing the version of the database engine in use for the cluster. Example: '8'.
 
         Returns:
             Any: The action was successful and the response body is empty.
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
 
         Tags:
             Databases
         """
         if database_cluster_uuid is None:
-            raise ValueError("Missing required parameter 'database_cluster_uuid'")
-        request_body = {
+            raise ValueError("Missing required parameter 'database_cluster_uuid'.")
+        request_body_data = None
+        request_body_data = {
             'version': version,
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
         url = f"{self.base_url}/v2/databases/{database_cluster_uuid}/upgrade"
         query_params = {}
-        response = self._put(url, data=request_body, params=query_params)
+        response = self._put(url, data=request_body_data, params=query_params, content_type='application/json')
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def databases_list_kafka_topics(self, database_cluster_uuid) -> Any:
+    def databases_list_kafka_topics(self, database_cluster_uuid: str) -> Any:
         """
         List Topics for a Kafka Cluster
 
@@ -2724,18 +3479,27 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: A JSON object with a key of `topics`.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Databases
         """
         if database_cluster_uuid is None:
-            raise ValueError("Missing required parameter 'database_cluster_uuid'")
+            raise ValueError("Missing required parameter 'database_cluster_uuid'.")
         url = f"{self.base_url}/v2/databases/{database_cluster_uuid}/topics"
         query_params = {}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def databases_create_kafka_topic(self, database_cluster_uuid, name=None, replication_factor=None, partition_count=None, config=None) -> Any:
+    def databases_create_kafka_topic(self, database_cluster_uuid: str, name: Optional[str] = None, replication_factor: Optional[int] = None, partition_count: Optional[int] = None, config: Optional[dict[str, Any]] = None) -> Any:
         """
         Create Topic for a Kafka Cluster
 
@@ -2744,42 +3508,40 @@ class DigitaloceanApp(APIApplication):
             name (string): The name of the Kafka topic. Example: 'events'.
             replication_factor (integer): The number of nodes to replicate data across the cluster. Example: '2'.
             partition_count (integer): The number of partitions available for the topic. On update, this value can only be increased. Example: '3'.
-            config (object): config
-                Example:
-                ```json
-                {
-                  "name": "customer-events",
-                  "partitions": 3,
-                  "replication": 2,
-                  "config": {
-                    "retention_bytes": -1,
-                    "retention_ms": 100000
-                  }
-                }
-                ```
+            config (object): config Example: {'retention_bytes': -1, 'retention_ms': 100000}.
 
         Returns:
             Any: A JSON object with a key of `topic`.
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
 
         Tags:
             Databases
         """
         if database_cluster_uuid is None:
-            raise ValueError("Missing required parameter 'database_cluster_uuid'")
-        request_body = {
+            raise ValueError("Missing required parameter 'database_cluster_uuid'.")
+        request_body_data = None
+        request_body_data = {
             'name': name,
             'replication_factor': replication_factor,
             'partition_count': partition_count,
             'config': config,
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
         url = f"{self.base_url}/v2/databases/{database_cluster_uuid}/topics"
         query_params = {}
-        response = self._post(url, data=request_body, params=query_params)
+        response = self._post(url, data=request_body_data, params=query_params, content_type='application/json')
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def databases_get_kafka_topic(self, database_cluster_uuid, topic_name) -> Any:
+    def databases_get_kafka_topic(self, database_cluster_uuid: str, topic_name: str) -> Any:
         """
         Get Topic for a Kafka Cluster
 
@@ -2790,20 +3552,29 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: A JSON object with a key of `topic`.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Databases
         """
         if database_cluster_uuid is None:
-            raise ValueError("Missing required parameter 'database_cluster_uuid'")
+            raise ValueError("Missing required parameter 'database_cluster_uuid'.")
         if topic_name is None:
-            raise ValueError("Missing required parameter 'topic_name'")
+            raise ValueError("Missing required parameter 'topic_name'.")
         url = f"{self.base_url}/v2/databases/{database_cluster_uuid}/topics/{topic_name}"
         query_params = {}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def databases_update_kafka_topic(self, database_cluster_uuid, topic_name, replication_factor=None, partition_count=None, config=None) -> Any:
+    def databases_update_kafka_topic(self, database_cluster_uuid: str, topic_name: str, replication_factor: Optional[int] = None, partition_count: Optional[int] = None, config: Optional[dict[str, Any]] = None) -> Any:
         """
         Update Topic for a Kafka Cluster
 
@@ -2812,42 +3583,41 @@ class DigitaloceanApp(APIApplication):
             topic_name (string): topic_name
             replication_factor (integer): The number of nodes to replicate data across the cluster. Example: '2'.
             partition_count (integer): The number of partitions available for the topic. On update, this value can only be increased. Example: '3'.
-            config (object): config
-                Example:
-                ```json
-                {
-                  "partitions": 3,
-                  "replication": 2,
-                  "config": {
-                    "retention_bytes": -1,
-                    "retention_ms": 100000
-                  }
-                }
-                ```
+            config (object): config Example: {'retention_bytes': -1, 'retention_ms': 100000}.
 
         Returns:
             Any: A JSON object with a key of `topic`.
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
 
         Tags:
             Databases
         """
         if database_cluster_uuid is None:
-            raise ValueError("Missing required parameter 'database_cluster_uuid'")
+            raise ValueError("Missing required parameter 'database_cluster_uuid'.")
         if topic_name is None:
-            raise ValueError("Missing required parameter 'topic_name'")
-        request_body = {
+            raise ValueError("Missing required parameter 'topic_name'.")
+        request_body_data = None
+        request_body_data = {
             'replication_factor': replication_factor,
             'partition_count': partition_count,
             'config': config,
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
         url = f"{self.base_url}/v2/databases/{database_cluster_uuid}/topics/{topic_name}"
         query_params = {}
-        response = self._put(url, data=request_body, params=query_params)
+        response = self._put(url, data=request_body_data, params=query_params, content_type='application/json')
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def databases_delete_kafka_topic(self, database_cluster_uuid, topic_name) -> Any:
+    def databases_delete_kafka_topic(self, database_cluster_uuid: str, topic_name: str) -> Any:
         """
         Delete Topic for a Kafka Cluster
 
@@ -2858,20 +3628,29 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: The action was successful and the response body is empty.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Databases
         """
         if database_cluster_uuid is None:
-            raise ValueError("Missing required parameter 'database_cluster_uuid'")
+            raise ValueError("Missing required parameter 'database_cluster_uuid'.")
         if topic_name is None:
-            raise ValueError("Missing required parameter 'topic_name'")
+            raise ValueError("Missing required parameter 'topic_name'.")
         url = f"{self.base_url}/v2/databases/{database_cluster_uuid}/topics/{topic_name}"
         query_params = {}
         response = self._delete(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def databases_list_logsink(self, database_cluster_uuid) -> Any:
+    def databases_list_logsink(self, database_cluster_uuid: str) -> Any:
         """
         List Logsinks for a Database Cluster
 
@@ -2881,60 +3660,74 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: A JSON object with a key of `sinks`.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Databases
         """
         if database_cluster_uuid is None:
-            raise ValueError("Missing required parameter 'database_cluster_uuid'")
+            raise ValueError("Missing required parameter 'database_cluster_uuid'.")
         url = f"{self.base_url}/v2/databases/{database_cluster_uuid}/logsink"
         query_params = {}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def databases_create_logsink(self, database_cluster_uuid, sink_name, sink_type, config) -> Any:
+    def databases_create_logsink(self, database_cluster_uuid: str, sink_name: str, sink_type: str, config: Any) -> Any:
         """
         Create Logsink for a Database Cluster
 
         Args:
             database_cluster_uuid (string): database_cluster_uuid
             sink_name (string): The name of the Logsink Example: 'prod-logsink'.
-            sink_type (string): sink_type Example: 'rsyslog'.
-            config (string): config
-                Example:
-                ```json
-                {
-                  "sink_name": "logs-sink",
-                  "sink_type": "opensearch",
-                  "config": {
-                    "url": "https://user:passwd@192.168.0.1:25060",
-                    "index_prefix": "opensearch-logs",
-                    "index_days_max": 5
-                  }
-                }
-                ```
+            sink_type (string): Type of logsink integration.
+
+        - Use `datadog` for Datadog integration **only with MongoDB clusters**.
+        - For non-MongoDB clusters, use `rsyslog` for general syslog forwarding.
+        - Other supported types include `elasticsearch` and `opensearch`.
+
+        More details about the configuration can be found in the `config` property.
+         Example: 'rsyslog'.
+            config (string): config Example: {'url': 'https://user:passwd@192.168.0.1:25060', 'index_prefix': 'opensearch-logs', 'index_days_max': 5}.
 
         Returns:
             Any: A JSON object with a key of `sink`.
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
 
         Tags:
             Databases
         """
         if database_cluster_uuid is None:
-            raise ValueError("Missing required parameter 'database_cluster_uuid'")
-        request_body = {
+            raise ValueError("Missing required parameter 'database_cluster_uuid'.")
+        request_body_data = None
+        request_body_data = {
             'sink_name': sink_name,
             'sink_type': sink_type,
             'config': config,
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
         url = f"{self.base_url}/v2/databases/{database_cluster_uuid}/logsink"
         query_params = {}
-        response = self._post(url, data=request_body, params=query_params)
+        response = self._post(url, data=request_body_data, params=query_params, content_type='application/json')
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def databases_get_logsink(self, database_cluster_uuid, logsink_id) -> Any:
+    def databases_get_logsink(self, database_cluster_uuid: str, logsink_id: str) -> Any:
         """
         Get Logsink for a Database Cluster
 
@@ -2945,60 +3738,68 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: A JSON object with a key of `sink`.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Databases
         """
         if database_cluster_uuid is None:
-            raise ValueError("Missing required parameter 'database_cluster_uuid'")
+            raise ValueError("Missing required parameter 'database_cluster_uuid'.")
         if logsink_id is None:
-            raise ValueError("Missing required parameter 'logsink_id'")
+            raise ValueError("Missing required parameter 'logsink_id'.")
         url = f"{self.base_url}/v2/databases/{database_cluster_uuid}/logsink/{logsink_id}"
         query_params = {}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def databases_update_logsink(self, database_cluster_uuid, logsink_id, config) -> Any:
+    def databases_update_logsink(self, database_cluster_uuid: str, logsink_id: str, config: Any) -> Any:
         """
         Update Logsink for a Database Cluster
 
         Args:
             database_cluster_uuid (string): database_cluster_uuid
             logsink_id (string): logsink_id
-            config (string): config
-                Example:
-                ```json
-                {
-                  "config": {
-                    "server": "192.168.0.1",
-                    "port": 514,
-                    "tls": false,
-                    "format": "rfc3164"
-                  }
-                }
-                ```
+            config (string): config Example: {'server': '192.168.0.1', 'port': 514, 'tls': False, 'format': 'rfc3164'}.
 
         Returns:
             Any: The action was successful and the response body is empty.
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
 
         Tags:
             Databases
         """
         if database_cluster_uuid is None:
-            raise ValueError("Missing required parameter 'database_cluster_uuid'")
+            raise ValueError("Missing required parameter 'database_cluster_uuid'.")
         if logsink_id is None:
-            raise ValueError("Missing required parameter 'logsink_id'")
-        request_body = {
+            raise ValueError("Missing required parameter 'logsink_id'.")
+        request_body_data = None
+        request_body_data = {
             'config': config,
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
         url = f"{self.base_url}/v2/databases/{database_cluster_uuid}/logsink/{logsink_id}"
         query_params = {}
-        response = self._put(url, data=request_body, params=query_params)
+        response = self._put(url, data=request_body_data, params=query_params, content_type='application/json')
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def databases_delete_logsink(self, database_cluster_uuid, logsink_id) -> Any:
+    def databases_delete_logsink(self, database_cluster_uuid: str, logsink_id: str) -> Any:
         """
         Delete Logsink for a Database Cluster
 
@@ -3009,25 +3810,38 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: The action was successful and the response body is empty.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Databases
         """
         if database_cluster_uuid is None:
-            raise ValueError("Missing required parameter 'database_cluster_uuid'")
+            raise ValueError("Missing required parameter 'database_cluster_uuid'.")
         if logsink_id is None:
-            raise ValueError("Missing required parameter 'logsink_id'")
+            raise ValueError("Missing required parameter 'logsink_id'.")
         url = f"{self.base_url}/v2/databases/{database_cluster_uuid}/logsink/{logsink_id}"
         query_params = {}
         response = self._delete(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def databases_get_cluster_metrics_credentials(self) -> Any:
+    def get_database_metrics_credentials(self) -> Any:
         """
         Retrieve Database Clusters' Metrics Endpoint Credentials
 
         Returns:
             Any: A JSON object with a key of `credentials`.
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
 
         Tags:
             Databases
@@ -3036,41 +3850,47 @@ class DigitaloceanApp(APIApplication):
         query_params = {}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def databases_update_cluster_metrics_credentials(self, credentials=None) -> Any:
+    def update_database_credentials(self, credentials: Optional[dict[str, Any]] = None) -> Any:
         """
         Update Database Clusters' Metrics Endpoint Credentials
 
         Args:
-            credentials (object): credentials
-                Example:
-                ```json
-                {
-                  "credentials": {
-                    "basic_auth_username": "new_username",
-                    "basic_auth_password": "new_password"
-                  }
-                }
-                ```
+            credentials (object): credentials Example: {'basic_auth_username': 'new_username', 'basic_auth_password': 'new_password'}.
 
         Returns:
             Any: The action was successful and the response body is empty.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Databases
         """
-        request_body = {
+        request_body_data = None
+        request_body_data = {
             'credentials': credentials,
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
         url = f"{self.base_url}/v2/databases/metrics/credentials"
         query_params = {}
-        response = self._put(url, data=request_body, params=query_params)
+        response = self._put(url, data=request_body_data, params=query_params, content_type='application/json')
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def databases_list_opeasearch_indexes(self, database_cluster_uuid) -> Any:
+    def list_database_indexes(self, database_cluster_uuid: str) -> Any:
         """
         List Indexes for a OpenSearch Cluster
 
@@ -3080,18 +3900,27 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: A JSON object with a key of `indexes`.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Databases
         """
         if database_cluster_uuid is None:
-            raise ValueError("Missing required parameter 'database_cluster_uuid'")
+            raise ValueError("Missing required parameter 'database_cluster_uuid'.")
         url = f"{self.base_url}/v2/databases/{database_cluster_uuid}/indexes"
         query_params = {}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def databases_delete_opensearch_index(self, database_cluster_uuid, index_name) -> Any:
+    def delete_database_index_by_name(self, database_cluster_uuid: str, index_name: str) -> Any:
         """
         Delete Index for OpenSearch Cluster
 
@@ -3102,20 +3931,29 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: The action was successful and the response body is empty.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Databases
         """
         if database_cluster_uuid is None:
-            raise ValueError("Missing required parameter 'database_cluster_uuid'")
+            raise ValueError("Missing required parameter 'database_cluster_uuid'.")
         if index_name is None:
-            raise ValueError("Missing required parameter 'index_name'")
+            raise ValueError("Missing required parameter 'index_name'.")
         url = f"{self.base_url}/v2/databases/{database_cluster_uuid}/indexes/{index_name}"
         query_params = {}
         response = self._delete(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def domains_list(self, per_page=None, page=None) -> Any:
+    def domains_list(self, per_page: Optional[int] = None, page: Optional[int] = None) -> Any:
         """
         List All Domains
 
@@ -3126,6 +3964,10 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: The response will be a JSON object with a key called `domains`. The value of this will be an array of Domain objects, each of which contain the standard domain attributes.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Domains
         """
@@ -3133,9 +3975,14 @@ class DigitaloceanApp(APIApplication):
         query_params = {k: v for k, v in [('per_page', per_page), ('page', page)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def domains_create(self, name=None, ip_address=None, ttl=None, zone_file=None) -> Any:
+    def domains_create(self, name: Optional[str] = None, ip_address: Optional[str] = None, ttl: Optional[int] = None, zone_file: Optional[str] = None) -> Any:
         """
         Create a New Domain
 
@@ -3143,34 +3990,38 @@ class DigitaloceanApp(APIApplication):
             name (string): The name of the domain itself. This should follow the standard domain format of domain.TLD. For instance, `example.com` is a valid domain name. Example: 'example.com'.
             ip_address (string): This optional attribute may contain an IP address. When provided, an A record will be automatically created pointing to the apex domain. Example: '192.0.2.1'.
             ttl (integer): This value is the time to live for the records on this domain, in seconds. This defines the time frame that clients can cache queried information before a refresh should be requested. Example: '1800'.
-            zone_file (string): This attribute contains the complete contents of the zone file for the selected domain. Individual domain record resources should be used to get more granular control over records. However, this attribute can also be used to get information about the SOA record, which is created automatically and is not accessible as an individual record resource.
-                Example:
-                ```json
-                {
-                  "name": "example.com"
-                }
-                ```
+            zone_file (string): This attribute contains the complete contents of the zone file for the selected domain. Individual domain record resources should be used to get more granular control over records. However, this attribute can also be used to get information about the SOA record, which is created automatically and is not accessible as an individual record resource. Example: '$ORIGIN example.com.\n$TTL 1800\nexample.com. IN SOA ns1.digitalocean.com. hostmaster.example.com. 1415982609 10800 3600 604800 1800\nexample.com. 1800 IN NS ns1.digitalocean.com.\nexample.com. 1800 IN NS ns2.digitalocean.com.\nexample.com. 1800 IN NS ns3.digitalocean.com.\nexample.com. 1800 IN A 1.2.3.4\n'.
 
         Returns:
             Any: The response will be a JSON object with a key called `domain`. The value of this will be an object that contains the standard attributes associated with a domain.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Domains
         """
-        request_body = {
+        request_body_data = None
+        request_body_data = {
             'name': name,
             'ip_address': ip_address,
             'ttl': ttl,
             'zone_file': zone_file,
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
         url = f"{self.base_url}/v2/domains"
         query_params = {}
-        response = self._post(url, data=request_body, params=query_params)
+        response = self._post(url, data=request_body_data, params=query_params, content_type='application/json')
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def domains_get(self, domain_name) -> Any:
+    def domains_get(self, domain_name: str) -> Any:
         """
         Retrieve an Existing Domain
 
@@ -3180,18 +4031,27 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: The response will be a JSON object with a key called `domain`. The value of this will be an object that contains the standard attributes defined for a domain.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Domains
         """
         if domain_name is None:
-            raise ValueError("Missing required parameter 'domain_name'")
+            raise ValueError("Missing required parameter 'domain_name'.")
         url = f"{self.base_url}/v2/domains/{domain_name}"
         query_params = {}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def domains_delete(self, domain_name) -> Any:
+    def domains_delete(self, domain_name: str) -> Any:
         """
         Delete a Domain
 
@@ -3201,18 +4061,27 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: The action was successful and the response body is empty.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Domains
         """
         if domain_name is None:
-            raise ValueError("Missing required parameter 'domain_name'")
+            raise ValueError("Missing required parameter 'domain_name'.")
         url = f"{self.base_url}/v2/domains/{domain_name}"
         query_params = {}
         response = self._delete(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def domains_list_records(self, domain_name, name=None, type=None, per_page=None, page=None) -> Any:
+    def domains_list_records(self, domain_name: str, name: Optional[str] = None, type: Optional[str] = None, per_page: Optional[int] = None, page: Optional[int] = None) -> Any:
         """
         List All Domain Records
 
@@ -3226,18 +4095,81 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: The response will be a JSON object with a key called `domain_records`. The value of this will be an array of domain record objects, each of which contains the standard domain record attributes. For attributes that are not used by a specific record type, a value of `null` will be returned. For instance, all records other than SRV will have `null` for the `weight` and `port` attributes.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Domain Records
         """
         if domain_name is None:
-            raise ValueError("Missing required parameter 'domain_name'")
+            raise ValueError("Missing required parameter 'domain_name'.")
         url = f"{self.base_url}/v2/domains/{domain_name}/records"
         query_params = {k: v for k, v in [('name', name), ('type', type), ('per_page', per_page), ('page', page)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def domains_get_record(self, domain_name, domain_record_id) -> Any:
+    def domains_create_record(self, domain_name: str, id: Optional[int] = None, type: Optional[str] = None, name: Optional[str] = None, data: Optional[str] = None, priority: Optional[int] = None, port: Optional[int] = None, ttl: Optional[int] = None, weight: Optional[int] = None, flags: Optional[int] = None, tag: Optional[str] = None) -> Any:
+        """
+        Create a New Domain Record
+
+        Args:
+            domain_name (string): domain_name
+            id (integer): A unique identifier for each domain record. Example: '28448429'.
+            type (string): The type of the DNS record. For example: A, CNAME, TXT, ... Example: 'NS'.
+            name (string): The host name, alias, or service being defined by the record. Example: '@'.
+            data (string): Variable data depending on record type. For example, the "data" value for an A record would be the IPv4 address to which the domain will be mapped. For a CAA record, it would contain the domain name of the CA being granted permission to issue certificates. Example: 'ns1.digitalocean.com'.
+            priority (integer): The priority for SRV and MX records.
+            port (integer): The port for SRV records.
+            ttl (integer): This value is the time to live for the record, in seconds. This defines the time frame that clients can cache queried information before a refresh should be requested. Example: '1800'.
+            weight (integer): The weight for SRV records.
+            flags (integer): An unsigned integer between 0-255 used for CAA records.
+            tag (string): The parameter tag for CAA records. Valid values are "issue", "issuewild", or "iodef"
+
+        Returns:
+            Any: The response body will be a JSON object with a key called `domain_record`. The value of this will be an object representing the new record. Attributes that are not applicable for the record type will be set to `null`. An `id` attribute is generated for each record as part of the object.
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
+        Tags:
+            Domain Records
+        """
+        if domain_name is None:
+            raise ValueError("Missing required parameter 'domain_name'.")
+        request_body_data = None
+        request_body_data = {
+            'id': id,
+            'type': type,
+            'name': name,
+            'data': data,
+            'priority': priority,
+            'port': port,
+            'ttl': ttl,
+            'weight': weight,
+            'flags': flags,
+            'tag': tag,
+        }
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
+        url = f"{self.base_url}/v2/domains/{domain_name}/records"
+        query_params = {}
+        response = self._post(url, data=request_body_data, params=query_params, content_type='application/json')
+        response.raise_for_status()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
+
+    def domains_get_record(self, domain_name: str, domain_record_id: str) -> Any:
         """
         Retrieve an Existing Domain Record
 
@@ -3248,20 +4180,29 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: The response will be a JSON object with a key called `domain_record`. The value of this will be a domain record object which contains the standard domain record attributes.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Domain Records
         """
         if domain_name is None:
-            raise ValueError("Missing required parameter 'domain_name'")
+            raise ValueError("Missing required parameter 'domain_name'.")
         if domain_record_id is None:
-            raise ValueError("Missing required parameter 'domain_record_id'")
+            raise ValueError("Missing required parameter 'domain_record_id'.")
         url = f"{self.base_url}/v2/domains/{domain_name}/records/{domain_record_id}"
         query_params = {}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def domains_patch_record(self, domain_name, domain_record_id, id=None, type=None, name=None, data=None, priority=None, port=None, ttl=None, weight=None, flags=None, tag=None) -> Any:
+    def domains_patch_record(self, domain_name: str, domain_record_id: str, id: Optional[int] = None, type: Optional[str] = None, name: Optional[str] = None, data: Optional[str] = None, priority: Optional[int] = None, port: Optional[int] = None, ttl: Optional[int] = None, weight: Optional[int] = None, flags: Optional[int] = None, tag: Optional[str] = None) -> Any:
         """
         Update a Domain Record
 
@@ -3278,25 +4219,23 @@ class DigitaloceanApp(APIApplication):
             weight (integer): The weight for SRV records.
             flags (integer): An unsigned integer between 0-255 used for CAA records.
             tag (string): The parameter tag for CAA records. Valid values are "issue", "issuewild", or "iodef"
-                Example:
-                ```json
-                {
-                  "name": "blog",
-                  "type": "A"
-                }
-                ```
 
         Returns:
             Any: The response will be a JSON object with a key called `domain_record`. The value of this will be a domain record object which contains the standard domain record attributes.
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
 
         Tags:
             Domain Records
         """
         if domain_name is None:
-            raise ValueError("Missing required parameter 'domain_name'")
+            raise ValueError("Missing required parameter 'domain_name'.")
         if domain_record_id is None:
-            raise ValueError("Missing required parameter 'domain_record_id'")
-        request_body = {
+            raise ValueError("Missing required parameter 'domain_record_id'.")
+        request_body_data = None
+        request_body_data = {
             'id': id,
             'type': type,
             'name': name,
@@ -3308,14 +4247,19 @@ class DigitaloceanApp(APIApplication):
             'flags': flags,
             'tag': tag,
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
         url = f"{self.base_url}/v2/domains/{domain_name}/records/{domain_record_id}"
         query_params = {}
-        response = self._patch(url, data=request_body, params=query_params)
+        response = self._patch(url, data=request_body_data, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def domains_update_record(self, domain_name, domain_record_id, id=None, type=None, name=None, data=None, priority=None, port=None, ttl=None, weight=None, flags=None, tag=None) -> Any:
+    def domains_update_record(self, domain_name: str, domain_record_id: str, id: Optional[int] = None, type: Optional[str] = None, name: Optional[str] = None, data: Optional[str] = None, priority: Optional[int] = None, port: Optional[int] = None, ttl: Optional[int] = None, weight: Optional[int] = None, flags: Optional[int] = None, tag: Optional[str] = None) -> Any:
         """
         Update a Domain Record
 
@@ -3332,25 +4276,23 @@ class DigitaloceanApp(APIApplication):
             weight (integer): The weight for SRV records.
             flags (integer): An unsigned integer between 0-255 used for CAA records.
             tag (string): The parameter tag for CAA records. Valid values are "issue", "issuewild", or "iodef"
-                Example:
-                ```json
-                {
-                  "name": "blog",
-                  "type": "CNAME"
-                }
-                ```
 
         Returns:
             Any: The response will be a JSON object with a key called `domain_record`. The value of this will be a domain record object which contains the standard domain record attributes.
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
 
         Tags:
             Domain Records
         """
         if domain_name is None:
-            raise ValueError("Missing required parameter 'domain_name'")
+            raise ValueError("Missing required parameter 'domain_name'.")
         if domain_record_id is None:
-            raise ValueError("Missing required parameter 'domain_record_id'")
-        request_body = {
+            raise ValueError("Missing required parameter 'domain_record_id'.")
+        request_body_data = None
+        request_body_data = {
             'id': id,
             'type': type,
             'name': name,
@@ -3362,14 +4304,19 @@ class DigitaloceanApp(APIApplication):
             'flags': flags,
             'tag': tag,
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
         url = f"{self.base_url}/v2/domains/{domain_name}/records/{domain_record_id}"
         query_params = {}
-        response = self._put(url, data=request_body, params=query_params)
+        response = self._put(url, data=request_body_data, params=query_params, content_type='application/json')
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def domains_delete_record(self, domain_name, domain_record_id) -> Any:
+    def domains_delete_record(self, domain_name: str, domain_record_id: str) -> Any:
         """
         Delete a Domain Record
 
@@ -3380,20 +4327,29 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: The action was successful and the response body is empty.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Domain Records
         """
         if domain_name is None:
-            raise ValueError("Missing required parameter 'domain_name'")
+            raise ValueError("Missing required parameter 'domain_name'.")
         if domain_record_id is None:
-            raise ValueError("Missing required parameter 'domain_record_id'")
+            raise ValueError("Missing required parameter 'domain_record_id'.")
         url = f"{self.base_url}/v2/domains/{domain_name}/records/{domain_record_id}"
         query_params = {}
         response = self._delete(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def droplets_list(self, per_page=None, page=None, tag_name=None, name=None, type=None) -> Any:
+    def droplets_list(self, per_page: Optional[int] = None, page: Optional[int] = None, tag_name: Optional[str] = None, name: Optional[str] = None, type: Optional[str] = None) -> Any:
         """
         List All Droplets
 
@@ -3407,6 +4363,10 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: A JSON object with a key of `droplets`.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Droplets
         """
@@ -3414,9 +4374,77 @@ class DigitaloceanApp(APIApplication):
         query_params = {k: v for k, v in [('per_page', per_page), ('page', page), ('tag_name', tag_name), ('name', name), ('type', type)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def droplets_destroy_by_tag(self, tag_name) -> Any:
+    def droplets_create(self, name: Optional[str] = None, region: Optional[str] = None, size: Optional[str] = None, image: Optional[Any] = None, ssh_keys: Optional[List[Any]] = None, backups: Optional[bool] = None, backup_policy: Optional[Any] = None, ipv6: Optional[bool] = None, monitoring: Optional[bool] = None, tags: Optional[List[str]] = None, user_data: Optional[str] = None, private_networking: Optional[bool] = None, volumes: Optional[List[str]] = None, vpc_uuid: Optional[str] = None, with_droplet_agent: Optional[bool] = None, names: Optional[List[str]] = None) -> Any:
+        """
+        Create a New Droplet
+
+        Args:
+            name (string): The human-readable string you wish to use when displaying the Droplet name. The name, if set to a domain name managed in the DigitalOcean DNS management system, will configure a PTR record for the Droplet. The name set during creation will also determine the hostname for the Droplet in its internal configuration. Example: 'example.com'.
+            region (string): The slug identifier for the region that you wish to deploy the Droplet in. If the specific datacenter is not not important, a slug prefix (e.g. `nyc`) can be used to deploy the Droplet in any of the that region's locations (`nyc1`, `nyc2`, or `nyc3`). If the region is omitted from the create request completely, the Droplet may deploy in any region. Example: 'nyc3'.
+            size (string): The slug identifier for the size that you wish to select for this Droplet. Example: 's-1vcpu-1gb'.
+            image (string): The image ID of a public or private image or the slug identifier for a public image. This image will be the base image for your Droplet. Example: 'ubuntu-20-04-x64'.
+            ssh_keys (array): An array containing the IDs or fingerprints of the SSH keys that you wish to embed in the Droplet's root account upon creation. You must add the keys to your team before they can be embedded on a Droplet. Example: "[289794, '3b:16:e4:bf:8b:00:8b:b8:59:8c:a9:d3:f0:19:fa:45']".
+            backups (boolean): A boolean indicating whether automated backups should be enabled for the Droplet. Example: 'True'.
+            backup_policy (string): backup_policy
+            ipv6 (boolean): A boolean indicating whether to enable IPv6 on the Droplet. Example: 'True'.
+            monitoring (boolean): A boolean indicating whether to install the DigitalOcean agent for monitoring. Example: 'True'.
+            tags (array): A flat array of tag names as strings to apply to the Droplet after it is created. Tag names can either be existing or new tags. Example: "['env:prod', 'web']".
+            user_data (string): A string containing 'user data' which may be used to configure the Droplet on first boot, often a 'cloud-config' file or Bash script. It must be plain text and may not exceed 64 KiB in size. Example: '#cloud-config\nruncmd:\n  - touch /test.txt\n'.
+            private_networking (boolean): This parameter has been deprecated. Use `vpc_uuid` instead to specify a VPC network for the Droplet. If no `vpc_uuid` is provided, the Droplet will be placed in your account's default VPC for the region. Example: 'True'.
+            volumes (array): An array of IDs for block storage volumes that will be attached to the Droplet once created. The volumes must not already be attached to an existing Droplet. Example: "['12e97116-7280-11ed-b3d0-0a58ac146812']".
+            vpc_uuid (string): A string specifying the UUID of the VPC to which the Droplet will be assigned. If excluded, the Droplet will be assigned to your account's default VPC for the region. Example: '760e09ef-dc84-11e8-981e-3cfdfeaae000'.
+            with_droplet_agent (boolean): A boolean indicating whether to install the DigitalOcean agent used for providing access to the Droplet web console in the control panel. By default, the agent is installed on new Droplets but installation errors (i.e. OS not supported) are ignored. To prevent it from being installed, set to `false`. To make installation errors fatal, explicitly set it to `true`. Example: 'True'.
+            names (array): An array of human human-readable strings you wish to use when displaying the Droplet name. Each name, if set to a domain name managed in the DigitalOcean DNS management system, will configure a PTR record for the Droplet. Each name set during creation will also determine the hostname for the Droplet in its internal configuration. Example: "['sub-01.example.com', 'sub-02.example.com']".
+
+        Returns:
+            Any: Accepted
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
+        Tags:
+            Droplets, important
+        """
+        request_body_data = None
+        request_body_data = {
+            'name': name,
+            'region': region,
+            'size': size,
+            'image': image,
+            'ssh_keys': ssh_keys,
+            'backups': backups,
+            'backup_policy': backup_policy,
+            'ipv6': ipv6,
+            'monitoring': monitoring,
+            'tags': tags,
+            'user_data': user_data,
+            'private_networking': private_networking,
+            'volumes': volumes,
+            'vpc_uuid': vpc_uuid,
+            'with_droplet_agent': with_droplet_agent,
+            'names': names,
+        }
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
+        url = f"{self.base_url}/v2/droplets"
+        query_params = {}
+        response = self._post(url, data=request_body_data, params=query_params, content_type='application/json')
+        response.raise_for_status()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
+
+    def droplets_destroy_by_tag(self, tag_name: str) -> Any:
         """
         Deleting Droplets by Tag
 
@@ -3426,6 +4454,10 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: The action was successful and the response body is empty. This response has content-type set.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Droplets
         """
@@ -3433,9 +4465,14 @@ class DigitaloceanApp(APIApplication):
         query_params = {k: v for k, v in [('tag_name', tag_name)] if v is not None}
         response = self._delete(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def droplets_get(self, droplet_id) -> Any:
+    def droplets_get(self, droplet_id: str) -> Any:
         """
         Retrieve an Existing Droplet
 
@@ -3446,18 +4483,27 @@ class DigitaloceanApp(APIApplication):
             Any: The response will be a JSON object with a key called `droplet`. This will be
         set to a JSON object that contains the standard Droplet attributes.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Droplets
         """
         if droplet_id is None:
-            raise ValueError("Missing required parameter 'droplet_id'")
+            raise ValueError("Missing required parameter 'droplet_id'.")
         url = f"{self.base_url}/v2/droplets/{droplet_id}"
         query_params = {}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def droplets_destroy(self, droplet_id) -> Any:
+    def droplets_destroy(self, droplet_id: str) -> Any:
         """
         Delete an Existing Droplet
 
@@ -3467,18 +4513,27 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: The action was successful and the response body is empty. This response has content-type set.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Droplets
         """
         if droplet_id is None:
-            raise ValueError("Missing required parameter 'droplet_id'")
+            raise ValueError("Missing required parameter 'droplet_id'.")
         url = f"{self.base_url}/v2/droplets/{droplet_id}"
         query_params = {}
         response = self._delete(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def droplets_list_backups(self, droplet_id, per_page=None, page=None) -> Any:
+    def droplets_list_backups(self, droplet_id: str, per_page: Optional[int] = None, page: Optional[int] = None) -> Any:
         """
         List Backups for a Droplet
 
@@ -3490,18 +4545,27 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: A JSON object with an `backups` key.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Droplets
         """
         if droplet_id is None:
-            raise ValueError("Missing required parameter 'droplet_id'")
+            raise ValueError("Missing required parameter 'droplet_id'.")
         url = f"{self.base_url}/v2/droplets/{droplet_id}/backups"
         query_params = {k: v for k, v in [('per_page', per_page), ('page', page)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def droplets_get_backup_policy(self, droplet_id) -> Any:
+    def droplets_get_backup_policy(self, droplet_id: str) -> Any:
         """
         Retrieve the Backup Policy for an Existing Droplet
 
@@ -3512,18 +4576,27 @@ class DigitaloceanApp(APIApplication):
             Any: The response will be a JSON object with a key called `policy`. This will be
         set to a JSON object that contains the standard Droplet backup policy attributes.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Droplets
         """
         if droplet_id is None:
-            raise ValueError("Missing required parameter 'droplet_id'")
+            raise ValueError("Missing required parameter 'droplet_id'.")
         url = f"{self.base_url}/v2/droplets/{droplet_id}/backups/policy"
         query_params = {}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def droplets_list_backup_policies(self, per_page=None, page=None) -> Any:
+    def droplets_list_backup_policies(self, per_page: Optional[int] = None, page: Optional[int] = None) -> Any:
         """
         List Backup Policies for All Existing Droplets
 
@@ -3534,6 +4607,10 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: A JSON object with a `policies` key set to a map. The keys are Droplet IDs and the values are objects containing the backup policy information for each Droplet.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Droplets
         """
@@ -3541,14 +4618,23 @@ class DigitaloceanApp(APIApplication):
         query_params = {k: v for k, v in [('per_page', per_page), ('page', page)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def droplets_list_supported_backup_policies(self) -> dict[str, Any]:
+    def list_supported_policies(self) -> dict[str, Any]:
         """
         List Supported Droplet Backup Policies
 
         Returns:
             dict[str, Any]: A JSON object with an `supported_policies` key set to an array of objects describing each supported backup policy.
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
 
         Tags:
             Droplets
@@ -3557,9 +4643,14 @@ class DigitaloceanApp(APIApplication):
         query_params = {}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def droplets_list_snapshots(self, droplet_id, per_page=None, page=None) -> Any:
+    def droplets_list_snapshots(self, droplet_id: str, per_page: Optional[int] = None, page: Optional[int] = None) -> Any:
         """
         List Snapshots for a Droplet
 
@@ -3571,18 +4662,27 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: A JSON object with an `snapshots` key.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Droplets
         """
         if droplet_id is None:
-            raise ValueError("Missing required parameter 'droplet_id'")
+            raise ValueError("Missing required parameter 'droplet_id'.")
         url = f"{self.base_url}/v2/droplets/{droplet_id}/snapshots"
         query_params = {k: v for k, v in [('per_page', per_page), ('page', page)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def droplet_actions_list(self, droplet_id, per_page=None, page=None) -> Any:
+    def droplet_actions_list(self, droplet_id: str, per_page: Optional[int] = None, page: Optional[int] = None) -> Any:
         """
         List Actions for a Droplet
 
@@ -3594,18 +4694,111 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: A JSON object with an `actions` key.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Droplet Actions
         """
         if droplet_id is None:
-            raise ValueError("Missing required parameter 'droplet_id'")
+            raise ValueError("Missing required parameter 'droplet_id'.")
         url = f"{self.base_url}/v2/droplets/{droplet_id}/actions"
         query_params = {k: v for k, v in [('per_page', per_page), ('page', page)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def droplet_actions_get(self, droplet_id, action_id) -> Any:
+    def droplet_actions_post(self, droplet_id: str, type: Optional[str] = None, backup_policy: Optional[Any] = None, image: Optional[Any] = None, disk: Optional[bool] = None, size: Optional[str] = None, name: Optional[str] = None, kernel: Optional[int] = None) -> Any:
+        """
+        Initiate a Droplet Action
+
+        Args:
+            droplet_id (string): droplet_id
+            type (string): The type of action to initiate for the Droplet. Example: 'reboot'.
+            backup_policy (string): backup_policy
+            image (string): The image ID of a public or private image or the slug identifier for a public image. The Droplet will be rebuilt using this image as its base. Example: 'ubuntu-20-04-x64'.
+            disk (boolean): When `true`, the Droplet's disk will be resized in addition to its RAM and CPU. This is a permanent change and cannot be reversed as a Droplet's disk size cannot be decreased. Example: 'True'.
+            size (string): The slug identifier for the size to which you wish to resize the Droplet. Example: 's-2vcpu-2gb'.
+            name (string): The name to give the new snapshot of the Droplet. Example: 'Nifty New Snapshot'.
+            kernel (integer): A unique number used to identify and reference a specific kernel. Example: '12389723'.
+
+        Returns:
+            Any: The response will be a JSON object with a key called `action`.
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
+        Tags:
+            Droplet Actions
+        """
+        if droplet_id is None:
+            raise ValueError("Missing required parameter 'droplet_id'.")
+        request_body_data = None
+        request_body_data = {
+            'type': type,
+            'backup_policy': backup_policy,
+            'image': image,
+            'disk': disk,
+            'size': size,
+            'name': name,
+            'kernel': kernel,
+        }
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
+        url = f"{self.base_url}/v2/droplets/{droplet_id}/actions"
+        query_params = {}
+        response = self._post(url, data=request_body_data, params=query_params, content_type='application/json')
+        response.raise_for_status()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
+
+    def droplet_actions_post_by_tag(self, tag_name: Optional[str] = None, type: Optional[str] = None, name: Optional[str] = None) -> Any:
+        """
+        Acting on Tagged Droplets
+
+        Args:
+            tag_name (string): Used to filter Droplets by a specific tag. Can not be combined with `name` or `type`. Example: 'env:prod'.
+            type (string): The type of action to initiate for the Droplet. Example: 'reboot'.
+            name (string): The name to give the new snapshot of the Droplet. Example: 'Nifty New Snapshot'.
+
+        Returns:
+            Any: The response will be a JSON object with a key called `actions`.
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
+        Tags:
+            Droplet Actions
+        """
+        request_body_data = None
+        request_body_data = {
+            'type': type,
+            'name': name,
+        }
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
+        url = f"{self.base_url}/v2/droplets/actions"
+        query_params = {k: v for k, v in [('tag_name', tag_name)] if v is not None}
+        response = self._post(url, data=request_body_data, params=query_params, content_type='application/json')
+        response.raise_for_status()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
+
+    def droplet_actions_get(self, droplet_id: str, action_id: str) -> Any:
         """
         Retrieve a Droplet Action
 
@@ -3616,20 +4809,29 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: The result will be a JSON object with an action key.  This will be set to an action object containing the standard action attributes.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Droplet Actions
         """
         if droplet_id is None:
-            raise ValueError("Missing required parameter 'droplet_id'")
+            raise ValueError("Missing required parameter 'droplet_id'.")
         if action_id is None:
-            raise ValueError("Missing required parameter 'action_id'")
+            raise ValueError("Missing required parameter 'action_id'.")
         url = f"{self.base_url}/v2/droplets/{droplet_id}/actions/{action_id}"
         query_params = {}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def droplets_list_kernels(self, droplet_id, per_page=None, page=None) -> Any:
+    def droplets_list_kernels(self, droplet_id: str, per_page: Optional[int] = None, page: Optional[int] = None) -> Any:
         """
         List All Available Kernels for a Droplet
 
@@ -3641,18 +4843,27 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: A JSON object that has a key called `kernels`.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Droplets
         """
         if droplet_id is None:
-            raise ValueError("Missing required parameter 'droplet_id'")
+            raise ValueError("Missing required parameter 'droplet_id'.")
         url = f"{self.base_url}/v2/droplets/{droplet_id}/kernels"
         query_params = {k: v for k, v in [('per_page', per_page), ('page', page)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def droplets_list_firewalls(self, droplet_id, per_page=None, page=None) -> Any:
+    def droplets_list_firewalls(self, droplet_id: str, per_page: Optional[int] = None, page: Optional[int] = None) -> Any:
         """
         List all Firewalls Applied to a Droplet
 
@@ -3664,18 +4875,27 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: A JSON object that has a key called `firewalls`.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Droplets
         """
         if droplet_id is None:
-            raise ValueError("Missing required parameter 'droplet_id'")
+            raise ValueError("Missing required parameter 'droplet_id'.")
         url = f"{self.base_url}/v2/droplets/{droplet_id}/firewalls"
         query_params = {k: v for k, v in [('per_page', per_page), ('page', page)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def droplets_list_neighbors(self, droplet_id) -> Any:
+    def droplets_list_neighbors(self, droplet_id: str) -> Any:
         """
         List Neighbors for a Droplet
 
@@ -3685,18 +4905,27 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: A JSON object with an `droplets` key.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Droplets
         """
         if droplet_id is None:
-            raise ValueError("Missing required parameter 'droplet_id'")
+            raise ValueError("Missing required parameter 'droplet_id'.")
         url = f"{self.base_url}/v2/droplets/{droplet_id}/neighbors"
         query_params = {}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def droplets_list_associated_resources(self, droplet_id) -> Any:
+    def destroy_droplet_with_resources(self, droplet_id: str) -> Any:
         """
         List Associated Resources for a Droplet
 
@@ -3706,18 +4935,27 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: A JSON object containing `snapshots`, `volumes`, and `volume_snapshots` keys.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Droplets
         """
         if droplet_id is None:
-            raise ValueError("Missing required parameter 'droplet_id'")
+            raise ValueError("Missing required parameter 'droplet_id'.")
         url = f"{self.base_url}/v2/droplets/{droplet_id}/destroy_with_associated_resources"
         query_params = {}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def droplets_destroy_with_associated_resources_selective(self, droplet_id, floating_ips=None, reserved_ips=None, snapshots=None, volumes=None, volume_snapshots=None) -> Any:
+    def destroy_select(self, droplet_id: str, floating_ips: Optional[List[str]] = None, reserved_ips: Optional[List[str]] = None, snapshots: Optional[List[str]] = None, volumes: Optional[List[str]] = None, volume_snapshots: Optional[List[str]] = None) -> Any:
         """
         Selectively Destroy a Droplet and its Associated Resources
 
@@ -3732,26 +4970,35 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: This does not indicate the success or failure of any operation, just that the request has been accepted for processing.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Droplets
         """
         if droplet_id is None:
-            raise ValueError("Missing required parameter 'droplet_id'")
-        request_body = {
+            raise ValueError("Missing required parameter 'droplet_id'.")
+        request_body_data = {
             'floating_ips': floating_ips,
             'reserved_ips': reserved_ips,
             'snapshots': snapshots,
             'volumes': volumes,
             'volume_snapshots': volume_snapshots,
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
         url = f"{self.base_url}/v2/droplets/{droplet_id}/destroy_with_associated_resources/selective"
         query_params = {}
         response = self._delete(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def droplets_destroy_with_associated_resources_dangerous(self, droplet_id) -> Any:
+    def delete_droplet_resources(self, droplet_id: str) -> Any:
         """
         Destroy a Droplet and All of its Associated Resources (Dangerous)
 
@@ -3761,18 +5008,27 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: This does not indicate the success or failure of any operation, just that the request has been accepted for processing.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Droplets
         """
         if droplet_id is None:
-            raise ValueError("Missing required parameter 'droplet_id'")
+            raise ValueError("Missing required parameter 'droplet_id'.")
         url = f"{self.base_url}/v2/droplets/{droplet_id}/destroy_with_associated_resources/dangerous"
         query_params = {}
         response = self._delete(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def droplets_get_destroy_associated_resources_status(self, droplet_id) -> dict[str, Any]:
+    def get_droplet_status(self, droplet_id: str) -> dict[str, Any]:
         """
         Check Status of a Droplet Destroy with Associated Resources Request
 
@@ -3782,18 +5038,27 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: A JSON object containing containing the status of a request to destroy a Droplet and its associated resources.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Droplets
         """
         if droplet_id is None:
-            raise ValueError("Missing required parameter 'droplet_id'")
+            raise ValueError("Missing required parameter 'droplet_id'.")
         url = f"{self.base_url}/v2/droplets/{droplet_id}/destroy_with_associated_resources/status"
         query_params = {}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def droplets_destroy_retry_with_associated_resources(self, droplet_id) -> Any:
+    def retry_droplet_with_resources(self, droplet_id: str) -> Any:
         """
         Retry a Droplet Destroy with Associated Resources Request
 
@@ -3803,18 +5068,28 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: This does not indicate the success or failure of any operation, just that the request has been accepted for processing.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Droplets
         """
         if droplet_id is None:
-            raise ValueError("Missing required parameter 'droplet_id'")
+            raise ValueError("Missing required parameter 'droplet_id'.")
+        request_body_data = None
         url = f"{self.base_url}/v2/droplets/{droplet_id}/destroy_with_associated_resources/retry"
         query_params = {}
-        response = self._post(url, data={}, params=query_params)
+        response = self._post(url, data=request_body_data, params=query_params, content_type='application/json')
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def autoscalepools_list(self, per_page=None, page=None, name=None) -> Any:
+    def autoscalepools_list(self, per_page: Optional[int] = None, page: Optional[int] = None, name: Optional[str] = None) -> Any:
         """
         List All Autoscale Pools
 
@@ -3826,6 +5101,10 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: A JSON object with a key of `autoscale_pools`.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Droplet Autoscale Pools
         """
@@ -3833,66 +5112,51 @@ class DigitaloceanApp(APIApplication):
         query_params = {k: v for k, v in [('per_page', per_page), ('page', page), ('name', name)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def autoscalepools_create(self, name=None, config=None, droplet_template=None) -> Any:
+    def autoscalepools_create(self, name: Optional[str] = None, config: Optional[dict[str, Any]] = None, droplet_template: Optional[dict[str, Any]] = None) -> Any:
         """
         Create a New Autoscale Pool
 
         Args:
             name (string): The human-readable name of the autoscale pool. This field cannot be updated Example: 'my-autoscale-pool'.
-            config (object): The scaling configuration for an autoscale pool, which is how the pool scales up and down (either by resource utilization or static configuration).
-            droplet_template (object): droplet_template
-                Example:
-                ```json
-                {
-                  "name": "my-autoscale-pool",
-                  "config": {
-                    "min_instances": 1,
-                    "max_instances": 5,
-                    "target_cpu_utilization": 0.5,
-                    "cooldown_minutes": 10
-                  },
-                  "droplet_template": {
-                    "name": "example.com",
-                    "region": "nyc3",
-                    "size": "c-2",
-                    "image": "ubuntu-20-04-x64",
-                    "ssh_keys": [
-                      "3b:16:e4:bf:8b:00:8b:b8:59:8c:a9:d3:f0:19:fa:45"
-                    ],
-                    "backups": true,
-                    "ipv6": true,
-                    "monitoring": true,
-                    "tags": [
-                      "env:prod",
-                      "web"
-                    ],
-                    "user_data": "#cloud-config\nruncmd:\n  - touch /test.txt\n",
-                    "vpc_uuid": "760e09ef-dc84-11e8-981e-3cfdfeaae000"
-                  }
-                }
-                ```
+            config (object): The scaling configuration for an autoscale pool, which is how the pool scales up and down (either by resource utilization or static configuration). Example: {'min_instances': 1, 'max_instances': 5, 'target_cpu_utilization': 0.5, 'cooldown_minutes': 10}.
+            droplet_template (object): droplet_template Example: {'name': 'example.com', 'region': 'nyc3', 'size': 'c-2', 'image': 'ubuntu-20-04-x64', 'ssh_keys': ['3b:16:e4:bf:8b:00:8b:b8:59:8c:a9:d3:f0:19:fa:45'], 'backups': True, 'ipv6': True, 'monitoring': True, 'tags': ['env:prod', 'web'], 'user_data': '#cloud-config\nruncmd:\n  - touch /test.txt\n', 'vpc_uuid': '760e09ef-dc84-11e8-981e-3cfdfeaae000'}.
 
         Returns:
             Any: Accepted
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Droplet Autoscale Pools
         """
-        request_body = {
+        request_body_data = None
+        request_body_data = {
             'name': name,
             'config': config,
             'droplet_template': droplet_template,
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
         url = f"{self.base_url}/v2/droplets/autoscale"
         query_params = {}
-        response = self._post(url, data=request_body, params=query_params)
+        response = self._post(url, data=request_body_data, params=query_params, content_type='application/json')
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def autoscalepools_get(self, autoscale_pool_id) -> Any:
+    def autoscalepools_get(self, autoscale_pool_id: str) -> Any:
         """
         Retrieve an Existing Autoscale Pool
 
@@ -3903,75 +5167,67 @@ class DigitaloceanApp(APIApplication):
             Any: The response will be a JSON object with a key called `autoscale_pool`. This will be
         set to a JSON object that contains the standard autoscale pool attributes.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Droplet Autoscale Pools
         """
         if autoscale_pool_id is None:
-            raise ValueError("Missing required parameter 'autoscale_pool_id'")
+            raise ValueError("Missing required parameter 'autoscale_pool_id'.")
         url = f"{self.base_url}/v2/droplets/autoscale/{autoscale_pool_id}"
         query_params = {}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def autoscalepools_update(self, autoscale_pool_id, name=None, config=None, droplet_template=None) -> Any:
+    def autoscalepools_update(self, autoscale_pool_id: str, name: Optional[str] = None, config: Optional[dict[str, Any]] = None, droplet_template: Optional[dict[str, Any]] = None) -> Any:
         """
         Update Autoscale Pool
 
         Args:
             autoscale_pool_id (string): autoscale_pool_id
             name (string): The human-readable name of the autoscale pool. This field cannot be updated Example: 'my-autoscale-pool'.
-            config (object): The scaling configuration for an autoscale pool, which is how the pool scales up and down (either by resource utilization or static configuration).
-            droplet_template (object): droplet_template
-                Example:
-                ```json
-                {
-                  "name": "my-autoscale-pool",
-                  "config": {
-                    "target_number_instances": 2
-                  },
-                  "droplet_template": {
-                    "name": "example.com",
-                    "region": "nyc3",
-                    "size": "c-2",
-                    "image": "ubuntu-20-04-x64",
-                    "ssh_keys": [
-                      "3b:16:e4:bf:8b:00:8b:b8:59:8c:a9:d3:f0:19:fa:45"
-                    ],
-                    "backups": true,
-                    "ipv6": true,
-                    "monitoring": true,
-                    "tags": [
-                      "env:prod",
-                      "web"
-                    ],
-                    "user_data": "#cloud-config\nruncmd:\n  - touch /test.txt\n",
-                    "vpc_uuid": "760e09ef-dc84-11e8-981e-3cfdfeaae000"
-                  }
-                }
-                ```
+            config (object): The scaling configuration for an autoscale pool, which is how the pool scales up and down (either by resource utilization or static configuration). Example: {'target_number_instances': 2}.
+            droplet_template (object): droplet_template Example: {'name': 'example.com', 'region': 'nyc3', 'size': 'c-2', 'image': 'ubuntu-20-04-x64', 'ssh_keys': ['3b:16:e4:bf:8b:00:8b:b8:59:8c:a9:d3:f0:19:fa:45'], 'backups': True, 'ipv6': True, 'monitoring': True, 'tags': ['env:prod', 'web'], 'user_data': '#cloud-config\nruncmd:\n  - touch /test.txt\n', 'vpc_uuid': '760e09ef-dc84-11e8-981e-3cfdfeaae000'}.
 
         Returns:
             Any: Accepted
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
 
         Tags:
             Droplet Autoscale Pools
         """
         if autoscale_pool_id is None:
-            raise ValueError("Missing required parameter 'autoscale_pool_id'")
-        request_body = {
+            raise ValueError("Missing required parameter 'autoscale_pool_id'.")
+        request_body_data = None
+        request_body_data = {
             'name': name,
             'config': config,
             'droplet_template': droplet_template,
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
         url = f"{self.base_url}/v2/droplets/autoscale/{autoscale_pool_id}"
         query_params = {}
-        response = self._put(url, data=request_body, params=query_params)
+        response = self._put(url, data=request_body_data, params=query_params, content_type='application/json')
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def autoscalepools_delete(self, autoscale_pool_id) -> Any:
+    def autoscalepools_delete(self, autoscale_pool_id: str) -> Any:
         """
         Delete autoscale pool
 
@@ -3981,18 +5237,27 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: The action was successful and the response body is empty.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Droplet Autoscale Pools
         """
         if autoscale_pool_id is None:
-            raise ValueError("Missing required parameter 'autoscale_pool_id'")
+            raise ValueError("Missing required parameter 'autoscale_pool_id'.")
         url = f"{self.base_url}/v2/droplets/autoscale/{autoscale_pool_id}"
         query_params = {}
         response = self._delete(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def autoscalepools_delete_dangerous(self, autoscale_pool_id) -> Any:
+    def delete_autoscale_pool_dangerously(self, autoscale_pool_id: str) -> Any:
         """
         Delete autoscale pool and resources
 
@@ -4002,18 +5267,27 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: The action was successful and the response body is empty.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Droplet Autoscale Pools
         """
         if autoscale_pool_id is None:
-            raise ValueError("Missing required parameter 'autoscale_pool_id'")
+            raise ValueError("Missing required parameter 'autoscale_pool_id'.")
         url = f"{self.base_url}/v2/droplets/autoscale/{autoscale_pool_id}/dangerous"
         query_params = {}
         response = self._delete(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def autoscalepools_list_members(self, autoscale_pool_id, per_page=None, page=None) -> Any:
+    def autoscalepools_list_members(self, autoscale_pool_id: str, per_page: Optional[int] = None, page: Optional[int] = None) -> Any:
         """
         List members
 
@@ -4025,18 +5299,27 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: A JSON object with a key of `droplets`.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Droplet Autoscale Pools
         """
         if autoscale_pool_id is None:
-            raise ValueError("Missing required parameter 'autoscale_pool_id'")
+            raise ValueError("Missing required parameter 'autoscale_pool_id'.")
         url = f"{self.base_url}/v2/droplets/autoscale/{autoscale_pool_id}/members"
         query_params = {k: v for k, v in [('per_page', per_page), ('page', page)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def autoscalepools_list_history(self, autoscale_pool_id, per_page=None, page=None) -> Any:
+    def autoscalepools_list_history(self, autoscale_pool_id: str, per_page: Optional[int] = None, page: Optional[int] = None) -> Any:
         """
         List history events
 
@@ -4048,18 +5331,27 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: A JSON object with a key of `history`.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Droplet Autoscale Pools
         """
         if autoscale_pool_id is None:
-            raise ValueError("Missing required parameter 'autoscale_pool_id'")
+            raise ValueError("Missing required parameter 'autoscale_pool_id'.")
         url = f"{self.base_url}/v2/droplets/autoscale/{autoscale_pool_id}/history"
         query_params = {k: v for k, v in [('per_page', per_page), ('page', page)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def firewalls_list(self, per_page=None, page=None) -> Any:
+    def firewalls_list(self, per_page: Optional[int] = None, page: Optional[int] = None) -> Any:
         """
         List All Firewalls
 
@@ -4070,6 +5362,10 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: To list all of the firewalls available on your account, send a GET request to `/v2/firewalls`.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Firewalls
         """
@@ -4077,9 +5373,14 @@ class DigitaloceanApp(APIApplication):
         query_params = {k: v for k, v in [('per_page', per_page), ('page', page)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def firewalls_create(self, id=None, status=None, created_at=None, pending_changes=None, name=None, droplet_ids=None, tags=None, inbound_rules=None, outbound_rules=None) -> Any:
+    def firewalls_create(self, id: Optional[str] = None, status: Optional[str] = None, created_at: Optional[str] = None, pending_changes: Optional[List[dict[str, Any]]] = None, name: Optional[str] = None, droplet_ids: Optional[List[int]] = None, tags: Optional[Any] = None, inbound_rules: Optional[List[Any]] = None, outbound_rules: Optional[List[Any]] = None) -> Any:
         """
         Create a New Firewall
 
@@ -4091,60 +5392,21 @@ class DigitaloceanApp(APIApplication):
             name (string): A human-readable name for a firewall. The name must begin with an alphanumeric character. Subsequent characters must either be alphanumeric characters, a period (.), or a dash (-). Example: 'firewall'.
             droplet_ids (array): An array containing the IDs of the Droplets assigned to the firewall. Example: '[8043964]'.
             tags (string): tags
-            inbound_rules (array): inbound_rules
-            outbound_rules (array): outbound_rules
-                Example:
-                ```json
-                {
-                  "name": "firewall",
-                  "inbound_rules": [
-                    {
-                      "protocol": "tcp",
-                      "ports": "80",
-                      "sources": {
-                        "load_balancer_uids": [
-                          "4de7ac8b-495b-4884-9a69-1050c6793cd6"
-                        ]
-                      }
-                    },
-                    {
-                      "protocol": "tcp",
-                      "ports": "22",
-                      "sources": {
-                        "tags": [
-                          "gateway"
-                        ],
-                        "addresses": [
-                          "18.0.0.0/8"
-                        ]
-                      }
-                    }
-                  ],
-                  "outbound_rules": [
-                    {
-                      "protocol": "tcp",
-                      "ports": "80",
-                      "destinations": {
-                        "addresses": [
-                          "0.0.0.0/0",
-                          "::/0"
-                        ]
-                      }
-                    }
-                  ],
-                  "droplet_ids": [
-                    8043964
-                  ]
-                }
-                ```
+            inbound_rules (array): inbound_rules Example: [{'protocol': 'tcp', 'ports': '80', 'sources': {'load_balancer_uids': ['4de7ac8b-495b-4884-9a69-1050c6793cd6']}}, {'protocol': 'tcp', 'ports': '22', 'sources': {'tags': ['gateway'], 'addresses': ['18.0.0.0/8']}}].
+            outbound_rules (array): outbound_rules Example: [{'protocol': 'tcp', 'ports': '80', 'destinations': {'addresses': ['0.0.0.0/0', '::/0']}}].
 
         Returns:
             Any: The response will be a JSON object with a firewall key. This will be set to an object containing the standard firewall attributes
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Firewalls
         """
-        request_body = {
+        request_body_data = None
+        request_body_data = {
             'id': id,
             'status': status,
             'created_at': created_at,
@@ -4155,14 +5417,19 @@ class DigitaloceanApp(APIApplication):
             'inbound_rules': inbound_rules,
             'outbound_rules': outbound_rules,
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
         url = f"{self.base_url}/v2/firewalls"
         query_params = {}
-        response = self._post(url, data=request_body, params=query_params)
+        response = self._post(url, data=request_body_data, params=query_params, content_type='application/json')
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def firewalls_get(self, firewall_id) -> Any:
+    def firewalls_get(self, firewall_id: str) -> Any:
         """
         Retrieve an Existing Firewall
 
@@ -4172,18 +5439,27 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: The response will be a JSON object with a firewall key. This will be set to an object containing the standard firewall attributes.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Firewalls
         """
         if firewall_id is None:
-            raise ValueError("Missing required parameter 'firewall_id'")
+            raise ValueError("Missing required parameter 'firewall_id'.")
         url = f"{self.base_url}/v2/firewalls/{firewall_id}"
         query_params = {}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def firewalls_update(self, firewall_id, id=None, status=None, created_at=None, pending_changes=None, name=None, droplet_ids=None, tags=None, inbound_rules=None, outbound_rules=None) -> Any:
+    def firewalls_update(self, firewall_id: str, id: Optional[str] = None, status: Optional[str] = None, created_at: Optional[str] = None, pending_changes: Optional[List[dict[str, Any]]] = None, name: Optional[str] = None, droplet_ids: Optional[List[int]] = None, tags: Optional[Any] = None, inbound_rules: Optional[List[Any]] = None, outbound_rules: Optional[List[Any]] = None) -> Any:
         """
         Update a Firewall
 
@@ -4195,66 +5471,24 @@ class DigitaloceanApp(APIApplication):
             pending_changes (array): An array of objects each containing the fields "droplet_id", "removing", and "status". It is provided to detail exactly which Droplets are having their security policies updated. When empty, all changes have been successfully applied. Example: "[{'droplet_id': 8043964, 'removing': False, 'status': 'waiting'}]".
             name (string): A human-readable name for a firewall. The name must begin with an alphanumeric character. Subsequent characters must either be alphanumeric characters, a period (.), or a dash (-). Example: 'firewall'.
             droplet_ids (array): An array containing the IDs of the Droplets assigned to the firewall. Example: '[8043964]'.
-            tags (string): tags
-            inbound_rules (array): inbound_rules
-            outbound_rules (array): outbound_rules
-                Example:
-                ```json
-                {
-                  "name": "frontend-firewall",
-                  "inbound_rules": [
-                    {
-                      "protocol": "tcp",
-                      "ports": "8080",
-                      "sources": {
-                        "load_balancer_uids": [
-                          "4de7ac8b-495b-4884-9a69-1050c6793cd6"
-                        ]
-                      }
-                    },
-                    {
-                      "protocol": "tcp",
-                      "ports": "22",
-                      "sources": {
-                        "tags": [
-                          "gateway"
-                        ],
-                        "addresses": [
-                          "18.0.0.0/8"
-                        ]
-                      }
-                    }
-                  ],
-                  "outbound_rules": [
-                    {
-                      "protocol": "tcp",
-                      "ports": "8080",
-                      "destinations": {
-                        "addresses": [
-                          "0.0.0.0/0",
-                          "::/0"
-                        ]
-                      }
-                    }
-                  ],
-                  "droplet_ids": [
-                    8043964
-                  ],
-                  "tags": [
-                    "frontend"
-                  ]
-                }
-                ```
+            tags (string): tags Example: ['frontend'].
+            inbound_rules (array): inbound_rules Example: [{'protocol': 'tcp', 'ports': '8080', 'sources': {'load_balancer_uids': ['4de7ac8b-495b-4884-9a69-1050c6793cd6']}}, {'protocol': 'tcp', 'ports': '22', 'sources': {'tags': ['gateway'], 'addresses': ['18.0.0.0/8']}}].
+            outbound_rules (array): outbound_rules Example: [{'protocol': 'tcp', 'ports': '8080', 'destinations': {'addresses': ['0.0.0.0/0', '::/0']}}].
 
         Returns:
             Any: The response will be a JSON object with a `firewall` key. This will be set to an object containing the standard firewall attributes.
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
 
         Tags:
             Firewalls
         """
         if firewall_id is None:
-            raise ValueError("Missing required parameter 'firewall_id'")
-        request_body = {
+            raise ValueError("Missing required parameter 'firewall_id'.")
+        request_body_data = None
+        request_body_data = {
             'id': id,
             'status': status,
             'created_at': created_at,
@@ -4265,14 +5499,19 @@ class DigitaloceanApp(APIApplication):
             'inbound_rules': inbound_rules,
             'outbound_rules': outbound_rules,
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
         url = f"{self.base_url}/v2/firewalls/{firewall_id}"
         query_params = {}
-        response = self._put(url, data=request_body, params=query_params)
+        response = self._put(url, data=request_body_data, params=query_params, content_type='application/json')
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def firewalls_delete(self, firewall_id) -> Any:
+    def firewalls_delete(self, firewall_id: str) -> Any:
         """
         Delete a Firewall
 
@@ -4282,264 +5521,244 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: The action was successful and the response body is empty.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Firewalls
         """
         if firewall_id is None:
-            raise ValueError("Missing required parameter 'firewall_id'")
+            raise ValueError("Missing required parameter 'firewall_id'.")
         url = f"{self.base_url}/v2/firewalls/{firewall_id}"
         query_params = {}
         response = self._delete(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def firewalls_assign_droplets(self, firewall_id, droplet_ids=None) -> Any:
+    def firewalls_assign_droplets(self, firewall_id: str, droplet_ids: Optional[List[int]] = None) -> Any:
         """
         Add Droplets to a Firewall
 
         Args:
             firewall_id (string): firewall_id
-            droplet_ids (array): An array containing the IDs of the Droplets to be assigned to the firewall.
-                Example:
-                ```json
-                {
-                  "droplet_ids": [
-                    49696269
-                  ]
-                }
-                ```
+            droplet_ids (array): An array containing the IDs of the Droplets to be assigned to the firewall. Example: '[49696269]'.
 
         Returns:
             Any: The action was successful and the response body is empty.
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
 
         Tags:
             Firewalls
         """
         if firewall_id is None:
-            raise ValueError("Missing required parameter 'firewall_id'")
-        request_body = {
+            raise ValueError("Missing required parameter 'firewall_id'.")
+        request_body_data = None
+        request_body_data = {
             'droplet_ids': droplet_ids,
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
         url = f"{self.base_url}/v2/firewalls/{firewall_id}/droplets"
         query_params = {}
-        response = self._post(url, data=request_body, params=query_params)
+        response = self._post(url, data=request_body_data, params=query_params, content_type='application/json')
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def firewalls_delete_droplets(self, firewall_id, droplet_ids=None) -> Any:
+    def firewalls_delete_droplets(self, firewall_id: str, droplet_ids: Optional[List[int]] = None) -> Any:
         """
         Remove Droplets from a Firewall
 
         Args:
             firewall_id (string): firewall_id
-            droplet_ids (array): An array containing the IDs of the Droplets to be removed from the firewall.
-                Example:
-                ```json
-                {
-                  "droplet_ids": [
-                    49696269
-                  ]
-                }
-                ```
+            droplet_ids (array): An array containing the IDs of the Droplets to be removed from the firewall. Example: '[49696269]'.
 
         Returns:
             Any: The action was successful and the response body is empty.
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
 
         Tags:
             Firewalls
         """
         if firewall_id is None:
-            raise ValueError("Missing required parameter 'firewall_id'")
-        request_body = {
+            raise ValueError("Missing required parameter 'firewall_id'.")
+        request_body_data = {
             'droplet_ids': droplet_ids,
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
         url = f"{self.base_url}/v2/firewalls/{firewall_id}/droplets"
         query_params = {}
         response = self._delete(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def firewalls_add_tags(self, firewall_id, tags=None) -> Any:
+    def firewalls_add_tags(self, firewall_id: str, tags: Optional[Any] = None) -> Any:
         """
         Add Tags to a Firewall
 
         Args:
             firewall_id (string): firewall_id
-            tags (string): tags
-                Example:
-                ```json
-                {
-                  "tags": [
-                    "frontend"
-                  ]
-                }
-                ```
+            tags (string): tags Example: ['frontend'].
 
         Returns:
             Any: The action was successful and the response body is empty.
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
 
         Tags:
             Firewalls
         """
         if firewall_id is None:
-            raise ValueError("Missing required parameter 'firewall_id'")
-        request_body = {
+            raise ValueError("Missing required parameter 'firewall_id'.")
+        request_body_data = None
+        request_body_data = {
             'tags': tags,
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
         url = f"{self.base_url}/v2/firewalls/{firewall_id}/tags"
         query_params = {}
-        response = self._post(url, data=request_body, params=query_params)
+        response = self._post(url, data=request_body_data, params=query_params, content_type='application/json')
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def firewalls_delete_tags(self, firewall_id, tags=None) -> Any:
+    def firewalls_delete_tags(self, firewall_id: str, tags: Optional[Any] = None) -> Any:
         """
         Remove Tags from a Firewall
 
         Args:
             firewall_id (string): firewall_id
-            tags (string): tags
-                Example:
-                ```json
-                {
-                  "tags": [
-                    "frontend"
-                  ]
-                }
-                ```
+            tags (string): tags Example: ['frontend'].
 
         Returns:
             Any: The action was successful and the response body is empty.
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
 
         Tags:
             Firewalls
         """
         if firewall_id is None:
-            raise ValueError("Missing required parameter 'firewall_id'")
-        request_body = {
+            raise ValueError("Missing required parameter 'firewall_id'.")
+        request_body_data = {
             'tags': tags,
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
         url = f"{self.base_url}/v2/firewalls/{firewall_id}/tags"
         query_params = {}
         response = self._delete(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def firewalls_add_rules(self, firewall_id, inbound_rules=None, outbound_rules=None) -> Any:
+    def firewalls_add_rules(self, firewall_id: str, inbound_rules: Optional[List[Any]] = None, outbound_rules: Optional[List[Any]] = None) -> Any:
         """
         Add Rules to a Firewall
 
         Args:
             firewall_id (string): firewall_id
-            inbound_rules (array): inbound_rules
-            outbound_rules (array): outbound_rules
-                Example:
-                ```json
-                {
-                  "inbound_rules": [
-                    {
-                      "protocol": "tcp",
-                      "ports": "3306",
-                      "sources": {
-                        "droplet_ids": [
-                          49696269
-                        ]
-                      }
-                    }
-                  ],
-                  "outbound_rules": [
-                    {
-                      "protocol": "tcp",
-                      "ports": "3306",
-                      "destinations": {
-                        "droplet_ids": [
-                          49696269
-                        ]
-                      }
-                    }
-                  ]
-                }
-                ```
+            inbound_rules (array): inbound_rules Example: [{'protocol': 'tcp', 'ports': '3306', 'sources': {'droplet_ids': [49696269]}}].
+            outbound_rules (array): outbound_rules Example: [{'protocol': 'tcp', 'ports': '3306', 'destinations': {'droplet_ids': [49696269]}}].
 
         Returns:
             Any: The action was successful and the response body is empty.
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
 
         Tags:
             Firewalls
         """
         if firewall_id is None:
-            raise ValueError("Missing required parameter 'firewall_id'")
-        request_body = {
+            raise ValueError("Missing required parameter 'firewall_id'.")
+        request_body_data = None
+        request_body_data = {
             'inbound_rules': inbound_rules,
             'outbound_rules': outbound_rules,
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
         url = f"{self.base_url}/v2/firewalls/{firewall_id}/rules"
         query_params = {}
-        response = self._post(url, data=request_body, params=query_params)
+        response = self._post(url, data=request_body_data, params=query_params, content_type='application/json')
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def firewalls_delete_rules(self, firewall_id, inbound_rules=None, outbound_rules=None) -> Any:
+    def firewalls_delete_rules(self, firewall_id: str, inbound_rules: Optional[List[Any]] = None, outbound_rules: Optional[List[Any]] = None) -> Any:
         """
         Remove Rules from a Firewall
 
         Args:
             firewall_id (string): firewall_id
-            inbound_rules (array): inbound_rules
-            outbound_rules (array): outbound_rules
-                Example:
-                ```json
-                {
-                  "inbound_rules": [
-                    {
-                      "protocol": "tcp",
-                      "ports": "3306",
-                      "sources": {
-                        "droplet_ids": [
-                          49696269
-                        ]
-                      }
-                    }
-                  ],
-                  "outbound_rules": [
-                    {
-                      "protocol": "tcp",
-                      "ports": "3306",
-                      "destinations": {
-                        "droplet_ids": [
-                          49696269
-                        ]
-                      }
-                    }
-                  ]
-                }
-                ```
+            inbound_rules (array): inbound_rules Example: [{'protocol': 'tcp', 'ports': '3306', 'sources': {'droplet_ids': [49696269]}}].
+            outbound_rules (array): outbound_rules Example: [{'protocol': 'tcp', 'ports': '3306', 'destinations': {'droplet_ids': [49696269]}}].
 
         Returns:
             Any: The action was successful and the response body is empty.
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
 
         Tags:
             Firewalls
         """
         if firewall_id is None:
-            raise ValueError("Missing required parameter 'firewall_id'")
-        request_body = {
+            raise ValueError("Missing required parameter 'firewall_id'.")
+        request_body_data = {
             'inbound_rules': inbound_rules,
             'outbound_rules': outbound_rules,
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
         url = f"{self.base_url}/v2/firewalls/{firewall_id}/rules"
         query_params = {}
         response = self._delete(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def floating_ips_list(self, per_page=None, page=None) -> Any:
+    def floating_ips_list(self, per_page: Optional[int] = None, page: Optional[int] = None) -> Any:
         """
         List All Floating IPs
 
@@ -4550,6 +5769,10 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: The response will be a JSON object with a key called `floating_ips`. This will be set to an array of floating IP objects, each of which will contain the standard floating IP attributes
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Floating IPs
         """
@@ -4557,9 +5780,52 @@ class DigitaloceanApp(APIApplication):
         query_params = {k: v for k, v in [('per_page', per_page), ('page', page)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def floating_ips_get(self, floating_ip) -> dict[str, Any]:
+    def floating_ips_create(self, droplet_id: Optional[int] = None, region: Optional[str] = None, project_id: Optional[str] = None) -> dict[str, Any]:
+        """
+        Create a New Floating IP
+
+        Args:
+            droplet_id (integer): The ID of the Droplet that the floating IP will be assigned to. Example: '2457247'.
+            region (string): The slug identifier for the region the floating IP will be reserved to. Example: 'nyc3'.
+            project_id (string): The UUID of the project to which the floating IP will be assigned. Example: '746c6152-2fa2-11ed-92d3-27aaa54e4988'.
+
+        Returns:
+            dict[str, Any]: The response will be a JSON object with a key called `floating_ip`. The value of this will be an object that contains the standard attributes associated with a floating IP.
+        When assigning a floating IP to a Droplet at same time as it created, the response's `links` object will contain links to both the Droplet and the assignment action. The latter can be used to check the status of the action.
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
+        Tags:
+            Floating IPs
+        """
+        request_body_data = None
+        request_body_data = {
+            'droplet_id': droplet_id,
+            'region': region,
+            'project_id': project_id,
+        }
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
+        url = f"{self.base_url}/v2/floating_ips"
+        query_params = {}
+        response = self._post(url, data=request_body_data, params=query_params, content_type='application/json')
+        response.raise_for_status()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
+
+    def floating_ips_get(self, floating_ip: str) -> dict[str, Any]:
         """
         Retrieve an Existing Floating IP
 
@@ -4569,18 +5835,27 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: The response will be a JSON object with a key called `floating_ip`. The value of this will be an object that contains the standard attributes associated with a floating IP.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Floating IPs
         """
         if floating_ip is None:
-            raise ValueError("Missing required parameter 'floating_ip'")
+            raise ValueError("Missing required parameter 'floating_ip'.")
         url = f"{self.base_url}/v2/floating_ips/{floating_ip}"
         query_params = {}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def floating_ips_delete(self, floating_ip) -> Any:
+    def floating_ips_delete(self, floating_ip: str) -> Any:
         """
         Delete a Floating IP
 
@@ -4590,18 +5865,27 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: The action was successful and the response body is empty.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Floating IPs
         """
         if floating_ip is None:
-            raise ValueError("Missing required parameter 'floating_ip'")
+            raise ValueError("Missing required parameter 'floating_ip'.")
         url = f"{self.base_url}/v2/floating_ips/{floating_ip}"
         query_params = {}
         response = self._delete(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def floating_ips_action_list(self, floating_ip) -> Any:
+    def floating_ips_action_list(self, floating_ip: str) -> Any:
         """
         List All Actions for a Floating IP
 
@@ -4611,18 +5895,65 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: The results will be returned as a JSON object with an `actions` key. This will be set to an array filled with action objects containing the standard floating IP action attributes.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Floating IP Actions
         """
         if floating_ip is None:
-            raise ValueError("Missing required parameter 'floating_ip'")
+            raise ValueError("Missing required parameter 'floating_ip'.")
         url = f"{self.base_url}/v2/floating_ips/{floating_ip}/actions"
         query_params = {}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def floating_ips_action_get(self, floating_ip, action_id) -> Any:
+    def floating_ips_action_post(self, floating_ip: str, type: Optional[str] = None, droplet_id: Optional[int] = None) -> Any:
+        """
+        Initiate a Floating IP Action
+
+        Args:
+            floating_ip (string): floating_ip
+            type (string): The type of action to initiate for the floating IP.
+            droplet_id (integer): The ID of the Droplet that the floating IP will be assigned to. Example: '758604968'.
+
+        Returns:
+            Any: The response will be an object with a key called `action`. The value of this will be an object that contains the standard floating IP action attributes.
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
+        Tags:
+            Floating IP Actions
+        """
+        if floating_ip is None:
+            raise ValueError("Missing required parameter 'floating_ip'.")
+        request_body_data = None
+        request_body_data = {
+            'type': type,
+            'droplet_id': droplet_id,
+        }
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
+        url = f"{self.base_url}/v2/floating_ips/{floating_ip}/actions"
+        query_params = {}
+        response = self._post(url, data=request_body_data, params=query_params, content_type='application/json')
+        response.raise_for_status()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
+
+    def floating_ips_action_get(self, floating_ip: str, action_id: str) -> Any:
         """
         Retrieve an Existing Floating IP Action
 
@@ -4633,18 +5964,27 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: The response will be an object with a key called `action`. The value of this will be an object that contains the standard floating IP action attributes.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Floating IP Actions
         """
         if floating_ip is None:
-            raise ValueError("Missing required parameter 'floating_ip'")
+            raise ValueError("Missing required parameter 'floating_ip'.")
         if action_id is None:
-            raise ValueError("Missing required parameter 'action_id'")
+            raise ValueError("Missing required parameter 'action_id'.")
         url = f"{self.base_url}/v2/floating_ips/{floating_ip}/actions/{action_id}"
         query_params = {}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
     def functions_list_namespaces(self) -> Any:
         """
@@ -4654,6 +5994,10 @@ class DigitaloceanApp(APIApplication):
             Any: An array of JSON objects with a key called `namespaces`.  Each object represents a namespace and contains
         the properties associated with it.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Functions
         """
@@ -4661,9 +6005,14 @@ class DigitaloceanApp(APIApplication):
         query_params = {}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def functions_create_namespace(self, region, label) -> dict[str, Any]:
+    def functions_create_namespace(self, region: str, label: str) -> dict[str, Any]:
         """
         Create Namespace
 
@@ -4675,21 +6024,31 @@ class DigitaloceanApp(APIApplication):
             dict[str, Any]: A JSON response object with a key called `namespace`. The object contains the properties associated
         with the namespace.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Functions
         """
-        request_body = {
+        request_body_data = None
+        request_body_data = {
             'region': region,
             'label': label,
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
         url = f"{self.base_url}/v2/functions/namespaces"
         query_params = {}
-        response = self._post(url, data=request_body, params=query_params)
+        response = self._post(url, data=request_body_data, params=query_params, content_type='application/json')
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def functions_get_namespace(self, namespace_id) -> dict[str, Any]:
+    def functions_get_namespace(self, namespace_id: str) -> dict[str, Any]:
         """
         Get Namespace
 
@@ -4700,18 +6059,27 @@ class DigitaloceanApp(APIApplication):
             dict[str, Any]: A JSON response object with a key called `namespace`. The object contains the properties associated
         with the namespace.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Functions
         """
         if namespace_id is None:
-            raise ValueError("Missing required parameter 'namespace_id'")
+            raise ValueError("Missing required parameter 'namespace_id'.")
         url = f"{self.base_url}/v2/functions/namespaces/{namespace_id}"
         query_params = {}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def functions_delete_namespace(self, namespace_id) -> Any:
+    def functions_delete_namespace(self, namespace_id: str) -> Any:
         """
         Delete Namespace
 
@@ -4721,18 +6089,27 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: The action was successful and the response body is empty.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Functions
         """
         if namespace_id is None:
-            raise ValueError("Missing required parameter 'namespace_id'")
+            raise ValueError("Missing required parameter 'namespace_id'.")
         url = f"{self.base_url}/v2/functions/namespaces/{namespace_id}"
         query_params = {}
         response = self._delete(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def functions_list_triggers(self, namespace_id) -> Any:
+    def functions_list_triggers(self, namespace_id: str) -> Any:
         """
         List Triggers
 
@@ -4743,18 +6120,27 @@ class DigitaloceanApp(APIApplication):
             Any: An array of JSON objects with a key called `namespaces`.  Each object represents a namespace and contains
         the properties associated with it.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Functions
         """
         if namespace_id is None:
-            raise ValueError("Missing required parameter 'namespace_id'")
+            raise ValueError("Missing required parameter 'namespace_id'.")
         url = f"{self.base_url}/v2/functions/namespaces/{namespace_id}/triggers"
         query_params = {}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def functions_create_trigger(self, namespace_id, name, function, type, is_enabled, scheduled_details) -> dict[str, Any]:
+    def functions_create_trigger(self, namespace_id: str, name: str, function: str, type: str, is_enabled: bool, scheduled_details: dict[str, Any]) -> dict[str, Any]:
         """
         Create Trigger
 
@@ -4771,26 +6157,36 @@ class DigitaloceanApp(APIApplication):
             dict[str, Any]: A JSON response object with a key called `trigger`. The object contains the properties associated
         with the trigger.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Functions
         """
         if namespace_id is None:
-            raise ValueError("Missing required parameter 'namespace_id'")
-        request_body = {
+            raise ValueError("Missing required parameter 'namespace_id'.")
+        request_body_data = None
+        request_body_data = {
             'name': name,
             'function': function,
             'type': type,
             'is_enabled': is_enabled,
             'scheduled_details': scheduled_details,
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
         url = f"{self.base_url}/v2/functions/namespaces/{namespace_id}/triggers"
         query_params = {}
-        response = self._post(url, data=request_body, params=query_params)
+        response = self._post(url, data=request_body_data, params=query_params, content_type='application/json')
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def functions_get_trigger(self, namespace_id, trigger_name) -> dict[str, Any]:
+    def functions_get_trigger(self, namespace_id: str, trigger_name: str) -> dict[str, Any]:
         """
         Get Trigger
 
@@ -4802,20 +6198,29 @@ class DigitaloceanApp(APIApplication):
             dict[str, Any]: A JSON response object with a key called `trigger`. The object contains the properties associated
         with the trigger.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Functions
         """
         if namespace_id is None:
-            raise ValueError("Missing required parameter 'namespace_id'")
+            raise ValueError("Missing required parameter 'namespace_id'.")
         if trigger_name is None:
-            raise ValueError("Missing required parameter 'trigger_name'")
+            raise ValueError("Missing required parameter 'trigger_name'.")
         url = f"{self.base_url}/v2/functions/namespaces/{namespace_id}/triggers/{trigger_name}"
         query_params = {}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def functions_update_trigger(self, namespace_id, trigger_name, is_enabled=None, scheduled_details=None) -> dict[str, Any]:
+    def functions_update_trigger(self, namespace_id: str, trigger_name: str, is_enabled: Optional[bool] = None, scheduled_details: Optional[dict[str, Any]] = None) -> dict[str, Any]:
         """
         Update Trigger
 
@@ -4830,25 +6235,35 @@ class DigitaloceanApp(APIApplication):
             dict[str, Any]: A JSON response object with a key called `trigger`. The object contains the properties associated
         with the trigger.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Functions
         """
         if namespace_id is None:
-            raise ValueError("Missing required parameter 'namespace_id'")
+            raise ValueError("Missing required parameter 'namespace_id'.")
         if trigger_name is None:
-            raise ValueError("Missing required parameter 'trigger_name'")
-        request_body = {
+            raise ValueError("Missing required parameter 'trigger_name'.")
+        request_body_data = None
+        request_body_data = {
             'is_enabled': is_enabled,
             'scheduled_details': scheduled_details,
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
         url = f"{self.base_url}/v2/functions/namespaces/{namespace_id}/triggers/{trigger_name}"
         query_params = {}
-        response = self._put(url, data=request_body, params=query_params)
+        response = self._put(url, data=request_body_data, params=query_params, content_type='application/json')
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def functions_delete_trigger(self, namespace_id, trigger_name) -> Any:
+    def functions_delete_trigger(self, namespace_id: str, trigger_name: str) -> Any:
         """
         Delete Trigger
 
@@ -4859,20 +6274,29 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: The action was successful and the response body is empty.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Functions
         """
         if namespace_id is None:
-            raise ValueError("Missing required parameter 'namespace_id'")
+            raise ValueError("Missing required parameter 'namespace_id'.")
         if trigger_name is None:
-            raise ValueError("Missing required parameter 'trigger_name'")
+            raise ValueError("Missing required parameter 'trigger_name'.")
         url = f"{self.base_url}/v2/functions/namespaces/{namespace_id}/triggers/{trigger_name}"
         query_params = {}
         response = self._delete(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def images_list(self, type=None, private=None, tag_name=None, per_page=None, page=None) -> Any:
+    def images_list(self, type: Optional[str] = None, private: Optional[bool] = None, tag_name: Optional[str] = None, per_page: Optional[int] = None, page: Optional[int] = None) -> Any:
         """
         List All Images
 
@@ -4886,6 +6310,10 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: The response will be a JSON object with a key called `images`.  This will be set to an array of image objects, each of which will contain the standard image attributes.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Images
         """
@@ -4893,9 +6321,14 @@ class DigitaloceanApp(APIApplication):
         query_params = {k: v for k, v in [('type', type), ('private', private), ('tag_name', tag_name), ('per_page', per_page), ('page', page)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def images_create_custom(self, name, url, region, distribution=None, description=None, tags=None) -> Any:
+    def images_create_custom(self, name: str, url: str, region: str, distribution: Optional[str] = None, description: Optional[str] = None, tags: Optional[List[str]] = None) -> Any:
         """
         Create a Custom Image
 
@@ -4910,10 +6343,15 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: The response will be a JSON object with a key set to `image`.  The value of this will be an image object containing a subset of the standard  image attributes as listed below, including the image's `id` and `status`.  After initial creation, the `status` will be `NEW`. Using the image's id, you  may query the image's status by sending a `GET` request to the  `/v2/images/$IMAGE_ID` endpoint.  When the `status` changes to `available`, the image will be ready for use.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Images
         """
-        request_body = {
+        request_body_data = None
+        request_body_data = {
             'name': name,
             'distribution': distribution,
             'description': description,
@@ -4921,14 +6359,19 @@ class DigitaloceanApp(APIApplication):
             'region': region,
             'tags': tags,
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
         url = f"{self.base_url}/v2/images"
         query_params = {}
-        response = self._post(url, data=request_body, params=query_params)
+        response = self._post(url, data=request_body_data, params=query_params, content_type='application/json')
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def images_get(self, image_id) -> dict[str, Any]:
+    def images_get(self, image_id: str) -> dict[str, Any]:
         """
         Retrieve an Existing Image
 
@@ -4938,18 +6381,27 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: The response will be a JSON object with a key called `image`.  The value of this will be an image object containing the standard image attributes.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Images
         """
         if image_id is None:
-            raise ValueError("Missing required parameter 'image_id'")
+            raise ValueError("Missing required parameter 'image_id'.")
         url = f"{self.base_url}/v2/images/{image_id}"
         query_params = {}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def images_update(self, image_id, name=None, distribution=None, description=None) -> dict[str, Any]:
+    def images_update(self, image_id: str, name: Optional[str] = None, distribution: Optional[str] = None, description: Optional[str] = None) -> dict[str, Any]:
         """
         Update an Image
 
@@ -4962,24 +6414,34 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: The response will be a JSON object with a key set to `image`.  The value of this will be an image object containing the standard image attributes.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Images
         """
         if image_id is None:
-            raise ValueError("Missing required parameter 'image_id'")
-        request_body = {
+            raise ValueError("Missing required parameter 'image_id'.")
+        request_body_data = None
+        request_body_data = {
             'name': name,
             'distribution': distribution,
             'description': description,
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
         url = f"{self.base_url}/v2/images/{image_id}"
         query_params = {}
-        response = self._put(url, data=request_body, params=query_params)
+        response = self._put(url, data=request_body_data, params=query_params, content_type='application/json')
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def images_delete(self, image_id) -> Any:
+    def images_delete(self, image_id: str) -> Any:
         """
         Delete an Image
 
@@ -4989,18 +6451,27 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: The action was successful and the response body is empty.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Images
         """
         if image_id is None:
-            raise ValueError("Missing required parameter 'image_id'")
+            raise ValueError("Missing required parameter 'image_id'.")
         url = f"{self.base_url}/v2/images/{image_id}"
         query_params = {}
         response = self._delete(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def image_actions_list(self, image_id) -> Any:
+    def image_actions_list(self, image_id: str) -> Any:
         """
         List All Actions for an Image
 
@@ -5010,18 +6481,65 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: The results will be returned as a JSON object with an `actions` key. This will be set to an array filled with action objects containing the standard action attributes.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Image Actions
         """
         if image_id is None:
-            raise ValueError("Missing required parameter 'image_id'")
+            raise ValueError("Missing required parameter 'image_id'.")
         url = f"{self.base_url}/v2/images/{image_id}/actions"
         query_params = {}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def image_actions_get(self, image_id, action_id) -> dict[str, Any]:
+    def image_actions_post(self, image_id: str, type: Optional[str] = None, region: Optional[str] = None) -> dict[str, Any]:
+        """
+        Initiate an Image Action
+
+        Args:
+            image_id (string): image_id
+            type (string): The action to be taken on the image. Can be either `convert` or `transfer`. Example: 'convert'.
+            region (string): The slug identifier for the region where the resource will initially be  available. Example: 'nyc3'.
+
+        Returns:
+            dict[str, Any]: The response will be a JSON object with a key called `action`. The value of this will be an object containing the standard image action attributes.
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
+        Tags:
+            Image Actions
+        """
+        if image_id is None:
+            raise ValueError("Missing required parameter 'image_id'.")
+        request_body_data = None
+        request_body_data = {
+            'type': type,
+            'region': region,
+        }
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
+        url = f"{self.base_url}/v2/images/{image_id}/actions"
+        query_params = {}
+        response = self._post(url, data=request_body_data, params=query_params, content_type='application/json')
+        response.raise_for_status()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
+
+    def image_actions_get(self, image_id: str, action_id: str) -> dict[str, Any]:
         """
         Retrieve an Existing Action
 
@@ -5032,20 +6550,29 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: The response will be an object with a key called `action`. The value of this will be an object that contains the standard image action attributes.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Image Actions
         """
         if image_id is None:
-            raise ValueError("Missing required parameter 'image_id'")
+            raise ValueError("Missing required parameter 'image_id'.")
         if action_id is None:
-            raise ValueError("Missing required parameter 'action_id'")
+            raise ValueError("Missing required parameter 'action_id'.")
         url = f"{self.base_url}/v2/images/{image_id}/actions/{action_id}"
         query_params = {}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def kubernetes_list_clusters(self, per_page=None, page=None) -> Any:
+    def kubernetes_list_clusters(self, per_page: Optional[int] = None, page: Optional[int] = None) -> Any:
         """
         List All Kubernetes Clusters
 
@@ -5058,6 +6585,10 @@ class DigitaloceanApp(APIApplication):
         This will be set to an array of objects, each of which will contain the
         standard Kubernetes cluster attributes.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Kubernetes
         """
@@ -5065,9 +6596,14 @@ class DigitaloceanApp(APIApplication):
         query_params = {k: v for k, v in [('per_page', per_page), ('page', page)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def kubernetes_create_cluster(self, name, region, version, node_pools, id=None, cluster_subnet=None, service_subnet=None, vpc_uuid=None, ipv4=None, endpoint=None, tags=None, maintenance_policy=None, auto_upgrade=None, status=None, created_at=None, updated_at=None, surge_upgrade=None, ha=None, registry_enabled=None, control_plane_firewall=None, cluster_autoscaler_configuration=None, routing_agent=None) -> Any:
+    def kubernetes_create_cluster(self, name: str, region: str, version: str, node_pools: List[dict[str, Any]], id: Optional[str] = None, cluster_subnet: Optional[str] = None, service_subnet: Optional[str] = None, vpc_uuid: Optional[str] = None, ipv4: Optional[str] = None, endpoint: Optional[str] = None, tags: Optional[List[str]] = None, maintenance_policy: Optional[dict[str, Any]] = None, auto_upgrade: Optional[bool] = None, status: Optional[dict[str, Any]] = None, created_at: Optional[str] = None, updated_at: Optional[str] = None, surge_upgrade: Optional[bool] = None, ha: Optional[bool] = None, registry_enabled: Optional[bool] = None, control_plane_firewall: Optional[dict[str, Any]] = None, cluster_autoscaler_configuration: Optional[dict[str, Any]] = None, routing_agent: Optional[dict[str, Any]] = None) -> Any:
         """
         Create a New Kubernetes Cluster
 
@@ -5075,7 +6611,7 @@ class DigitaloceanApp(APIApplication):
             name (string): A human-readable name for a Kubernetes cluster. Example: 'prod-cluster-01'.
             region (string): The slug identifier for the region where the Kubernetes cluster is located. Example: 'nyc1'.
             version (string): The slug identifier for the version of Kubernetes used for the cluster. If set to a minor version (e.g. "1.14"), the latest version within it will be used (e.g. "1.14.6-do.1"); if set to "latest", the latest published version will be used. See the `/v2/kubernetes/options` endpoint to find all currently available versions. Example: '1.18.6-do.0'.
-            node_pools (array): An object specifying the details of the worker nodes available to the Kubernetes cluster.
+            node_pools (array): An object specifying the details of the worker nodes available to the Kubernetes cluster. Example: [{'size': 's-1vcpu-2gb', 'count': 3, 'name': 'worker-pool'}].
             id (string): A unique ID that can be used to identify and reference a Kubernetes cluster. Example: 'bd5f5959-5e1e-4205-a714-a914373942af'.
             cluster_subnet (string): The range of IP addresses for the overlay network of the Kubernetes cluster in CIDR notation. Example: '192.168.0.0/20'.
             service_subnet (string): The range of assignable IP addresses for services running in the Kubernetes cluster in CIDR notation. Example: '192.168.16.0/24'.
@@ -5094,21 +6630,6 @@ class DigitaloceanApp(APIApplication):
             control_plane_firewall (object): An object specifying the control plane firewall for the Kubernetes cluster. Control plane firewall is in early availability (invite only).
             cluster_autoscaler_configuration (object): An object specifying custom cluster autoscaler configuration.
             routing_agent (object): An object specifying whether the routing-agent component should be enabled for the Kubernetes cluster.
-                Example:
-                ```json
-                {
-                  "name": "prod-cluster-01",
-                  "region": "nyc1",
-                  "version": "1.18.6-do.0",
-                  "node_pools": [
-                    {
-                      "size": "s-1vcpu-2gb",
-                      "count": 3,
-                      "name": "worker-pool"
-                    }
-                  ]
-                }
-                ```
 
         Returns:
             Any: The response will be a JSON object with a key called `kubernetes_cluster`. The
@@ -5120,10 +6641,15 @@ class DigitaloceanApp(APIApplication):
         `status.state` attribute will be `provisioning`. When the cluster is ready,
         this will transition to `running`.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Kubernetes
         """
-        request_body = {
+        request_body_data = None
+        request_body_data = {
             'id': id,
             'name': name,
             'region': region,
@@ -5147,14 +6673,19 @@ class DigitaloceanApp(APIApplication):
             'cluster_autoscaler_configuration': cluster_autoscaler_configuration,
             'routing_agent': routing_agent,
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
         url = f"{self.base_url}/v2/kubernetes/clusters"
         query_params = {}
-        response = self._post(url, data=request_body, params=query_params)
+        response = self._post(url, data=request_body_data, params=query_params, content_type='application/json')
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def kubernetes_get_cluster(self, cluster_id) -> Any:
+    def kubernetes_get_cluster(self, cluster_id: str) -> Any:
         """
         Retrieve an Existing Kubernetes Cluster
 
@@ -5166,18 +6697,27 @@ class DigitaloceanApp(APIApplication):
         value of this will be an object containing the standard attributes of a
         Kubernetes cluster.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Kubernetes
         """
         if cluster_id is None:
-            raise ValueError("Missing required parameter 'cluster_id'")
+            raise ValueError("Missing required parameter 'cluster_id'.")
         url = f"{self.base_url}/v2/kubernetes/clusters/{cluster_id}"
         query_params = {}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def kubernetes_update_cluster(self, cluster_id, name, tags=None, maintenance_policy=None, auto_upgrade=None, surge_upgrade=None, ha=None, control_plane_firewall=None, cluster_autoscaler_configuration=None, routing_agent=None) -> Any:
+    def kubernetes_update_cluster(self, cluster_id: str, name: str, tags: Optional[List[str]] = None, maintenance_policy: Optional[dict[str, Any]] = None, auto_upgrade: Optional[bool] = None, surge_upgrade: Optional[bool] = None, ha: Optional[bool] = None, control_plane_firewall: Optional[dict[str, Any]] = None, cluster_autoscaler_configuration: Optional[dict[str, Any]] = None, routing_agent: Optional[dict[str, Any]] = None) -> Any:
         """
         Update a Kubernetes Cluster
 
@@ -5198,12 +6738,17 @@ class DigitaloceanApp(APIApplication):
         value of this will be an object containing the standard attributes of a
         Kubernetes cluster.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Kubernetes
         """
         if cluster_id is None:
-            raise ValueError("Missing required parameter 'cluster_id'")
-        request_body = {
+            raise ValueError("Missing required parameter 'cluster_id'.")
+        request_body_data = None
+        request_body_data = {
             'name': name,
             'tags': tags,
             'maintenance_policy': maintenance_policy,
@@ -5214,14 +6759,19 @@ class DigitaloceanApp(APIApplication):
             'cluster_autoscaler_configuration': cluster_autoscaler_configuration,
             'routing_agent': routing_agent,
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
         url = f"{self.base_url}/v2/kubernetes/clusters/{cluster_id}"
         query_params = {}
-        response = self._put(url, data=request_body, params=query_params)
+        response = self._put(url, data=request_body_data, params=query_params, content_type='application/json')
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def kubernetes_delete_cluster(self, cluster_id) -> Any:
+    def kubernetes_delete_cluster(self, cluster_id: str) -> Any:
         """
         Delete a Kubernetes Cluster
 
@@ -5231,18 +6781,27 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: The action was successful and the response body is empty.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Kubernetes
         """
         if cluster_id is None:
-            raise ValueError("Missing required parameter 'cluster_id'")
+            raise ValueError("Missing required parameter 'cluster_id'.")
         url = f"{self.base_url}/v2/kubernetes/clusters/{cluster_id}"
         query_params = {}
         response = self._delete(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def kubernetes_list_associated_resources(self, cluster_id) -> dict[str, Any]:
+    def destroy_cluster_resources(self, cluster_id: str) -> dict[str, Any]:
         """
         List Associated Resources for Cluster Deletion
 
@@ -5252,18 +6811,27 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: The response will be a JSON object containing `load_balancers`, `volumes`, and `volume_snapshots` keys. Each will be set to an array of objects containing the standard attributes for associated resources.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Kubernetes
         """
         if cluster_id is None:
-            raise ValueError("Missing required parameter 'cluster_id'")
+            raise ValueError("Missing required parameter 'cluster_id'.")
         url = f"{self.base_url}/v2/kubernetes/clusters/{cluster_id}/destroy_with_associated_resources"
         query_params = {}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def kubernetes_destroy_associated_resources_selective(self, cluster_id, load_balancers=None, volumes=None, volume_snapshots=None) -> Any:
+    def delete_cluster_resources(self, cluster_id: str, load_balancers: Optional[List[str]] = None, volumes: Optional[List[str]] = None, volume_snapshots: Optional[List[str]] = None) -> Any:
         """
         Selectively Delete a Cluster and its Associated Resources
 
@@ -5276,24 +6844,33 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: The action was successful and the response body is empty.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Kubernetes
         """
         if cluster_id is None:
-            raise ValueError("Missing required parameter 'cluster_id'")
-        request_body = {
+            raise ValueError("Missing required parameter 'cluster_id'.")
+        request_body_data = {
             'load_balancers': load_balancers,
             'volumes': volumes,
             'volume_snapshots': volume_snapshots,
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
         url = f"{self.base_url}/v2/kubernetes/clusters/{cluster_id}/destroy_with_associated_resources/selective"
         query_params = {}
         response = self._delete(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def kubernetes_destroy_associated_resources_dangerous(self, cluster_id) -> Any:
+    def destroy_cluster_with_resources(self, cluster_id: str) -> Any:
         """
         Delete a Cluster and All of its Associated Resources (Dangerous)
 
@@ -5303,18 +6880,27 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: The action was successful and the response body is empty.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Kubernetes
         """
         if cluster_id is None:
-            raise ValueError("Missing required parameter 'cluster_id'")
+            raise ValueError("Missing required parameter 'cluster_id'.")
         url = f"{self.base_url}/v2/kubernetes/clusters/{cluster_id}/destroy_with_associated_resources/dangerous"
         query_params = {}
         response = self._delete(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def kubernetes_get_kubeconfig(self, cluster_id, expiry_seconds=None) -> Any:
+    def kubernetes_get_kubeconfig(self, cluster_id: str, expiry_seconds: Optional[int] = None) -> Any:
         """
         Retrieve the kubeconfig for a Kubernetes Cluster
 
@@ -5325,18 +6911,27 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: A kubeconfig file for the cluster in YAML format.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Kubernetes
         """
         if cluster_id is None:
-            raise ValueError("Missing required parameter 'cluster_id'")
+            raise ValueError("Missing required parameter 'cluster_id'.")
         url = f"{self.base_url}/v2/kubernetes/clusters/{cluster_id}/kubeconfig"
         query_params = {k: v for k, v in [('expiry_seconds', expiry_seconds)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def kubernetes_get_credentials(self, cluster_id, expiry_seconds=None) -> dict[str, Any]:
+    def kubernetes_get_credentials(self, cluster_id: str, expiry_seconds: Optional[int] = None) -> dict[str, Any]:
         """
         Retrieve Credentials for a Kubernetes Cluster
 
@@ -5347,18 +6942,27 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: A JSON object containing credentials for a cluster.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Kubernetes
         """
         if cluster_id is None:
-            raise ValueError("Missing required parameter 'cluster_id'")
+            raise ValueError("Missing required parameter 'cluster_id'.")
         url = f"{self.base_url}/v2/kubernetes/clusters/{cluster_id}/credentials"
         query_params = {k: v for k, v in [('expiry_seconds', expiry_seconds)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def kubernetes_get_available_upgrades(self, cluster_id) -> dict[str, Any]:
+    def get_cluster_upgrades(self, cluster_id: str) -> dict[str, Any]:
         """
         Retrieve Available Upgrades for an Existing Kubernetes Cluster
 
@@ -5373,18 +6977,27 @@ class DigitaloceanApp(APIApplication):
         If the cluster is up-to-date (i.e. there are no upgrades currently available)
         `available_upgrade_versions` will be `null`.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Kubernetes
         """
         if cluster_id is None:
-            raise ValueError("Missing required parameter 'cluster_id'")
+            raise ValueError("Missing required parameter 'cluster_id'.")
         url = f"{self.base_url}/v2/kubernetes/clusters/{cluster_id}/upgrades"
         query_params = {}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def kubernetes_upgrade_cluster(self, cluster_id, version=None) -> Any:
+    def kubernetes_upgrade_cluster(self, cluster_id: str, version: Optional[str] = None) -> Any:
         """
         Upgrade a Kubernetes Cluster
 
@@ -5395,22 +7008,32 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: This does not indicate the success or failure of any operation, just that the request has been accepted for processing.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Kubernetes
         """
         if cluster_id is None:
-            raise ValueError("Missing required parameter 'cluster_id'")
-        request_body = {
+            raise ValueError("Missing required parameter 'cluster_id'.")
+        request_body_data = None
+        request_body_data = {
             'version': version,
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
         url = f"{self.base_url}/v2/kubernetes/clusters/{cluster_id}/upgrade"
         query_params = {}
-        response = self._post(url, data=request_body, params=query_params)
+        response = self._post(url, data=request_body_data, params=query_params, content_type='application/json')
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def kubernetes_list_node_pools(self, cluster_id) -> Any:
+    def kubernetes_list_node_pools(self, cluster_id: str) -> Any:
         """
         List All Node Pools in a Kubernetes Clusters
 
@@ -5422,18 +7045,27 @@ class DigitaloceanApp(APIApplication):
         be set to an array of objects, each of which will contain the standard node
         pool attributes.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Kubernetes
         """
         if cluster_id is None:
-            raise ValueError("Missing required parameter 'cluster_id'")
+            raise ValueError("Missing required parameter 'cluster_id'.")
         url = f"{self.base_url}/v2/kubernetes/clusters/{cluster_id}/node_pools"
         query_params = {}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def kubernetes_add_node_pool(self, cluster_id, size, name, count, id=None, tags=None, labels=None, taints=None, auto_scale=None, min_nodes=None, max_nodes=None, nodes=None) -> Any:
+    def kubernetes_add_node_pool(self, cluster_id: str, size: str, name: str, count: int, id: Optional[str] = None, tags: Optional[List[str]] = None, labels: Optional[dict[str, Any]] = None, taints: Optional[List[dict[str, Any]]] = None, auto_scale: Optional[bool] = None, min_nodes: Optional[int] = None, max_nodes: Optional[int] = None, nodes: Optional[List[dict[str, Any]]] = None) -> Any:
         """
         Add a Node Pool to a Kubernetes Cluster
 
@@ -5450,31 +7082,22 @@ class DigitaloceanApp(APIApplication):
             min_nodes (integer): The minimum number of nodes that this node pool can be auto-scaled to. The value will be `0` if `auto_scale` is set to `false`. Example: '3'.
             max_nodes (integer): The maximum number of nodes that this node pool can be auto-scaled to. The value will be `0` if `auto_scale` is set to `false`. Example: '6'.
             nodes (array): An object specifying the details of a specific worker node in a node pool.
-                Example:
-                ```json
-                {
-                  "size": "s-1vcpu-2gb",
-                  "count": 3,
-                  "name": "new-pool",
-                  "tags": [
-                    "frontend"
-                  ],
-                  "auto_scale": true,
-                  "min_nodes": 3,
-                  "max_nodes": 6
-                }
-                ```
 
         Returns:
             Any: The response will be a JSON object with a key called `node_pool`. The value of
         this will be an object containing the standard attributes of a node pool.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Kubernetes
         """
         if cluster_id is None:
-            raise ValueError("Missing required parameter 'cluster_id'")
-        request_body = {
+            raise ValueError("Missing required parameter 'cluster_id'.")
+        request_body_data = None
+        request_body_data = {
             'size': size,
             'id': id,
             'name': name,
@@ -5487,14 +7110,19 @@ class DigitaloceanApp(APIApplication):
             'max_nodes': max_nodes,
             'nodes': nodes,
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
         url = f"{self.base_url}/v2/kubernetes/clusters/{cluster_id}/node_pools"
         query_params = {}
-        response = self._post(url, data=request_body, params=query_params)
+        response = self._post(url, data=request_body_data, params=query_params, content_type='application/json')
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def kubernetes_get_node_pool(self, cluster_id, node_pool_id) -> Any:
+    def kubernetes_get_node_pool(self, cluster_id: str, node_pool_id: str) -> Any:
         """
         Retrieve a Node Pool for a Kubernetes Cluster
 
@@ -5506,20 +7134,29 @@ class DigitaloceanApp(APIApplication):
             Any: The response will be a JSON object with a key called `node_pool`. The value
         of this will be an object containing the standard attributes of a node pool.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Kubernetes
         """
         if cluster_id is None:
-            raise ValueError("Missing required parameter 'cluster_id'")
+            raise ValueError("Missing required parameter 'cluster_id'.")
         if node_pool_id is None:
-            raise ValueError("Missing required parameter 'node_pool_id'")
+            raise ValueError("Missing required parameter 'node_pool_id'.")
         url = f"{self.base_url}/v2/kubernetes/clusters/{cluster_id}/node_pools/{node_pool_id}"
         query_params = {}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def kubernetes_update_node_pool(self, cluster_id, node_pool_id, name, count, id=None, tags=None, labels=None, taints=None, auto_scale=None, min_nodes=None, max_nodes=None, nodes=None) -> Any:
+    def kubernetes_update_node_pool(self, cluster_id: str, node_pool_id: str, name: str, count: int, id: Optional[str] = None, tags: Optional[List[str]] = None, labels: Optional[dict[str, Any]] = None, taints: Optional[List[dict[str, Any]]] = None, auto_scale: Optional[bool] = None, min_nodes: Optional[int] = None, max_nodes: Optional[int] = None, nodes: Optional[List[dict[str, Any]]] = None) -> Any:
         """
         Update a Node Pool in a Kubernetes Cluster
 
@@ -5541,14 +7178,19 @@ class DigitaloceanApp(APIApplication):
             Any: The response will be a JSON object with a key called `node_pool`. The value of
         this will be an object containing the standard attributes of a node pool.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Kubernetes
         """
         if cluster_id is None:
-            raise ValueError("Missing required parameter 'cluster_id'")
+            raise ValueError("Missing required parameter 'cluster_id'.")
         if node_pool_id is None:
-            raise ValueError("Missing required parameter 'node_pool_id'")
-        request_body = {
+            raise ValueError("Missing required parameter 'node_pool_id'.")
+        request_body_data = None
+        request_body_data = {
             'id': id,
             'name': name,
             'count': count,
@@ -5560,14 +7202,19 @@ class DigitaloceanApp(APIApplication):
             'max_nodes': max_nodes,
             'nodes': nodes,
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
         url = f"{self.base_url}/v2/kubernetes/clusters/{cluster_id}/node_pools/{node_pool_id}"
         query_params = {}
-        response = self._put(url, data=request_body, params=query_params)
+        response = self._put(url, data=request_body_data, params=query_params, content_type='application/json')
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def kubernetes_delete_node_pool(self, cluster_id, node_pool_id) -> Any:
+    def kubernetes_delete_node_pool(self, cluster_id: str, node_pool_id: str) -> Any:
         """
         Delete a Node Pool in a Kubernetes Cluster
 
@@ -5578,20 +7225,29 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: The action was successful and the response body is empty.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Kubernetes
         """
         if cluster_id is None:
-            raise ValueError("Missing required parameter 'cluster_id'")
+            raise ValueError("Missing required parameter 'cluster_id'.")
         if node_pool_id is None:
-            raise ValueError("Missing required parameter 'node_pool_id'")
+            raise ValueError("Missing required parameter 'node_pool_id'.")
         url = f"{self.base_url}/v2/kubernetes/clusters/{cluster_id}/node_pools/{node_pool_id}"
         query_params = {}
         response = self._delete(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def kubernetes_delete_node(self, cluster_id, node_pool_id, node_id, skip_drain=None, replace=None) -> Any:
+    def kubernetes_delete_node(self, cluster_id: str, node_pool_id: str, node_id: str, skip_drain: Optional[int] = None, replace: Optional[int] = None) -> Any:
         """
         Delete a Node in a Kubernetes Cluster
 
@@ -5605,22 +7261,31 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: This does not indicate the success or failure of any operation, just that the request has been accepted for processing.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Kubernetes
         """
         if cluster_id is None:
-            raise ValueError("Missing required parameter 'cluster_id'")
+            raise ValueError("Missing required parameter 'cluster_id'.")
         if node_pool_id is None:
-            raise ValueError("Missing required parameter 'node_pool_id'")
+            raise ValueError("Missing required parameter 'node_pool_id'.")
         if node_id is None:
-            raise ValueError("Missing required parameter 'node_id'")
+            raise ValueError("Missing required parameter 'node_id'.")
         url = f"{self.base_url}/v2/kubernetes/clusters/{cluster_id}/node_pools/{node_pool_id}/nodes/{node_id}"
         query_params = {k: v for k, v in [('skip_drain', skip_drain), ('replace', replace)] if v is not None}
         response = self._delete(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def kubernetes_recycle_node_pool(self, cluster_id, node_pool_id, nodes=None) -> Any:
+    def kubernetes_recycle_node_pool(self, cluster_id: str, node_pool_id: str, nodes: Optional[List[str]] = None) -> Any:
         """
         Recycle a Kubernetes Node Pool
 
@@ -5632,24 +7297,34 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: This does not indicate the success or failure of any operation, just that the request has been accepted for processing.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Kubernetes
         """
         if cluster_id is None:
-            raise ValueError("Missing required parameter 'cluster_id'")
+            raise ValueError("Missing required parameter 'cluster_id'.")
         if node_pool_id is None:
-            raise ValueError("Missing required parameter 'node_pool_id'")
-        request_body = {
+            raise ValueError("Missing required parameter 'node_pool_id'.")
+        request_body_data = None
+        request_body_data = {
             'nodes': nodes,
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
         url = f"{self.base_url}/v2/kubernetes/clusters/{cluster_id}/node_pools/{node_pool_id}/recycle"
         query_params = {}
-        response = self._post(url, data=request_body, params=query_params)
+        response = self._post(url, data=request_body_data, params=query_params, content_type='application/json')
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def kubernetes_get_cluster_user(self, cluster_id) -> dict[str, Any]:
+    def kubernetes_get_cluster_user(self, cluster_id: str) -> dict[str, Any]:
         """
         Retrieve User Information for a Kubernetes Cluster
 
@@ -5660,16 +7335,25 @@ class DigitaloceanApp(APIApplication):
             dict[str, Any]: The response will be a JSON object with a key called `kubernetes_cluster_user`
         containing the username and in-cluster groups that it belongs to.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Kubernetes
         """
         if cluster_id is None:
-            raise ValueError("Missing required parameter 'cluster_id'")
+            raise ValueError("Missing required parameter 'cluster_id'.")
         url = f"{self.base_url}/v2/kubernetes/clusters/{cluster_id}/user"
         query_params = {}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
     def kubernetes_list_options(self) -> dict[str, Any]:
         """
@@ -5680,6 +7364,10 @@ class DigitaloceanApp(APIApplication):
         `regions`, `versions`, and `sizes` objects listing the available options and
         the matching slugs for use when creating a new cluster.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Kubernetes
         """
@@ -5687,9 +7375,14 @@ class DigitaloceanApp(APIApplication):
         query_params = {}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def kubernetes_run_cluster_lint(self, cluster_id, include_groups=None, include_checks=None, exclude_groups=None, exclude_checks=None) -> Any:
+    def kubernetes_run_cluster_lint(self, cluster_id: str, include_groups: Optional[List[str]] = None, include_checks: Optional[List[str]] = None, exclude_groups: Optional[List[str]] = None, exclude_checks: Optional[List[str]] = None) -> Any:
         """
         Run Clusterlint Checks on a Kubernetes Cluster
 
@@ -5703,25 +7396,35 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: The response is a JSON object with a key called `run_id` that you can later use to fetch the run results.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Kubernetes
         """
         if cluster_id is None:
-            raise ValueError("Missing required parameter 'cluster_id'")
-        request_body = {
+            raise ValueError("Missing required parameter 'cluster_id'.")
+        request_body_data = None
+        request_body_data = {
             'include_groups': include_groups,
             'include_checks': include_checks,
             'exclude_groups': exclude_groups,
             'exclude_checks': exclude_checks,
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
         url = f"{self.base_url}/v2/kubernetes/clusters/{cluster_id}/clusterlint"
         query_params = {}
-        response = self._post(url, data=request_body, params=query_params)
+        response = self._post(url, data=request_body_data, params=query_params, content_type='application/json')
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def kubernetes_get_cluster_lint_results(self, cluster_id, run_id=None) -> dict[str, Any]:
+    def get_cluster_lint(self, cluster_id: str, run_id: Optional[str] = None) -> dict[str, Any]:
         """
         Fetch Clusterlint Diagnostics for a Kubernetes Cluster
 
@@ -5734,18 +7437,27 @@ class DigitaloceanApp(APIApplication):
         objects in the cluster. Each diagnostic will contain some metadata information
         about the object and feedback for users to act upon.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Kubernetes
         """
         if cluster_id is None:
-            raise ValueError("Missing required parameter 'cluster_id'")
+            raise ValueError("Missing required parameter 'cluster_id'.")
         url = f"{self.base_url}/v2/kubernetes/clusters/{cluster_id}/clusterlint"
         query_params = {k: v for k, v in [('run_id', run_id)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def kubernetes_add_registry(self, cluster_uuids=None) -> Any:
+    def kubernetes_add_registry(self, cluster_uuids: Optional[List[str]] = None) -> Any:
         """
         Add Container Registry to Kubernetes Clusters
 
@@ -5755,20 +7467,30 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: The action was successful and the response body is empty.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Kubernetes
         """
-        request_body = {
+        request_body_data = None
+        request_body_data = {
             'cluster_uuids': cluster_uuids,
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
         url = f"{self.base_url}/v2/kubernetes/registry"
         query_params = {}
-        response = self._post(url, data=request_body, params=query_params)
+        response = self._post(url, data=request_body_data, params=query_params, content_type='application/json')
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def kubernetes_remove_registry(self, cluster_uuids=None) -> Any:
+    def kubernetes_remove_registry(self, cluster_uuids: Optional[List[str]] = None) -> Any:
         """
         Remove Container Registry from Kubernetes Clusters
 
@@ -5778,20 +7500,29 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: The action was successful and the response body is empty.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Kubernetes
         """
-        request_body = {
+        request_body_data = {
             'cluster_uuids': cluster_uuids,
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
         url = f"{self.base_url}/v2/kubernetes/registry"
         query_params = {}
         response = self._delete(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def kubernetes_get_status_messages(self, cluster_id, since=None) -> Any:
+    def kubernetes_get_status_messages(self, cluster_id: str, since: Optional[str] = None) -> Any:
         """
         Fetch Status Messages for a Kubernetes Cluster
 
@@ -5802,18 +7533,123 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: The response is a JSON object which contains status messages for a Kubernetes cluster. Each message object contains a timestamp and an indication of what issue the cluster is experiencing at a given time.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Kubernetes
         """
         if cluster_id is None:
-            raise ValueError("Missing required parameter 'cluster_id'")
+            raise ValueError("Missing required parameter 'cluster_id'.")
         url = f"{self.base_url}/v2/kubernetes/clusters/{cluster_id}/status_messages"
         query_params = {k: v for k, v in [('since', since)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def load_balancers_list(self, per_page=None, page=None) -> Any:
+    def load_balancers_create(self, droplet_ids: Optional[List[int]] = None, region: Optional[str] = None, id: Optional[str] = None, name: Optional[str] = None, project_id: Optional[str] = None, ip: Optional[str] = None, ipv6: Optional[str] = None, size_unit: Optional[int] = None, size: Optional[str] = None, algorithm: Optional[str] = None, status: Optional[str] = None, created_at: Optional[str] = None, forwarding_rules: Optional[List[dict[str, Any]]] = None, health_check: Optional[dict[str, Any]] = None, sticky_sessions: Optional[dict[str, Any]] = None, redirect_http_to_https: Optional[bool] = None, enable_proxy_protocol: Optional[bool] = None, enable_backend_keepalive: Optional[bool] = None, http_idle_timeout_seconds: Optional[int] = None, vpc_uuid: Optional[str] = None, disable_lets_encrypt_dns_records: Optional[bool] = None, firewall: Optional[dict[str, Any]] = None, network: Optional[str] = None, network_stack: Optional[str] = None, type: Optional[str] = None, domains: Optional[List[dict[str, Any]]] = None, glb_settings: Optional[dict[str, Any]] = None, target_load_balancer_ids: Optional[List[str]] = None, tls_cipher_policy: Optional[str] = None, tag: Optional[str] = None) -> Any:
+        """
+        Create a New Load Balancer
+
+        Args:
+            droplet_ids (array): An array containing the IDs of the Droplets assigned to the load balancer. Example: '[3164444, 3164445]'.
+            region (string): The slug identifier for the region where the resource will initially be  available. Example: 'nyc3'.
+            id (string): A unique ID that can be used to identify and reference a load balancer. Example: '4de7ac8b-495b-4884-9a69-1050c6793cd6'.
+            name (string): A human-readable name for a load balancer instance. Example: 'example-lb-01'.
+            project_id (string): The ID of the project that the load balancer is associated with. If no ID is provided at creation, the load balancer associates with the user's default project. If an invalid project ID is provided, the load balancer will not be created. Example: '4de7ac8b-495b-4884-9a69-1050c6793cd6'.
+            ip (string): An attribute containing the public-facing IP address of the load balancer. Example: '104.131.186.241'.
+            ipv6 (string): An attribute containing the public-facing IPv6 address of the load balancer. Example: '2604:a880:800:14::85f5:c000'.
+            size_unit (integer): How many nodes the load balancer contains. Each additional node increases the load balancer's ability to manage more connections. Load balancers can be scaled up or down, and you can change the number of nodes after creation up to once per hour. This field is currently not available in the AMS2, NYC2, or SFO1 regions. Use the `size` field to scale load balancers that reside in these regions. Example: '3'.
+            size (string): This field has been replaced by the `size_unit` field for all regions except in AMS2, NYC2, and SFO1. Each available load balancer size now equates to the load balancer having a set number of nodes.
+        * `lb-small` = 1 node
+        * `lb-medium` = 3 nodes
+        * `lb-large` = 6 nodes
+
+        You can resize load balancers after creation up to once per hour. You cannot resize a load balancer within the first hour of its creation. Example: 'lb-small'.
+            algorithm (string): This field has been deprecated. You can no longer specify an algorithm for load balancers. Example: 'round_robin'.
+            status (string): A status string indicating the current state of the load balancer. This can be `new`, `active`, or `errored`. Example: 'new'.
+            created_at (string): A time value given in ISO8601 combined date and time format that represents when the load balancer was created. Example: '2017-02-01T22:22:58Z'.
+            forwarding_rules (array): An array of objects specifying the forwarding rules for a load balancer. Example: [{'entry_protocol': 'http', 'entry_port': 80, 'target_protocol': 'http', 'target_port': 80}, {'entry_protocol': 'https', 'entry_port': 443, 'target_protocol': 'https', 'target_port': 443, 'tls_passthrough': True}].
+            health_check (object): An object specifying health check settings for the load balancer.
+            sticky_sessions (object): An object specifying sticky sessions settings for the load balancer.
+            redirect_http_to_https (boolean): A boolean value indicating whether HTTP requests to the load balancer on port 80 will be redirected to HTTPS on port 443. Example: 'True'.
+            enable_proxy_protocol (boolean): A boolean value indicating whether PROXY Protocol is in use. Example: 'True'.
+            enable_backend_keepalive (boolean): A boolean value indicating whether HTTP keepalive connections are maintained to target Droplets. Example: 'True'.
+            http_idle_timeout_seconds (integer): An integer value which configures the idle timeout for HTTP requests to the target droplets. Example: '90'.
+            vpc_uuid (string): A string specifying the UUID of the VPC to which the load balancer is assigned. Example: 'c33931f2-a26a-4e61-b85c-4e95a2ec431b'.
+            disable_lets_encrypt_dns_records (boolean): A boolean value indicating whether to disable automatic DNS record creation for Let's Encrypt certificates that are added to the load balancer. Example: 'True'.
+            firewall (object): An object specifying allow and deny rules to control traffic to the load balancer. Example: {'deny': ['cidr:1.2.0.0/16', 'ip:2.3.4.5'], 'allow': ['ip:1.2.3.4', 'cidr:2.3.4.0/24']}.
+            network (string): A string indicating whether the load balancer should be external or internal. Internal load balancers have no public IPs and are only accessible to resources on the same VPC network. This property cannot be updated after creating the load balancer. Example: 'EXTERNAL'.
+            network_stack (string): A string indicating whether the load balancer will support IPv4 or both IPv4 and IPv6 networking. This property cannot be updated after creating the load balancer. Example: 'IPV4'.
+            type (string): A string indicating whether the load balancer should be a standard regional HTTP load balancer, a regional network load balancer that routes traffic at the TCP/UDP transport layer, or a global load balancer. Example: 'REGIONAL'.
+            domains (array): An array of objects specifying the domain configurations for a Global load balancer.
+            glb_settings (object): An object specifying forwarding configurations for a Global load balancer.
+            target_load_balancer_ids (array): An array containing the UUIDs of the Regional load balancers to be used as target backends for a Global load balancer. Example: "['7dbf91fe-cbdb-48dc-8290-c3a181554905', '996fa239-fac3-42a2-b9a1-9fa822268b7a']".
+            tls_cipher_policy (string): A string indicating the policy for the TLS cipher suites used by the load balancer. The possible values are `DEFAULT` or `STRONG`. The default value is `DEFAULT`. Example: 'STRONG'.
+            tag (string): The name of a Droplet tag corresponding to Droplets assigned to the load balancer. Example: 'prod:web'.
+
+        Returns:
+            Any: Accepted
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
+        Tags:
+            Load Balancers
+        """
+        request_body_data = None
+        request_body_data = {
+            'droplet_ids': droplet_ids,
+            'region': region,
+            'id': id,
+            'name': name,
+            'project_id': project_id,
+            'ip': ip,
+            'ipv6': ipv6,
+            'size_unit': size_unit,
+            'size': size,
+            'algorithm': algorithm,
+            'status': status,
+            'created_at': created_at,
+            'forwarding_rules': forwarding_rules,
+            'health_check': health_check,
+            'sticky_sessions': sticky_sessions,
+            'redirect_http_to_https': redirect_http_to_https,
+            'enable_proxy_protocol': enable_proxy_protocol,
+            'enable_backend_keepalive': enable_backend_keepalive,
+            'http_idle_timeout_seconds': http_idle_timeout_seconds,
+            'vpc_uuid': vpc_uuid,
+            'disable_lets_encrypt_dns_records': disable_lets_encrypt_dns_records,
+            'firewall': firewall,
+            'network': network,
+            'network_stack': network_stack,
+            'type': type,
+            'domains': domains,
+            'glb_settings': glb_settings,
+            'target_load_balancer_ids': target_load_balancer_ids,
+            'tls_cipher_policy': tls_cipher_policy,
+            'tag': tag,
+        }
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
+        url = f"{self.base_url}/v2/load_balancers"
+        query_params = {}
+        response = self._post(url, data=request_body_data, params=query_params, content_type='application/json')
+        response.raise_for_status()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
+
+    def load_balancers_list(self, per_page: Optional[int] = None, page: Optional[int] = None) -> Any:
         """
         List All Load Balancers
 
@@ -5824,6 +7660,10 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: A JSON object with a key of `load_balancers`. This will be set to an array of objects, each of which will contain the standard load balancer attributes.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Load Balancers
         """
@@ -5831,9 +7671,14 @@ class DigitaloceanApp(APIApplication):
         query_params = {k: v for k, v in [('per_page', per_page), ('page', page)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def load_balancers_get(self, lb_id) -> Any:
+    def load_balancers_get(self, lb_id: str) -> Any:
         """
         Retrieve an Existing Load Balancer
 
@@ -5845,18 +7690,128 @@ class DigitaloceanApp(APIApplication):
         value of this will be an object that contains the standard attributes
         associated with a load balancer
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Load Balancers
         """
         if lb_id is None:
-            raise ValueError("Missing required parameter 'lb_id'")
+            raise ValueError("Missing required parameter 'lb_id'.")
         url = f"{self.base_url}/v2/load_balancers/{lb_id}"
         query_params = {}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def load_balancers_delete(self, lb_id) -> Any:
+    def load_balancers_update(self, lb_id: str, droplet_ids: Optional[List[int]] = None, region: Optional[str] = None, id: Optional[str] = None, name: Optional[str] = None, project_id: Optional[str] = None, ip: Optional[str] = None, ipv6: Optional[str] = None, size_unit: Optional[int] = None, size: Optional[str] = None, algorithm: Optional[str] = None, status: Optional[str] = None, created_at: Optional[str] = None, forwarding_rules: Optional[List[dict[str, Any]]] = None, health_check: Optional[dict[str, Any]] = None, sticky_sessions: Optional[dict[str, Any]] = None, redirect_http_to_https: Optional[bool] = None, enable_proxy_protocol: Optional[bool] = None, enable_backend_keepalive: Optional[bool] = None, http_idle_timeout_seconds: Optional[int] = None, vpc_uuid: Optional[str] = None, disable_lets_encrypt_dns_records: Optional[bool] = None, firewall: Optional[dict[str, Any]] = None, network: Optional[str] = None, network_stack: Optional[str] = None, type: Optional[str] = None, domains: Optional[List[dict[str, Any]]] = None, glb_settings: Optional[dict[str, Any]] = None, target_load_balancer_ids: Optional[List[str]] = None, tls_cipher_policy: Optional[str] = None, tag: Optional[str] = None) -> Any:
+        """
+        Update a Load Balancer
+
+        Args:
+            lb_id (string): lb_id
+            droplet_ids (array): An array containing the IDs of the Droplets assigned to the load balancer. Example: '[3164444, 3164445]'.
+            region (string): The slug identifier for the region where the resource will initially be  available. Example: 'nyc3'.
+            id (string): A unique ID that can be used to identify and reference a load balancer. Example: '4de7ac8b-495b-4884-9a69-1050c6793cd6'.
+            name (string): A human-readable name for a load balancer instance. Example: 'example-lb-01'.
+            project_id (string): The ID of the project that the load balancer is associated with. If no ID is provided at creation, the load balancer associates with the user's default project. If an invalid project ID is provided, the load balancer will not be created. Example: '4de7ac8b-495b-4884-9a69-1050c6793cd6'.
+            ip (string): An attribute containing the public-facing IP address of the load balancer. Example: '104.131.186.241'.
+            ipv6 (string): An attribute containing the public-facing IPv6 address of the load balancer. Example: '2604:a880:800:14::85f5:c000'.
+            size_unit (integer): How many nodes the load balancer contains. Each additional node increases the load balancer's ability to manage more connections. Load balancers can be scaled up or down, and you can change the number of nodes after creation up to once per hour. This field is currently not available in the AMS2, NYC2, or SFO1 regions. Use the `size` field to scale load balancers that reside in these regions. Example: '3'.
+            size (string): This field has been replaced by the `size_unit` field for all regions except in AMS2, NYC2, and SFO1. Each available load balancer size now equates to the load balancer having a set number of nodes.
+        * `lb-small` = 1 node
+        * `lb-medium` = 3 nodes
+        * `lb-large` = 6 nodes
+
+        You can resize load balancers after creation up to once per hour. You cannot resize a load balancer within the first hour of its creation. Example: 'lb-small'.
+            algorithm (string): This field has been deprecated. You can no longer specify an algorithm for load balancers. Example: 'round_robin'.
+            status (string): A status string indicating the current state of the load balancer. This can be `new`, `active`, or `errored`. Example: 'new'.
+            created_at (string): A time value given in ISO8601 combined date and time format that represents when the load balancer was created. Example: '2017-02-01T22:22:58Z'.
+            forwarding_rules (array): An array of objects specifying the forwarding rules for a load balancer. Example: [{'entry_protocol': 'http', 'entry_port': 80, 'target_protocol': 'http', 'target_port': 80, 'certificate_id': '', 'tls_passthrough': False}, {'entry_protocol': 'https', 'entry_port': 443, 'target_protocol': 'https', 'target_port': 443, 'certificate_id': '', 'tls_passthrough': True}].
+            health_check (object): An object specifying health check settings for the load balancer. Example: {'protocol': 'http', 'port': 80, 'path': '/', 'check_interval_seconds': 10, 'response_timeout_seconds': 5, 'healthy_threshold': 5, 'unhealthy_threshold': 3}.
+            sticky_sessions (object): An object specifying sticky sessions settings for the load balancer. Example: {'type': 'none'}.
+            redirect_http_to_https (boolean): A boolean value indicating whether HTTP requests to the load balancer on port 80 will be redirected to HTTPS on port 443. Example: 'True'.
+            enable_proxy_protocol (boolean): A boolean value indicating whether PROXY Protocol is in use. Example: 'True'.
+            enable_backend_keepalive (boolean): A boolean value indicating whether HTTP keepalive connections are maintained to target Droplets. Example: 'True'.
+            http_idle_timeout_seconds (integer): An integer value which configures the idle timeout for HTTP requests to the target droplets. Example: '90'.
+            vpc_uuid (string): A string specifying the UUID of the VPC to which the load balancer is assigned. Example: 'c33931f2-a26a-4e61-b85c-4e95a2ec431b'.
+            disable_lets_encrypt_dns_records (boolean): A boolean value indicating whether to disable automatic DNS record creation for Let's Encrypt certificates that are added to the load balancer. Example: 'True'.
+            firewall (object): An object specifying allow and deny rules to control traffic to the load balancer. Example: {'deny': ['cidr:1.2.0.0/16', 'ip:2.3.4.5'], 'allow': ['ip:1.2.3.4', 'cidr:2.3.4.0/24']}.
+            network (string): A string indicating whether the load balancer should be external or internal. Internal load balancers have no public IPs and are only accessible to resources on the same VPC network. This property cannot be updated after creating the load balancer. Example: 'EXTERNAL'.
+            network_stack (string): A string indicating whether the load balancer will support IPv4 or both IPv4 and IPv6 networking. This property cannot be updated after creating the load balancer. Example: 'IPV4'.
+            type (string): A string indicating whether the load balancer should be a standard regional HTTP load balancer, a regional network load balancer that routes traffic at the TCP/UDP transport layer, or a global load balancer. Example: 'REGIONAL'.
+            domains (array): An array of objects specifying the domain configurations for a Global load balancer.
+            glb_settings (object): An object specifying forwarding configurations for a Global load balancer.
+            target_load_balancer_ids (array): An array containing the UUIDs of the Regional load balancers to be used as target backends for a Global load balancer. Example: "['7dbf91fe-cbdb-48dc-8290-c3a181554905', '996fa239-fac3-42a2-b9a1-9fa822268b7a']".
+            tls_cipher_policy (string): A string indicating the policy for the TLS cipher suites used by the load balancer. The possible values are `DEFAULT` or `STRONG`. The default value is `DEFAULT`. Example: 'STRONG'.
+            tag (string): The name of a Droplet tag corresponding to Droplets assigned to the load balancer. Example: 'prod:web'.
+
+        Returns:
+            Any: The response will be a JSON object with a key called `load_balancer`. The
+        value of this will be an object containing the standard attributes of a
+        load balancer.
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
+        Tags:
+            Load Balancers
+        """
+        if lb_id is None:
+            raise ValueError("Missing required parameter 'lb_id'.")
+        request_body_data = None
+        request_body_data = {
+            'droplet_ids': droplet_ids,
+            'region': region,
+            'id': id,
+            'name': name,
+            'project_id': project_id,
+            'ip': ip,
+            'ipv6': ipv6,
+            'size_unit': size_unit,
+            'size': size,
+            'algorithm': algorithm,
+            'status': status,
+            'created_at': created_at,
+            'forwarding_rules': forwarding_rules,
+            'health_check': health_check,
+            'sticky_sessions': sticky_sessions,
+            'redirect_http_to_https': redirect_http_to_https,
+            'enable_proxy_protocol': enable_proxy_protocol,
+            'enable_backend_keepalive': enable_backend_keepalive,
+            'http_idle_timeout_seconds': http_idle_timeout_seconds,
+            'vpc_uuid': vpc_uuid,
+            'disable_lets_encrypt_dns_records': disable_lets_encrypt_dns_records,
+            'firewall': firewall,
+            'network': network,
+            'network_stack': network_stack,
+            'type': type,
+            'domains': domains,
+            'glb_settings': glb_settings,
+            'target_load_balancer_ids': target_load_balancer_ids,
+            'tls_cipher_policy': tls_cipher_policy,
+            'tag': tag,
+        }
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
+        url = f"{self.base_url}/v2/load_balancers/{lb_id}"
+        query_params = {}
+        response = self._put(url, data=request_body_data, params=query_params, content_type='application/json')
+        response.raise_for_status()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
+
+    def load_balancers_delete(self, lb_id: str) -> Any:
         """
         Delete a Load Balancer
 
@@ -5866,18 +7821,27 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: The action was successful and the response body is empty.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Load Balancers
         """
         if lb_id is None:
-            raise ValueError("Missing required parameter 'lb_id'")
+            raise ValueError("Missing required parameter 'lb_id'.")
         url = f"{self.base_url}/v2/load_balancers/{lb_id}"
         query_params = {}
         response = self._delete(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def load_balancers_delete_cache(self, lb_id) -> Any:
+    def load_balancers_delete_cache(self, lb_id: str) -> Any:
         """
         Delete a Global Load Balancer CDN Cache
 
@@ -5887,18 +7851,27 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: The action was successful and the response body is empty.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Load Balancers
         """
         if lb_id is None:
-            raise ValueError("Missing required parameter 'lb_id'")
+            raise ValueError("Missing required parameter 'lb_id'.")
         url = f"{self.base_url}/v2/load_balancers/{lb_id}/cache"
         query_params = {}
         response = self._delete(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def load_balancers_add_droplets(self, lb_id, droplet_ids) -> Any:
+    def load_balancers_add_droplets(self, lb_id: str, droplet_ids: List[int]) -> Any:
         """
         Add Droplets to a Load Balancer
 
@@ -5909,22 +7882,32 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: The action was successful and the response body is empty.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Load Balancers
         """
         if lb_id is None:
-            raise ValueError("Missing required parameter 'lb_id'")
-        request_body = {
+            raise ValueError("Missing required parameter 'lb_id'.")
+        request_body_data = None
+        request_body_data = {
             'droplet_ids': droplet_ids,
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
         url = f"{self.base_url}/v2/load_balancers/{lb_id}/droplets"
         query_params = {}
-        response = self._post(url, data=request_body, params=query_params)
+        response = self._post(url, data=request_body_data, params=query_params, content_type='application/json')
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def load_balancers_remove_droplets(self, lb_id, droplet_ids) -> Any:
+    def load_balancers_remove_droplets(self, lb_id: str, droplet_ids: List[int]) -> Any:
         """
         Remove Droplets from a Load Balancer
 
@@ -5935,22 +7918,31 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: The action was successful and the response body is empty.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Load Balancers
         """
         if lb_id is None:
-            raise ValueError("Missing required parameter 'lb_id'")
-        request_body = {
+            raise ValueError("Missing required parameter 'lb_id'.")
+        request_body_data = {
             'droplet_ids': droplet_ids,
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
         url = f"{self.base_url}/v2/load_balancers/{lb_id}/droplets"
         query_params = {}
         response = self._delete(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def load_balancers_add_forwarding_rules(self, lb_id, forwarding_rules) -> Any:
+    def add_forwarding_rule(self, lb_id: str, forwarding_rules: List[dict[str, Any]]) -> Any:
         """
         Add Forwarding Rules to a Load Balancer
 
@@ -5961,22 +7953,32 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: The action was successful and the response body is empty.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Load Balancers
         """
         if lb_id is None:
-            raise ValueError("Missing required parameter 'lb_id'")
-        request_body = {
+            raise ValueError("Missing required parameter 'lb_id'.")
+        request_body_data = None
+        request_body_data = {
             'forwarding_rules': forwarding_rules,
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
         url = f"{self.base_url}/v2/load_balancers/{lb_id}/forwarding_rules"
         query_params = {}
-        response = self._post(url, data=request_body, params=query_params)
+        response = self._post(url, data=request_body_data, params=query_params, content_type='application/json')
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def load_balancers_remove_forwarding_rules(self, lb_id, forwarding_rules) -> Any:
+    def delete_lb_forwarding_rules(self, lb_id: str, forwarding_rules: List[dict[str, Any]]) -> Any:
         """
         Remove Forwarding Rules from a Load Balancer
 
@@ -5987,22 +7989,31 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: The action was successful and the response body is empty.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Load Balancers
         """
         if lb_id is None:
-            raise ValueError("Missing required parameter 'lb_id'")
-        request_body = {
+            raise ValueError("Missing required parameter 'lb_id'.")
+        request_body_data = {
             'forwarding_rules': forwarding_rules,
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
         url = f"{self.base_url}/v2/load_balancers/{lb_id}/forwarding_rules"
         query_params = {}
         response = self._delete(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def monitoring_list_alert_policy(self, per_page=None, page=None) -> Any:
+    def monitoring_list_alert_policy(self, per_page: Optional[int] = None, page: Optional[int] = None) -> Any:
         """
         List Alert Policies
 
@@ -6013,6 +8024,10 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: A list of alert policies.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Monitoring
         """
@@ -6020,9 +8035,14 @@ class DigitaloceanApp(APIApplication):
         query_params = {k: v for k, v in [('per_page', per_page), ('page', page)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def monitoring_create_alert_policy(self, alerts, compare, description, enabled, entities, tags, type, value, window) -> Any:
+    def monitoring_create_alert_policy(self, alerts: dict[str, Any], compare: str, description: str, enabled: bool, entities: List[str], tags: List[str], type: str, value: float, window: str) -> Any:
         """
         Create Alert Policy
 
@@ -6040,10 +8060,15 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: An alert policy.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Monitoring
         """
-        request_body = {
+        request_body_data = None
+        request_body_data = {
             'alerts': alerts,
             'compare': compare,
             'description': description,
@@ -6054,14 +8079,19 @@ class DigitaloceanApp(APIApplication):
             'value': value,
             'window': window,
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
         url = f"{self.base_url}/v2/monitoring/alerts"
         query_params = {}
-        response = self._post(url, data=request_body, params=query_params)
+        response = self._post(url, data=request_body_data, params=query_params, content_type='application/json')
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def monitoring_get_alert_policy(self, alert_uuid) -> Any:
+    def monitoring_get_alert_policy(self, alert_uuid: str) -> Any:
         """
         Retrieve an Existing Alert Policy
 
@@ -6071,18 +8101,27 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: An alert policy.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Monitoring
         """
         if alert_uuid is None:
-            raise ValueError("Missing required parameter 'alert_uuid'")
+            raise ValueError("Missing required parameter 'alert_uuid'.")
         url = f"{self.base_url}/v2/monitoring/alerts/{alert_uuid}"
         query_params = {}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def monitoring_update_alert_policy(self, alert_uuid, alerts, compare, description, enabled, entities, tags, type, value, window) -> Any:
+    def monitoring_update_alert_policy(self, alert_uuid: str, alerts: dict[str, Any], compare: str, description: str, enabled: bool, entities: List[str], tags: List[str], type: str, value: float, window: str) -> Any:
         """
         Update an Alert Policy
 
@@ -6101,12 +8140,17 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: An alert policy.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Monitoring
         """
         if alert_uuid is None:
-            raise ValueError("Missing required parameter 'alert_uuid'")
-        request_body = {
+            raise ValueError("Missing required parameter 'alert_uuid'.")
+        request_body_data = None
+        request_body_data = {
             'alerts': alerts,
             'compare': compare,
             'description': description,
@@ -6117,14 +8161,19 @@ class DigitaloceanApp(APIApplication):
             'value': value,
             'window': window,
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
         url = f"{self.base_url}/v2/monitoring/alerts/{alert_uuid}"
         query_params = {}
-        response = self._put(url, data=request_body, params=query_params)
+        response = self._put(url, data=request_body_data, params=query_params, content_type='application/json')
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def monitoring_delete_alert_policy(self, alert_uuid) -> Any:
+    def monitoring_delete_alert_policy(self, alert_uuid: str) -> Any:
         """
         Delete an Alert Policy
 
@@ -6134,18 +8183,27 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: The action was successful and the response body is empty.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Monitoring
         """
         if alert_uuid is None:
-            raise ValueError("Missing required parameter 'alert_uuid'")
+            raise ValueError("Missing required parameter 'alert_uuid'.")
         url = f"{self.base_url}/v2/monitoring/alerts/{alert_uuid}"
         query_params = {}
         response = self._delete(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def monitoring_get_droplet_bandwidth_metrics(self, host_id, interface, direction, start, end) -> dict[str, Any]:
+    def get_droplet_bandwidth_metrics(self, host_id: str, interface: str, direction: str, start: str, end: str) -> dict[str, Any]:
         """
         Get Droplet Bandwidth Metrics
 
@@ -6159,6 +8217,10 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: The response will be a JSON object with a key called `data` and `status`.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Monitoring
         """
@@ -6166,9 +8228,14 @@ class DigitaloceanApp(APIApplication):
         query_params = {k: v for k, v in [('host_id', host_id), ('interface', interface), ('direction', direction), ('start', start), ('end', end)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def monitoring_get_droplet_cpu_metrics(self, host_id, start, end) -> dict[str, Any]:
+    def get_droplet_cpu_metrics(self, host_id: str, start: str, end: str) -> dict[str, Any]:
         """
         Get Droplet CPU Metrics
 
@@ -6180,6 +8247,10 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: The response will be a JSON object with a key called `data` and `status`.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Monitoring
         """
@@ -6187,9 +8258,14 @@ class DigitaloceanApp(APIApplication):
         query_params = {k: v for k, v in [('host_id', host_id), ('start', start), ('end', end)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def monitoring_get_droplet_filesystem_free_metrics(self, host_id, start, end) -> dict[str, Any]:
+    def get_droplet_filesystem_free(self, host_id: str, start: str, end: str) -> dict[str, Any]:
         """
         Get Droplet Filesystem Free Metrics
 
@@ -6201,6 +8277,10 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: The response will be a JSON object with a key called `data` and `status`.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Monitoring
         """
@@ -6208,9 +8288,14 @@ class DigitaloceanApp(APIApplication):
         query_params = {k: v for k, v in [('host_id', host_id), ('start', start), ('end', end)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def monitoring_get_droplet_filesystem_size_metrics(self, host_id, start, end) -> dict[str, Any]:
+    def get_droplet_filesystem_size(self, host_id: str, start: str, end: str) -> dict[str, Any]:
         """
         Get Droplet Filesystem Size Metrics
 
@@ -6222,6 +8307,10 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: The response will be a JSON object with a key called `data` and `status`.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Monitoring
         """
@@ -6229,9 +8318,14 @@ class DigitaloceanApp(APIApplication):
         query_params = {k: v for k, v in [('host_id', host_id), ('start', start), ('end', end)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def monitoring_get_droplet_load1_metrics(self, host_id, start, end) -> dict[str, Any]:
+    def get_droplet_load_metrics(self, host_id: str, start: str, end: str) -> dict[str, Any]:
         """
         Get Droplet Load1 Metrics
 
@@ -6243,6 +8337,10 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: The response will be a JSON object with a key called `data` and `status`.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Monitoring
         """
@@ -6250,9 +8348,14 @@ class DigitaloceanApp(APIApplication):
         query_params = {k: v for k, v in [('host_id', host_id), ('start', start), ('end', end)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def monitoring_get_droplet_load5_metrics(self, host_id, start, end) -> dict[str, Any]:
+    def get_droplet_load5_metrics(self, host_id: str, start: str, end: str) -> dict[str, Any]:
         """
         Get Droplet Load5 Metrics
 
@@ -6264,6 +8367,10 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: The response will be a JSON object with a key called `data` and `status`.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Monitoring
         """
@@ -6271,9 +8378,14 @@ class DigitaloceanApp(APIApplication):
         query_params = {k: v for k, v in [('host_id', host_id), ('start', start), ('end', end)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def monitoring_get_droplet_load15_metrics(self, host_id, start, end) -> dict[str, Any]:
+    def get_droplet_load_metric(self, host_id: str, start: str, end: str) -> dict[str, Any]:
         """
         Get Droplet Load15 Metrics
 
@@ -6285,6 +8397,10 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: The response will be a JSON object with a key called `data` and `status`.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Monitoring
         """
@@ -6292,9 +8408,14 @@ class DigitaloceanApp(APIApplication):
         query_params = {k: v for k, v in [('host_id', host_id), ('start', start), ('end', end)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def monitoring_get_droplet_memory_cached_metrics(self, host_id, start, end) -> dict[str, Any]:
+    def get_droplet_memory_cached(self, host_id: str, start: str, end: str) -> dict[str, Any]:
         """
         Get Droplet Cached Memory Metrics
 
@@ -6306,6 +8427,10 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: The response will be a JSON object with a key called `data` and `status`.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Monitoring
         """
@@ -6313,9 +8438,14 @@ class DigitaloceanApp(APIApplication):
         query_params = {k: v for k, v in [('host_id', host_id), ('start', start), ('end', end)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def monitoring_get_droplet_memory_free_metrics(self, host_id, start, end) -> dict[str, Any]:
+    def get_droplet_memory_free(self, host_id: str, start: str, end: str) -> dict[str, Any]:
         """
         Get Droplet Free Memory Metrics
 
@@ -6327,6 +8457,10 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: The response will be a JSON object with a key called `data` and `status`.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Monitoring
         """
@@ -6334,9 +8468,14 @@ class DigitaloceanApp(APIApplication):
         query_params = {k: v for k, v in [('host_id', host_id), ('start', start), ('end', end)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def monitoring_get_droplet_memory_total_metrics(self, host_id, start, end) -> dict[str, Any]:
+    def get_droplet_memory_total(self, host_id: str, start: str, end: str) -> dict[str, Any]:
         """
         Get Droplet Total Memory Metrics
 
@@ -6348,6 +8487,10 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: The response will be a JSON object with a key called `data` and `status`.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Monitoring
         """
@@ -6355,9 +8498,14 @@ class DigitaloceanApp(APIApplication):
         query_params = {k: v for k, v in [('host_id', host_id), ('start', start), ('end', end)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def monitoring_get_droplet_memory_available_metrics(self, host_id, start, end) -> dict[str, Any]:
+    def get_droplet_memory_available(self, host_id: str, start: str, end: str) -> dict[str, Any]:
         """
         Get Droplet Available Memory Metrics
 
@@ -6369,6 +8517,10 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: The response will be a JSON object with a key called `data` and `status`.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Monitoring
         """
@@ -6376,9 +8528,14 @@ class DigitaloceanApp(APIApplication):
         query_params = {k: v for k, v in [('host_id', host_id), ('start', start), ('end', end)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def monitoring_get_app_memory_percentage_metrics(self, app_id, start, end, app_component=None) -> dict[str, Any]:
+    def get_app_memory_percentage(self, app_id: str, start: str, end: str, app_component: Optional[str] = None) -> dict[str, Any]:
         """
         Get App Memory Percentage Metrics
 
@@ -6391,6 +8548,10 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: The response will be a JSON object with a key called `data` and `status`.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Monitoring
         """
@@ -6398,9 +8559,14 @@ class DigitaloceanApp(APIApplication):
         query_params = {k: v for k, v in [('app_id', app_id), ('app_component', app_component), ('start', start), ('end', end)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def monitoring_get_app_cpupercentage_metrics(self, app_id, start, end, app_component=None) -> dict[str, Any]:
+    def get_app_cpu_metrics(self, app_id: str, start: str, end: str, app_component: Optional[str] = None) -> dict[str, Any]:
         """
         Get App CPU Percentage Metrics
 
@@ -6413,6 +8579,10 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: The response will be a JSON object with a key called `data` and `status`.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Monitoring
         """
@@ -6420,9 +8590,14 @@ class DigitaloceanApp(APIApplication):
         query_params = {k: v for k, v in [('app_id', app_id), ('app_component', app_component), ('start', start), ('end', end)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def monitoring_get_app_restart_count_metrics_yml(self, app_id, start, end, app_component=None) -> dict[str, Any]:
+    def get_app_restart_count(self, app_id: str, start: str, end: str, app_component: Optional[str] = None) -> dict[str, Any]:
         """
         Get App Restart Count Metrics
 
@@ -6435,6 +8610,10 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: The response will be a JSON object with a key called `data` and `status`.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Monitoring
         """
@@ -6442,9 +8621,14 @@ class DigitaloceanApp(APIApplication):
         query_params = {k: v for k, v in [('app_id', app_id), ('app_component', app_component), ('start', start), ('end', end)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def monitoring_get_lb_frontend_connections_current(self, lb_id, start, end) -> dict[str, Any]:
+    def get_frontend_connections(self, lb_id: str, start: str, end: str) -> dict[str, Any]:
         """
         Get Load Balancer Frontend Total Current Active Connections Metrics
 
@@ -6456,6 +8640,10 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: The response will be a JSON object with a key called `data` and `status`.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Monitoring
         """
@@ -6463,9 +8651,14 @@ class DigitaloceanApp(APIApplication):
         query_params = {k: v for k, v in [('lb_id', lb_id), ('start', start), ('end', end)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def monitoring_get_lb_frontend_connections_limit(self, lb_id, start, end) -> dict[str, Any]:
+    def get_lb_frontend_connections_limit(self, lb_id: str, start: str, end: str) -> dict[str, Any]:
         """
         Get Load Balancer Frontend Max Connections Limit Metrics
 
@@ -6477,6 +8670,10 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: The response will be a JSON object with a key called `data` and `status`.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Monitoring
         """
@@ -6484,9 +8681,14 @@ class DigitaloceanApp(APIApplication):
         query_params = {k: v for k, v in [('lb_id', lb_id), ('start', start), ('end', end)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def monitoring_get_lb_frontend_cpu_utilization(self, lb_id, start, end) -> dict[str, Any]:
+    def get_frontend_cpu_utilization(self, lb_id: str, start: str, end: str) -> dict[str, Any]:
         """
         Get Load Balancer Frontend Average Percentage CPU Utilization Metrics
 
@@ -6498,6 +8700,10 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: The response will be a JSON object with a key called `data` and `status`.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Monitoring
         """
@@ -6505,9 +8711,14 @@ class DigitaloceanApp(APIApplication):
         query_params = {k: v for k, v in [('lb_id', lb_id), ('start', start), ('end', end)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def monitoring_get_lb_frontend_firewall_dropped_bytes(self, lb_id, start, end) -> dict[str, Any]:
+    def get_frontend_firewall_bytes(self, lb_id: str, start: str, end: str) -> dict[str, Any]:
         """
         Get Load Balancer Frontend Firewall Dropped Bytes Metrics
 
@@ -6519,6 +8730,10 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: The response will be a JSON object with a key called `data` and `status`.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Monitoring
         """
@@ -6526,9 +8741,14 @@ class DigitaloceanApp(APIApplication):
         query_params = {k: v for k, v in [('lb_id', lb_id), ('start', start), ('end', end)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def monitoring_get_lb_frontend_firewall_dropped_packets(self, lb_id, start, end) -> dict[str, Any]:
+    def get_lb_frontend_fw_dropped_pkts(self, lb_id: str, start: str, end: str) -> dict[str, Any]:
         """
         Get Load Balancer Frontend Firewall Dropped Packets Metrics
 
@@ -6540,6 +8760,10 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: The response will be a JSON object with a key called `data` and `status`.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Monitoring
         """
@@ -6547,9 +8771,14 @@ class DigitaloceanApp(APIApplication):
         query_params = {k: v for k, v in [('lb_id', lb_id), ('start', start), ('end', end)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def monitoring_get_lb_frontend_http_responses(self, lb_id, start, end) -> dict[str, Any]:
+    def get_load_balancer_responses(self, lb_id: str, start: str, end: str) -> dict[str, Any]:
         """
         Get Load Balancer Frontend HTTP Rate Of Response Code Metrics
 
@@ -6561,6 +8790,10 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: The response will be a JSON object with a key called `data` and `status`.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Monitoring
         """
@@ -6568,9 +8801,14 @@ class DigitaloceanApp(APIApplication):
         query_params = {k: v for k, v in [('lb_id', lb_id), ('start', start), ('end', end)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def monitoring_get_lb_frontend_http_requests_per_second(self, lb_id, start, end) -> dict[str, Any]:
+    def fetch_frontend_request_rate(self, lb_id: str, start: str, end: str) -> dict[str, Any]:
         """
         Get Load Balancer Frontend HTTP Requests Metrics
 
@@ -6582,6 +8820,10 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: The response will be a JSON object with a key called `data` and `status`.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Monitoring
         """
@@ -6589,9 +8831,14 @@ class DigitaloceanApp(APIApplication):
         query_params = {k: v for k, v in [('lb_id', lb_id), ('start', start), ('end', end)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def monitoring_get_lb_frontend_network_throughput_http(self, lb_id, start, end) -> dict[str, Any]:
+    def get_frontend_network_throughput(self, lb_id: str, start: str, end: str) -> dict[str, Any]:
         """
         Get Load Balancer Frontend HTTP Throughput Metrics
 
@@ -6603,6 +8850,10 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: The response will be a JSON object with a key called `data` and `status`.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Monitoring
         """
@@ -6610,9 +8861,14 @@ class DigitaloceanApp(APIApplication):
         query_params = {k: v for k, v in [('lb_id', lb_id), ('start', start), ('end', end)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def monitoring_get_lb_frontend_network_throughput_udp(self, lb_id, start, end) -> dict[str, Any]:
+    def get_frontend_udp_throughput(self, lb_id: str, start: str, end: str) -> dict[str, Any]:
         """
         Get Load Balancer Frontend UDP Throughput Metrics
 
@@ -6624,6 +8880,10 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: The response will be a JSON object with a key called `data` and `status`.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Monitoring
         """
@@ -6631,9 +8891,14 @@ class DigitaloceanApp(APIApplication):
         query_params = {k: v for k, v in [('lb_id', lb_id), ('start', start), ('end', end)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def monitoring_get_lb_frontend_network_throughput_tcp(self, lb_id, start, end) -> dict[str, Any]:
+    def get_frontend_tcp_throughput(self, lb_id: str, start: str, end: str) -> dict[str, Any]:
         """
         Get Load Balancer Frontend TCP Throughput Metrics
 
@@ -6645,6 +8910,10 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: The response will be a JSON object with a key called `data` and `status`.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Monitoring
         """
@@ -6652,9 +8921,14 @@ class DigitaloceanApp(APIApplication):
         query_params = {k: v for k, v in [('lb_id', lb_id), ('start', start), ('end', end)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def monitoring_get_lb_frontend_nlb_tcp_network_throughput(self, lb_id, start, end) -> dict[str, Any]:
+    def get_frontend_nlb_tcp_throughput(self, lb_id: str, start: str, end: str) -> dict[str, Any]:
         """
         Get Network Load Balancer Frontend TCP Throughput Metrics
 
@@ -6666,6 +8940,10 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: The response will be a JSON object with a key called `data` and `status`.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Monitoring
         """
@@ -6673,9 +8951,14 @@ class DigitaloceanApp(APIApplication):
         query_params = {k: v for k, v in [('lb_id', lb_id), ('start', start), ('end', end)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def monitoring_get_lb_frontend_nlb_udp_network_throughput(self, lb_id, start, end) -> dict[str, Any]:
+    def get_nlb_udp_throughput(self, lb_id: str, start: str, end: str) -> dict[str, Any]:
         """
         Get Network Load Balancer Frontend UDP Throughput Metrics
 
@@ -6687,6 +8970,10 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: The response will be a JSON object with a key called `data` and `status`.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Monitoring
         """
@@ -6694,9 +8981,14 @@ class DigitaloceanApp(APIApplication):
         query_params = {k: v for k, v in [('lb_id', lb_id), ('start', start), ('end', end)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def monitoring_get_lb_frontend_tls_connections_current(self, lb_id, start, end) -> dict[str, Any]:
+    def get_frontend_tls_connections(self, lb_id: str, start: str, end: str) -> dict[str, Any]:
         """
         Get Load Balancer Frontend Current TLS Connections Rate Metrics
 
@@ -6708,6 +9000,10 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: The response will be a JSON object with a key called `data` and `status`.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Monitoring
         """
@@ -6715,9 +9011,14 @@ class DigitaloceanApp(APIApplication):
         query_params = {k: v for k, v in [('lb_id', lb_id), ('start', start), ('end', end)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def monitoring_get_lb_frontend_tls_connections_limit(self, lb_id, start, end) -> dict[str, Any]:
+    def get_frontend_tls_connections_limit(self, lb_id: str, start: str, end: str) -> dict[str, Any]:
         """
         Get Load Balancer Frontend Max TLS Connections Limit Metrics
 
@@ -6729,6 +9030,10 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: The response will be a JSON object with a key called `data` and `status`.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Monitoring
         """
@@ -6736,9 +9041,14 @@ class DigitaloceanApp(APIApplication):
         query_params = {k: v for k, v in [('lb_id', lb_id), ('start', start), ('end', end)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def monitoring_get_lb_frontend_tls_connections_exceeding_rate_limit(self, lb_id, start, end) -> dict[str, Any]:
+    def get_tls_exceeding_rate_limit(self, lb_id: str, start: str, end: str) -> dict[str, Any]:
         """
         Get Load Balancer Frontend Closed TLS Connections For Exceeded Rate Limit Metrics
 
@@ -6750,6 +9060,10 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: The response will be a JSON object with a key called `data` and `status`.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Monitoring
         """
@@ -6757,9 +9071,14 @@ class DigitaloceanApp(APIApplication):
         query_params = {k: v for k, v in [('lb_id', lb_id), ('start', start), ('end', end)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def monitoring_get_lb_droplets_http_session_duration_avg(self, lb_id, start, end) -> dict[str, Any]:
+    def get_droplet_session_duration_avg(self, lb_id: str, start: str, end: str) -> dict[str, Any]:
         """
         Get Load Balancer Droplets Average HTTP Session Duration Metrics
 
@@ -6771,6 +9090,10 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: The response will be a JSON object with a key called `data` and `status`.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Monitoring
         """
@@ -6778,9 +9101,14 @@ class DigitaloceanApp(APIApplication):
         query_params = {k: v for k, v in [('lb_id', lb_id), ('start', start), ('end', end)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def monitoring_get_lb_droplets_http_session_duration_50p(self, lb_id, start, end) -> dict[str, Any]:
+    def get_droplet_session_duration_50p(self, lb_id: str, start: str, end: str) -> dict[str, Any]:
         """
         Get Load Balancer Droplets 50th Percentile HTTP Session Duration Metrics
 
@@ -6792,6 +9120,10 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: The response will be a JSON object with a key called `data` and `status`.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Monitoring
         """
@@ -6799,9 +9131,14 @@ class DigitaloceanApp(APIApplication):
         query_params = {k: v for k, v in [('lb_id', lb_id), ('start', start), ('end', end)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def monitoring_get_lb_droplets_http_session_duration_95p(self, lb_id, start, end) -> dict[str, Any]:
+    def get_droplet_session_duration_95p(self, lb_id: str, start: str, end: str) -> dict[str, Any]:
         """
         Get Load Balancer Droplets 95th Percentile HTTP Session Duration Metrics
 
@@ -6813,6 +9150,10 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: The response will be a JSON object with a key called `data` and `status`.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Monitoring
         """
@@ -6820,9 +9161,14 @@ class DigitaloceanApp(APIApplication):
         query_params = {k: v for k, v in [('lb_id', lb_id), ('start', start), ('end', end)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def monitoring_get_lb_droplets_http_response_time_avg(self, lb_id, start, end) -> dict[str, Any]:
+    def get_droplet_response_time(self, lb_id: str, start: str, end: str) -> dict[str, Any]:
         """
         Get Load Balancer Droplets Average HTTP Response Time Metrics
 
@@ -6834,6 +9180,10 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: The response will be a JSON object with a key called `data` and `status`.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Monitoring
         """
@@ -6841,9 +9191,14 @@ class DigitaloceanApp(APIApplication):
         query_params = {k: v for k, v in [('lb_id', lb_id), ('start', start), ('end', end)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def monitoring_get_lb_droplets_http_response_time_50p(self, lb_id, start, end) -> dict[str, Any]:
+    def get_droplet_http_response_time(self, lb_id: str, start: str, end: str) -> dict[str, Any]:
         """
         Get Load Balancer Droplets 50th Percentile HTTP Response Time Metrics
 
@@ -6855,6 +9210,10 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: The response will be a JSON object with a key called `data` and `status`.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Monitoring
         """
@@ -6862,9 +9221,14 @@ class DigitaloceanApp(APIApplication):
         query_params = {k: v for k, v in [('lb_id', lb_id), ('start', start), ('end', end)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def monitoring_get_lb_droplets_http_response_time_95p(self, lb_id, start, end) -> dict[str, Any]:
+    def get_droplets_http_response_timep_95p(self, lb_id: str, start: str, end: str) -> dict[str, Any]:
         """
         Get Load Balancer Droplets 95th Percentile HTTP Response Time Metrics
 
@@ -6876,6 +9240,10 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: The response will be a JSON object with a key called `data` and `status`.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Monitoring
         """
@@ -6883,9 +9251,14 @@ class DigitaloceanApp(APIApplication):
         query_params = {k: v for k, v in [('lb_id', lb_id), ('start', start), ('end', end)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def monitoring_get_lb_droplets_http_response_time_99p(self, lb_id, start, end) -> dict[str, Any]:
+    def get_droplets_http_response_timep_99p(self, lb_id: str, start: str, end: str) -> dict[str, Any]:
         """
         Get Load Balancer Droplets 99th Percentile HTTP Response Time Metrics
 
@@ -6897,6 +9270,10 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: The response will be a JSON object with a key called `data` and `status`.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Monitoring
         """
@@ -6904,9 +9281,14 @@ class DigitaloceanApp(APIApplication):
         query_params = {k: v for k, v in [('lb_id', lb_id), ('start', start), ('end', end)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def monitoring_get_lb_droplets_queue_size(self, lb_id, start, end) -> dict[str, Any]:
+    def get_droplet_queue_size(self, lb_id: str, start: str, end: str) -> dict[str, Any]:
         """
         Get Load Balancer Droplets Queue Size Metrics
 
@@ -6918,6 +9300,10 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: The response will be a JSON object with a key called `data` and `status`.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Monitoring
         """
@@ -6925,9 +9311,14 @@ class DigitaloceanApp(APIApplication):
         query_params = {k: v for k, v in [('lb_id', lb_id), ('start', start), ('end', end)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def monitoring_get_lb_droplets_http_responses(self, lb_id, start, end) -> dict[str, Any]:
+    def get_droplet_responses(self, lb_id: str, start: str, end: str) -> dict[str, Any]:
         """
         Get Load Balancer Droplets HTTP Rate Of Response Code Metrics
 
@@ -6939,6 +9330,10 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: The response will be a JSON object with a key called `data` and `status`.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Monitoring
         """
@@ -6946,9 +9341,14 @@ class DigitaloceanApp(APIApplication):
         query_params = {k: v for k, v in [('lb_id', lb_id), ('start', start), ('end', end)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def monitoring_get_lb_droplets_connections(self, lb_id, start, end) -> dict[str, Any]:
+    def get_droplet_connections(self, lb_id: str, start: str, end: str) -> dict[str, Any]:
         """
         Get Load Balancer Droplets Active Connections Metrics
 
@@ -6960,6 +9360,10 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: The response will be a JSON object with a key called `data` and `status`.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Monitoring
         """
@@ -6967,9 +9371,14 @@ class DigitaloceanApp(APIApplication):
         query_params = {k: v for k, v in [('lb_id', lb_id), ('start', start), ('end', end)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def monitoring_get_lb_droplets_health_checks(self, lb_id, start, end) -> dict[str, Any]:
+    def get_droplet_health_checks(self, lb_id: str, start: str, end: str) -> dict[str, Any]:
         """
         Get Load Balancer Droplets Health Check Status Metrics
 
@@ -6981,6 +9390,10 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: The response will be a JSON object with a key called `data` and `status`.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Monitoring
         """
@@ -6988,9 +9401,14 @@ class DigitaloceanApp(APIApplication):
         query_params = {k: v for k, v in [('lb_id', lb_id), ('start', start), ('end', end)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def monitoring_get_lb_droplets_downtime(self, lb_id, start, end) -> dict[str, Any]:
+    def get_load_balancer_downtime(self, lb_id: str, start: str, end: str) -> dict[str, Any]:
         """
         Get Load Balancer Droplets Downtime Status Metrics
 
@@ -7002,6 +9420,10 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: The response will be a JSON object with a key called `data` and `status`.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Monitoring
         """
@@ -7009,9 +9431,14 @@ class DigitaloceanApp(APIApplication):
         query_params = {k: v for k, v in [('lb_id', lb_id), ('start', start), ('end', end)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def monitoring_get_droplet_autoscale_current_instances(self, autoscale_pool_id, start, end) -> dict[str, Any]:
+    def get_current_autoscale_instances(self, autoscale_pool_id: str, start: str, end: str) -> dict[str, Any]:
         """
         Get Droplet Autoscale Pool Current Size
 
@@ -7023,6 +9450,10 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: The response will be a JSON object with a key called `data` and `status`.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Monitoring
         """
@@ -7030,9 +9461,14 @@ class DigitaloceanApp(APIApplication):
         query_params = {k: v for k, v in [('autoscale_pool_id', autoscale_pool_id), ('start', start), ('end', end)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def monitoring_get_droplet_autoscale_target_instances(self, autoscale_pool_id, start, end) -> dict[str, Any]:
+    def list_target_instances(self, autoscale_pool_id: str, start: str, end: str) -> dict[str, Any]:
         """
         Get Droplet Autoscale Pool Target Size
 
@@ -7044,6 +9480,10 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: The response will be a JSON object with a key called `data` and `status`.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Monitoring
         """
@@ -7051,9 +9491,14 @@ class DigitaloceanApp(APIApplication):
         query_params = {k: v for k, v in [('autoscale_pool_id', autoscale_pool_id), ('start', start), ('end', end)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def monitoring_get_droplet_autoscale_current_cpu_utilization_yml(self, autoscale_pool_id, start, end) -> dict[str, Any]:
+    def get_droplet_cpu_utilization(self, autoscale_pool_id: str, start: str, end: str) -> dict[str, Any]:
         """
         Get Droplet Autoscale Pool Current Average CPU utilization
 
@@ -7065,6 +9510,10 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: The response will be a JSON object with a key called `data` and `status`.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Monitoring
         """
@@ -7072,9 +9521,14 @@ class DigitaloceanApp(APIApplication):
         query_params = {k: v for k, v in [('autoscale_pool_id', autoscale_pool_id), ('start', start), ('end', end)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def monitoring_get_droplet_autoscale_target_cpu_utilization(self, autoscale_pool_id, start, end) -> dict[str, Any]:
+    def get_droplet_target_cpu_utilization(self, autoscale_pool_id: str, start: str, end: str) -> dict[str, Any]:
         """
         Get Droplet Autoscale Pool Target Average CPU utilization
 
@@ -7086,6 +9540,10 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: The response will be a JSON object with a key called `data` and `status`.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Monitoring
         """
@@ -7093,9 +9551,14 @@ class DigitaloceanApp(APIApplication):
         query_params = {k: v for k, v in [('autoscale_pool_id', autoscale_pool_id), ('start', start), ('end', end)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def monitoring_get_droplet_autoscale_current_memory_utilization(self, autoscale_pool_id, start, end) -> dict[str, Any]:
+    def get_droplet_memory_utilization(self, autoscale_pool_id: str, start: str, end: str) -> dict[str, Any]:
         """
         Get Droplet Autoscale Pool Current Average Memory utilization
 
@@ -7107,6 +9570,10 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: The response will be a JSON object with a key called `data` and `status`.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Monitoring
         """
@@ -7114,9 +9581,14 @@ class DigitaloceanApp(APIApplication):
         query_params = {k: v for k, v in [('autoscale_pool_id', autoscale_pool_id), ('start', start), ('end', end)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def monitoring_get_droplet_autoscale_target_memory_utilization(self, autoscale_pool_id, start, end) -> dict[str, Any]:
+    def get_autoscale_memory_target(self, autoscale_pool_id: str, start: str, end: str) -> dict[str, Any]:
         """
         Get Droplet Autoscale Pool Target Average Memory utilization
 
@@ -7128,6 +9600,10 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: The response will be a JSON object with a key called `data` and `status`.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Monitoring
         """
@@ -7135,50 +9611,51 @@ class DigitaloceanApp(APIApplication):
         query_params = {k: v for k, v in [('autoscale_pool_id', autoscale_pool_id), ('start', start), ('end', end)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def monitoring_create_destination(self, type, config, name=None) -> Any:
+    def monitoring_create_destination(self, type: Any, config: dict[str, Any], name: Optional[str] = None) -> Any:
         """
         Create Logging Destination
 
         Args:
             type (string): The destination type. `opensearch_dbaas` for a DigitalOcean managed OpenSearch
         cluster or `opensearch_ext` for an externally managed one.
-
-            config (object): config
-            name (string): destination name
-                Example:
-                ```json
-                {
-                  "name": "managed_opensearch_cluster",
-                  "type": "opensearch_dbaas",
-                  "config": {
-                    "endpoint": "db-opensearch-nyc3-123456-do-user-123456-0.g.db.ondigitalocean.com",
-                    "cluster_uuid": "85148069-7e35-4999-80bd-6fa1637ca385",
-                    "cluster_name": "managed_dbaas_cluster",
-                    "index_name": "logs",
-                    "retention_days": 14
-                  }
-                }
-                ```
+         Example: 'opensearch_dbaas'.
+            config (object): config Example: {'endpoint': 'db-opensearch-nyc3-123456-do-user-123456-0.g.db.ondigitalocean.com', 'cluster_uuid': '85148069-7e35-4999-80bd-6fa1637ca385', 'cluster_name': 'managed_dbaas_cluster', 'index_name': 'logs', 'retention_days': 14}.
+            name (string): destination name Example: 'managed_opensearch_cluster'.
 
         Returns:
             Any: The response is a JSON object with a `destination` key.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Monitoring
         """
-        request_body = {
+        request_body_data = None
+        request_body_data = {
             'name': name,
             'type': type,
             'config': config,
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
         url = f"{self.base_url}/v2/monitoring/sinks/destinations"
         query_params = {}
-        response = self._post(url, data=request_body, params=query_params)
+        response = self._post(url, data=request_body_data, params=query_params, content_type='application/json')
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
     def monitoring_list_destinations(self) -> Any:
         """
@@ -7187,6 +9664,10 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: The response is a JSON object with a `destinations` key.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Monitoring
         """
@@ -7194,9 +9675,14 @@ class DigitaloceanApp(APIApplication):
         query_params = {}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def monitoring_get_destination(self, destination_uuid) -> Any:
+    def monitoring_get_destination(self, destination_uuid: str) -> Any:
         """
         Get Logging Destination
 
@@ -7206,18 +9692,27 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: The response is a JSON object with a `destination` key.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Monitoring
         """
         if destination_uuid is None:
-            raise ValueError("Missing required parameter 'destination_uuid'")
+            raise ValueError("Missing required parameter 'destination_uuid'.")
         url = f"{self.base_url}/v2/monitoring/sinks/destinations/{destination_uuid}"
         query_params = {}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def monitoring_update_destination(self, destination_uuid, type, config, name=None) -> Any:
+    def monitoring_update_destination(self, destination_uuid: str, type: Any, config: dict[str, Any], name: Optional[str] = None) -> Any:
         """
         Update Logging Destination
 
@@ -7232,24 +9727,34 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: The action was successful and the response body is empty.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Monitoring
         """
         if destination_uuid is None:
-            raise ValueError("Missing required parameter 'destination_uuid'")
-        request_body = {
+            raise ValueError("Missing required parameter 'destination_uuid'.")
+        request_body_data = None
+        request_body_data = {
             'name': name,
             'type': type,
             'config': config,
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
         url = f"{self.base_url}/v2/monitoring/sinks/destinations/{destination_uuid}"
         query_params = {}
-        response = self._post(url, data=request_body, params=query_params)
+        response = self._post(url, data=request_body_data, params=query_params, content_type='application/json')
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def monitoring_delete_destination(self, destination_uuid) -> Any:
+    def monitoring_delete_destination(self, destination_uuid: str) -> Any:
         """
         Delete Logging Destination
 
@@ -7259,18 +9764,27 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: The action was successful and the response body is empty.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Monitoring
         """
         if destination_uuid is None:
-            raise ValueError("Missing required parameter 'destination_uuid'")
+            raise ValueError("Missing required parameter 'destination_uuid'.")
         url = f"{self.base_url}/v2/monitoring/sinks/destinations/{destination_uuid}"
         query_params = {}
         response = self._delete(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def monitoring_create_sink(self, destination_uuid=None, resources=None) -> Any:
+    def monitoring_create_sink(self, destination_uuid: Optional[str] = None, resources: Optional[List[dict[str, Any]]] = None) -> Any:
         """
         Create Sink
 
@@ -7281,21 +9795,31 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: This does not indicate the success or failure of any operation, just that the request has been accepted for processing.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Monitoring
         """
-        request_body = {
+        request_body_data = None
+        request_body_data = {
             'destination_uuid': destination_uuid,
             'resources': resources,
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
         url = f"{self.base_url}/v2/monitoring/sinks"
         query_params = {}
-        response = self._post(url, data=request_body, params=query_params)
+        response = self._post(url, data=request_body_data, params=query_params, content_type='application/json')
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def monitoring_list_sinks(self, resource_id=None) -> Any:
+    def monitoring_list_sinks(self, resource_id: Optional[str] = None) -> Any:
         """
         Lists all sinks
 
@@ -7305,6 +9829,10 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: The response is a JSON object with a `sinks` key.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Monitoring
         """
@@ -7312,9 +9840,14 @@ class DigitaloceanApp(APIApplication):
         query_params = {k: v for k, v in [('resource_id', resource_id)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def monitoring_get_sink(self, sink_uuid) -> Any:
+    def monitoring_get_sink(self, sink_uuid: str) -> Any:
         """
         Get Sink
 
@@ -7324,18 +9857,27 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: The response is a JSON object with a `sink` key.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Monitoring
         """
         if sink_uuid is None:
-            raise ValueError("Missing required parameter 'sink_uuid'")
+            raise ValueError("Missing required parameter 'sink_uuid'.")
         url = f"{self.base_url}/v2/monitoring/sinks/{sink_uuid}"
         query_params = {}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def monitoring_delete_sink(self, sink_uuid) -> Any:
+    def monitoring_delete_sink(self, sink_uuid: str) -> Any:
         """
         Delete Sink
 
@@ -7345,18 +9887,27 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: The action was successful and the response body is empty.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Monitoring
         """
         if sink_uuid is None:
-            raise ValueError("Missing required parameter 'sink_uuid'")
+            raise ValueError("Missing required parameter 'sink_uuid'.")
         url = f"{self.base_url}/v2/monitoring/sinks/{sink_uuid}"
         query_params = {}
         response = self._delete(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def partner_attachments_list(self, per_page=None, page=None) -> Any:
+    def partner_attachments_list(self, per_page: Optional[int] = None, page: Optional[int] = None) -> Any:
         """
         List all partner attachments
 
@@ -7368,6 +9919,10 @@ class DigitaloceanApp(APIApplication):
             Any: The response will be a JSON object with a `partner_attachments` key
         that contains an array of all partner attachments
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Partner Network Connect
         """
@@ -7375,9 +9930,14 @@ class DigitaloceanApp(APIApplication):
         query_params = {k: v for k, v in [('per_page', per_page), ('page', page)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def partner_attachments_create(self, name=None, connection_bandwidth_in_mbps=None, region=None, naas_provider=None, vpc_ids=None, parent_uuid=None, bgp=None) -> Any:
+    def partner_attachments_create(self, name: Optional[str] = None, connection_bandwidth_in_mbps: Optional[int] = None, region: Optional[str] = None, naas_provider: Optional[str] = None, vpc_ids: Optional[List[str]] = None, parent_uuid: Optional[str] = None, bgp: Optional[dict[str, Any]] = None) -> Any:
         """
         Create a new partner attachment
 
@@ -7394,10 +9954,15 @@ class DigitaloceanApp(APIApplication):
             Any: The response will be a JSON object with details about the partner attachment
         including attached VPC network IDs and BGP configuration information
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Partner Network Connect
         """
-        request_body = {
+        request_body_data = None
+        request_body_data = {
             'name': name,
             'connection_bandwidth_in_mbps': connection_bandwidth_in_mbps,
             'region': region,
@@ -7406,14 +9971,19 @@ class DigitaloceanApp(APIApplication):
             'parent_uuid': parent_uuid,
             'bgp': bgp,
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
         url = f"{self.base_url}/v2/partner_network_connect/attachments"
         query_params = {}
-        response = self._post(url, data=request_body, params=query_params)
+        response = self._post(url, data=request_body_data, params=query_params, content_type='application/json')
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def partner_attachments_get(self, pa_id) -> Any:
+    def partner_attachments_get(self, pa_id: str) -> Any:
         """
         Retrieve an existing partner attachment
 
@@ -7424,18 +9994,68 @@ class DigitaloceanApp(APIApplication):
             Any: The response will be a JSON object with details about the partner attachment
         including attached VPC network IDs and BGP configuration information
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Partner Network Connect
         """
         if pa_id is None:
-            raise ValueError("Missing required parameter 'pa_id'")
+            raise ValueError("Missing required parameter 'pa_id'.")
         url = f"{self.base_url}/v2/partner_network_connect/attachments/{pa_id}"
         query_params = {}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def partner_attachments_delete(self, pa_id) -> Any:
+    def partner_attachments_patch(self, pa_id: str, name: Optional[str] = None, vpc_ids: Optional[List[str]] = None, bgp: Optional[dict[str, Any]] = None) -> Any:
+        """
+        Update an existing partner attachment
+
+        Args:
+            pa_id (string): pa_id
+            name (string): The name of the partner attachment. Must be unique and may only contain alphanumeric characters, dashes, and periods. Example: 'env.prod-partner-network-connect'.
+            vpc_ids (array): An array of VPCs IDs. Example: "['c140286f-e6ce-4131-8b7b-df4590ce8d6a', '994a2735-dc84-11e8-80bc-3cfdfea9fba1']".
+            bgp (object): BGP configurations
+
+        Returns:
+            Any: The response will be a JSON object with details about the partner attachment
+        including attached VPC network IDs and BGP configuration information
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
+        Tags:
+            Partner Network Connect
+        """
+        if pa_id is None:
+            raise ValueError("Missing required parameter 'pa_id'.")
+        request_body_data = None
+        request_body_data = {
+            'name': name,
+            'vpc_ids': vpc_ids,
+            'bgp': bgp,
+        }
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
+        url = f"{self.base_url}/v2/partner_network_connect/attachments/{pa_id}"
+        query_params = {}
+        response = self._patch(url, data=request_body_data, params=query_params)
+        response.raise_for_status()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
+
+    def partner_attachments_delete(self, pa_id: str) -> Any:
         """
         Delete an existing partner attachment
 
@@ -7446,18 +10066,27 @@ class DigitaloceanApp(APIApplication):
             Any: The response will be a JSON object with details about the partner attachment 
         and `"state": "DELETING"` to indicate that the partner attachment is being deleted.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Partner Network Connect
         """
         if pa_id is None:
-            raise ValueError("Missing required parameter 'pa_id'")
+            raise ValueError("Missing required parameter 'pa_id'.")
         url = f"{self.base_url}/v2/partner_network_connect/attachments/{pa_id}"
         query_params = {}
         response = self._delete(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def partner_attachments_get_bgp_auth_key(self, pa_id) -> Any:
+    def get_bgp_auth_key_by_pa_id(self, pa_id: str) -> Any:
         """
         Get current BGP auth key for the partner attachment
 
@@ -7468,18 +10097,27 @@ class DigitaloceanApp(APIApplication):
             Any: The response will be a JSON object with a `bgp_auth_key` object containing a 
         `value` field with the BGP auth key value
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Partner Network Connect
         """
         if pa_id is None:
-            raise ValueError("Missing required parameter 'pa_id'")
+            raise ValueError("Missing required parameter 'pa_id'.")
         url = f"{self.base_url}/v2/partner_network_connect/attachments/{pa_id}/bgp_auth_key"
         query_params = {}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def partner_attachments_list_remote_routes(self, pa_id, per_page=None, page=None) -> Any:
+    def get_partner_network_remote_routes(self, pa_id: str, per_page: Optional[int] = None, page: Optional[int] = None) -> Any:
         """
         List remote routes for a partner attachment
 
@@ -7492,58 +10130,64 @@ class DigitaloceanApp(APIApplication):
             Any: The response will be a JSON object with a `remote_routes` array containing 
         information on all the remote routes associated with the partner attachment
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Partner Network Connect
         """
         if pa_id is None:
-            raise ValueError("Missing required parameter 'pa_id'")
+            raise ValueError("Missing required parameter 'pa_id'.")
         url = f"{self.base_url}/v2/partner_network_connect/attachments/{pa_id}/remote_routes"
         query_params = {k: v for k, v in [('per_page', per_page), ('page', page)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def partner_attachments_update_remote_routes(self, pa_id, remote_routes=None) -> Any:
+    def update_remote_routes(self, pa_id: str, remote_routes: Optional[List[dict[str, Any]]] = None) -> Any:
         """
         Set remote routes for a partner attachment
 
         Args:
             pa_id (string): pa_id
-            remote_routes (array): remote_routes
-                Example:
-                ```json
-                {
-                  "remote_routes": [
-                    {
-                      "cidr": "10.10.10.0/24"
-                    },
-                    {
-                      "cidr": "10.10.10.10/24"
-                    }
-                  ]
-                }
-                ```
+            remote_routes (array): remote_routes Example: [{'cidr': '10.10.10.0/24'}, {'cidr': '10.10.10.10/24'}].
 
         Returns:
             Any: The response will be a JSON object with a `remote_routes` array containing 
         information on all the remote routes associated with the partner attachment
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Partner Network Connect
         """
         if pa_id is None:
-            raise ValueError("Missing required parameter 'pa_id'")
-        request_body = {
+            raise ValueError("Missing required parameter 'pa_id'.")
+        request_body_data = None
+        request_body_data = {
             'remote_routes': remote_routes,
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
         url = f"{self.base_url}/v2/partner_network_connect/attachments/{pa_id}/remote_routes"
         query_params = {}
-        response = self._put(url, data=request_body, params=query_params)
+        response = self._put(url, data=request_body_data, params=query_params, content_type='application/json')
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def partner_attachments_get_service_key(self, pa_id) -> Any:
+    def get_partner_service_key(self, pa_id: str) -> Any:
         """
         Get the current service key for the partner attachment
 
@@ -7554,18 +10198,27 @@ class DigitaloceanApp(APIApplication):
             Any: The response will be a JSON object with a `service_key` object containing 
         the service key value and creation information
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Partner Network Connect
         """
         if pa_id is None:
-            raise ValueError("Missing required parameter 'pa_id'")
+            raise ValueError("Missing required parameter 'pa_id'.")
         url = f"{self.base_url}/v2/partner_network_connect/attachments/{pa_id}/service_key"
         query_params = {}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def partner_attachments_create_service_key(self, pa_id) -> Any:
+    def create_service_key(self, pa_id: str) -> Any:
         """
         Regenerate the service key for the partner attachment
 
@@ -7576,18 +10229,28 @@ class DigitaloceanApp(APIApplication):
             Any: The response will be a JSON object with a `service_key` object containing 
         the service key value and creation information
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Partner Network Connect
         """
         if pa_id is None:
-            raise ValueError("Missing required parameter 'pa_id'")
+            raise ValueError("Missing required parameter 'pa_id'.")
+        request_body_data = None
         url = f"{self.base_url}/v2/partner_network_connect/attachments/{pa_id}/service_key"
         query_params = {}
-        response = self._post(url, data={}, params=query_params)
+        response = self._post(url, data=request_body_data, params=query_params, content_type='application/json')
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def projects_list(self, per_page=None, page=None) -> Any:
+    def projects_list(self, per_page: Optional[int] = None, page: Optional[int] = None) -> Any:
         """
         List All Projects
 
@@ -7598,6 +10261,10 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: The response will be a JSON object with a key called `projects`. The value of this will be an object with the standard project attributes
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Projects
         """
@@ -7605,9 +10272,14 @@ class DigitaloceanApp(APIApplication):
         query_params = {k: v for k, v in [('per_page', per_page), ('page', page)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def projects_create(self, name, purpose, id=None, owner_uuid=None, owner_id=None, description=None, environment=None, created_at=None, updated_at=None) -> Any:
+    def projects_create(self, name: str, purpose: str, id: Optional[str] = None, owner_uuid: Optional[str] = None, owner_id: Optional[int] = None, description: Optional[str] = None, environment: Optional[str] = None, created_at: Optional[str] = None, updated_at: Optional[str] = None) -> Any:
         """
         Create a Project
 
@@ -7640,10 +10312,15 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: The response will be a JSON object with a key called `project`. The value of this will be an object with the standard project attributes
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Projects
         """
-        request_body = {
+        request_body_data = None
+        request_body_data = {
             'id': id,
             'owner_uuid': owner_uuid,
             'owner_id': owner_id,
@@ -7654,12 +10331,17 @@ class DigitaloceanApp(APIApplication):
             'created_at': created_at,
             'updated_at': updated_at,
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
         url = f"{self.base_url}/v2/projects"
         query_params = {}
-        response = self._post(url, data=request_body, params=query_params)
+        response = self._post(url, data=request_body_data, params=query_params, content_type='application/json')
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
     def projects_get_default(self) -> Any:
         """
@@ -7668,6 +10350,10 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: The response will be a JSON object with a key called `project`. The value of this will be an object with the standard project attributes
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Projects
         """
@@ -7675,9 +10361,14 @@ class DigitaloceanApp(APIApplication):
         query_params = {}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def projects_update_default(self, name, description, purpose, environment, is_default, id=None, owner_uuid=None, owner_id=None, created_at=None, updated_at=None) -> Any:
+    def projects_update_default(self, name: str, description: str, purpose: str, environment: str, is_default: bool, id: Optional[str] = None, owner_uuid: Optional[str] = None, owner_id: Optional[int] = None, created_at: Optional[str] = None, updated_at: Optional[str] = None) -> Any:
         """
         Update the Default Project
 
@@ -7711,10 +10402,15 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: The response will be a JSON object with a key called `project`. The value of this will be an object with the standard project attributes
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Projects
         """
-        request_body = {
+        request_body_data = None
+        request_body_data = {
             'id': id,
             'owner_uuid': owner_uuid,
             'owner_id': owner_id,
@@ -7726,14 +10422,19 @@ class DigitaloceanApp(APIApplication):
             'updated_at': updated_at,
             'is_default': is_default,
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
         url = f"{self.base_url}/v2/projects/default"
         query_params = {}
-        response = self._put(url, data=request_body, params=query_params)
+        response = self._put(url, data=request_body_data, params=query_params, content_type='application/json')
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def projects_patch_default(self, id=None, owner_uuid=None, owner_id=None, name=None, description=None, purpose=None, environment=None, created_at=None, updated_at=None, is_default=None) -> Any:
+    def projects_patch_default(self, id: Optional[str] = None, owner_uuid: Optional[str] = None, owner_id: Optional[int] = None, name: Optional[str] = None, description: Optional[str] = None, purpose: Optional[str] = None, environment: Optional[str] = None, created_at: Optional[str] = None, updated_at: Optional[str] = None, is_default: Optional[bool] = None) -> Any:
         """
         Patch the Default Project
 
@@ -7762,21 +10463,20 @@ class DigitaloceanApp(APIApplication):
             environment (string): The environment of the project's resources. Example: 'Production'.
             created_at (string): A time value given in ISO8601 combined date and time format that represents when the project was created. Example: '2018-09-27T20:10:35Z'.
             updated_at (string): A time value given in ISO8601 combined date and time format that represents when the project was updated. Example: '2018-09-27T20:10:35Z'.
-            is_default (boolean): If true, all resources will be added to this project if no project is specified.
-                Example:
-                ```json
-                {
-                  "name": "my-web-api"
-                }
-                ```
+            is_default (boolean): If true, all resources will be added to this project if no project is specified. Example: 'False'.
 
         Returns:
             Any: The response will be a JSON object with a key called `project`. The value of this will be an object with the standard project attributes
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Projects
         """
-        request_body = {
+        request_body_data = None
+        request_body_data = {
             'id': id,
             'owner_uuid': owner_uuid,
             'owner_id': owner_id,
@@ -7788,14 +10488,19 @@ class DigitaloceanApp(APIApplication):
             'updated_at': updated_at,
             'is_default': is_default,
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
         url = f"{self.base_url}/v2/projects/default"
         query_params = {}
-        response = self._patch(url, data=request_body, params=query_params)
+        response = self._patch(url, data=request_body_data, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def projects_get(self, project_id) -> Any:
+    def projects_get(self, project_id: str) -> Any:
         """
         Retrieve an Existing Project
 
@@ -7805,18 +10510,27 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: The response will be a JSON object with a key called `project`. The value of this will be an object with the standard project attributes
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Projects
         """
         if project_id is None:
-            raise ValueError("Missing required parameter 'project_id'")
+            raise ValueError("Missing required parameter 'project_id'.")
         url = f"{self.base_url}/v2/projects/{project_id}"
         query_params = {}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def projects_update(self, project_id, name, description, purpose, environment, is_default, id=None, owner_uuid=None, owner_id=None, created_at=None, updated_at=None) -> Any:
+    def projects_update(self, project_id: str, name: str, description: str, purpose: str, environment: str, is_default: bool, id: Optional[str] = None, owner_uuid: Optional[str] = None, owner_id: Optional[int] = None, created_at: Optional[str] = None, updated_at: Optional[str] = None) -> Any:
         """
         Update a Project
 
@@ -7851,12 +10565,17 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: The response will be a JSON object with a key called `project`. The value of this will be an object with the standard project attributes
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Projects
         """
         if project_id is None:
-            raise ValueError("Missing required parameter 'project_id'")
-        request_body = {
+            raise ValueError("Missing required parameter 'project_id'.")
+        request_body_data = None
+        request_body_data = {
             'id': id,
             'owner_uuid': owner_uuid,
             'owner_id': owner_id,
@@ -7868,14 +10587,19 @@ class DigitaloceanApp(APIApplication):
             'updated_at': updated_at,
             'is_default': is_default,
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
         url = f"{self.base_url}/v2/projects/{project_id}"
         query_params = {}
-        response = self._put(url, data=request_body, params=query_params)
+        response = self._put(url, data=request_body_data, params=query_params, content_type='application/json')
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def projects_patch(self, project_id, id=None, owner_uuid=None, owner_id=None, name=None, description=None, purpose=None, environment=None, created_at=None, updated_at=None, is_default=None) -> Any:
+    def projects_patch(self, project_id: str, id: Optional[str] = None, owner_uuid: Optional[str] = None, owner_id: Optional[int] = None, name: Optional[str] = None, description: Optional[str] = None, purpose: Optional[str] = None, environment: Optional[str] = None, created_at: Optional[str] = None, updated_at: Optional[str] = None, is_default: Optional[bool] = None) -> Any:
         """
         Patch a Project
 
@@ -7905,23 +10629,22 @@ class DigitaloceanApp(APIApplication):
             environment (string): The environment of the project's resources. Example: 'Production'.
             created_at (string): A time value given in ISO8601 combined date and time format that represents when the project was created. Example: '2018-09-27T20:10:35Z'.
             updated_at (string): A time value given in ISO8601 combined date and time format that represents when the project was updated. Example: '2018-09-27T20:10:35Z'.
-            is_default (boolean): If true, all resources will be added to this project if no project is specified.
-                Example:
-                ```json
-                {
-                  "name": "my-web-api"
-                }
-                ```
+            is_default (boolean): If true, all resources will be added to this project if no project is specified. Example: 'False'.
 
         Returns:
             Any: The response will be a JSON object with a key called `project`. The value of this will be an object with the standard project attributes
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
 
         Tags:
             Projects
         """
         if project_id is None:
-            raise ValueError("Missing required parameter 'project_id'")
-        request_body = {
+            raise ValueError("Missing required parameter 'project_id'.")
+        request_body_data = None
+        request_body_data = {
             'id': id,
             'owner_uuid': owner_uuid,
             'owner_id': owner_id,
@@ -7933,14 +10656,19 @@ class DigitaloceanApp(APIApplication):
             'updated_at': updated_at,
             'is_default': is_default,
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
         url = f"{self.base_url}/v2/projects/{project_id}"
         query_params = {}
-        response = self._patch(url, data=request_body, params=query_params)
+        response = self._patch(url, data=request_body_data, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def projects_delete(self, project_id) -> Any:
+    def projects_delete(self, project_id: str) -> Any:
         """
         Delete an Existing Project
 
@@ -7950,18 +10678,27 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: The action was successful and the response body is empty.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Projects
         """
         if project_id is None:
-            raise ValueError("Missing required parameter 'project_id'")
+            raise ValueError("Missing required parameter 'project_id'.")
         url = f"{self.base_url}/v2/projects/{project_id}"
         query_params = {}
         response = self._delete(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def projects_list_resources(self, project_id, per_page=None, page=None) -> Any:
+    def projects_list_resources(self, project_id: str, per_page: Optional[int] = None, page: Optional[int] = None) -> Any:
         """
         List Project Resources
 
@@ -7973,59 +10710,73 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: The response will be a JSON object with a key called `resources`. The value of this will be an object with the standard resource attributes.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Project Resources
         """
         if project_id is None:
-            raise ValueError("Missing required parameter 'project_id'")
+            raise ValueError("Missing required parameter 'project_id'.")
         url = f"{self.base_url}/v2/projects/{project_id}/resources"
         query_params = {k: v for k, v in [('per_page', per_page), ('page', page)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def projects_assign_resources(self, project_id, resources=None) -> dict[str, Any]:
+    def projects_assign_resources(self, project_id: str, resources: Optional[List[str]] = None) -> dict[str, Any]:
         """
         Assign Resources to a Project
 
         Args:
             project_id (string): project_id
-            resources (array): A list of uniform resource names (URNs) to be added to a project.
-                Example:
-                ```json
-                {
-                  "resources": [
-                    "do:droplet:13457723",
-                    "do:domain:example.com"
-                  ]
-                }
-                ```
+            resources (array): A list of uniform resource names (URNs) to be added to a project. Example: "['do:droplet:13457723']".
 
         Returns:
             dict[str, Any]: The response will be a JSON object with a key called `resources`. The value of this will be an object with the standard resource attributes.
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
 
         Tags:
             Project Resources
         """
         if project_id is None:
-            raise ValueError("Missing required parameter 'project_id'")
-        request_body = {
+            raise ValueError("Missing required parameter 'project_id'.")
+        request_body_data = None
+        request_body_data = {
             'resources': resources,
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
         url = f"{self.base_url}/v2/projects/{project_id}/resources"
         query_params = {}
-        response = self._post(url, data=request_body, params=query_params)
+        response = self._post(url, data=request_body_data, params=query_params, content_type='application/json')
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def projects_list_resources_default(self) -> Any:
+    def list_project_resources(self) -> Any:
         """
         List Default Project Resources
 
         Returns:
             Any: The response will be a JSON object with a key called `resources`. The value of this will be an object with the standard resource attributes.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Project Resources
         """
@@ -8033,41 +10784,47 @@ class DigitaloceanApp(APIApplication):
         query_params = {}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def projects_assign_resources_default(self, resources=None) -> dict[str, Any]:
+    def create_default_project_resource(self, resources: Optional[List[str]] = None) -> dict[str, Any]:
         """
         Assign Resources to Default Project
 
         Args:
-            resources (array): A list of uniform resource names (URNs) to be added to a project.
-                Example:
-                ```json
-                {
-                  "resources": [
-                    "do:droplet:13457723",
-                    "do:domain:example.com"
-                  ]
-                }
-                ```
+            resources (array): A list of uniform resource names (URNs) to be added to a project. Example: "['do:droplet:13457723']".
 
         Returns:
             dict[str, Any]: The response will be a JSON object with a key called `resources`. The value of this will be an object with the standard resource attributes.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Project Resources
         """
-        request_body = {
+        request_body_data = None
+        request_body_data = {
             'resources': resources,
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
         url = f"{self.base_url}/v2/projects/default/resources"
         query_params = {}
-        response = self._post(url, data=request_body, params=query_params)
+        response = self._post(url, data=request_body_data, params=query_params, content_type='application/json')
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def regions_list(self, per_page=None, page=None) -> Any:
+    def regions_list(self, per_page: Optional[int] = None, page: Optional[int] = None) -> Any:
         """
         List All Data Center Regions
 
@@ -8078,6 +10835,10 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: A JSON object with a key set to `regions`. The value is an array of `region` objects, each of which contain the standard `region` attributes.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Regions
         """
@@ -8085,7 +10846,12 @@ class DigitaloceanApp(APIApplication):
         query_params = {k: v for k, v in [('per_page', per_page), ('page', page)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
     def registry_get(self) -> Any:
         """
@@ -8094,6 +10860,10 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: The response will be a JSON object with the key `registry` containing information about your registry.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Container Registry
         """
@@ -8101,9 +10871,14 @@ class DigitaloceanApp(APIApplication):
         query_params = {}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def registry_create(self, name, subscription_tier_slug, region=None) -> Any:
+    def registry_create(self, name: str, subscription_tier_slug: str, region: Optional[str] = None) -> Any:
         """
         Create Container Registry
 
@@ -8115,20 +10890,30 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: The response will be a JSON object with the key `registry` containing information about your registry.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Container Registry
         """
-        request_body = {
+        request_body_data = None
+        request_body_data = {
             'name': name,
             'subscription_tier_slug': subscription_tier_slug,
             'region': region,
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
         url = f"{self.base_url}/v2/registry"
         query_params = {}
-        response = self._post(url, data=request_body, params=query_params)
+        response = self._post(url, data=request_body_data, params=query_params, content_type='application/json')
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
     def registry_delete(self) -> Any:
         """
@@ -8137,6 +10922,10 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: The action was successful and the response body is empty.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Container Registry
         """
@@ -8144,7 +10933,12 @@ class DigitaloceanApp(APIApplication):
         query_params = {}
         response = self._delete(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
     def registry_get_subscription(self) -> Any:
         """
@@ -8153,6 +10947,10 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: The response will be a JSON object with a key called `subscription` containing information about your subscription.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Container Registry
         """
@@ -8160,9 +10958,14 @@ class DigitaloceanApp(APIApplication):
         query_params = {}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def registry_update_subscription(self, tier_slug=None) -> Any:
+    def registry_update_subscription(self, tier_slug: Optional[str] = None) -> Any:
         """
         Update Subscription Tier
 
@@ -8172,20 +10975,30 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: The response will be a JSON object with a key called `subscription` containing information about your subscription.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Container Registry
         """
-        request_body = {
+        request_body_data = None
+        request_body_data = {
             'tier_slug': tier_slug,
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
         url = f"{self.base_url}/v2/registry/subscription"
         query_params = {}
-        response = self._post(url, data=request_body, params=query_params)
+        response = self._post(url, data=request_body_data, params=query_params, content_type='application/json')
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def registry_get_docker_credentials(self, expiry_seconds=None, read_write=None) -> dict[str, Any]:
+    def registry_get_docker_credentials(self, expiry_seconds: Optional[int] = None, read_write: Optional[bool] = None) -> dict[str, Any]:
         """
         Get Docker Credentials for Container Registry
 
@@ -8196,6 +11009,10 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: A Docker `config.json` file for the container registry.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Container Registry
         """
@@ -8203,9 +11020,14 @@ class DigitaloceanApp(APIApplication):
         query_params = {k: v for k, v in [('expiry_seconds', expiry_seconds), ('read_write', read_write)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def registry_validate_name(self, name) -> Any:
+    def registry_validate_name(self, name: str) -> Any:
         """
         Validate a Container Registry Name
 
@@ -8215,20 +11037,30 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: The action was successful and the response body is empty.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Container Registry
         """
-        request_body = {
+        request_body_data = None
+        request_body_data = {
             'name': name,
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
         url = f"{self.base_url}/v2/registry/validate-name"
         query_params = {}
-        response = self._post(url, data=request_body, params=query_params)
+        response = self._post(url, data=request_body_data, params=query_params, content_type='application/json')
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def registry_list_repositories(self, registry_name, per_page=None, page=None) -> Any:
+    def registry_list_repositories(self, registry_name: str, per_page: Optional[int] = None, page: Optional[int] = None) -> Any:
         """
         List All Container Registry Repositories
 
@@ -8240,18 +11072,27 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: The response body will be a JSON object with a key of `repositories`. This will be set to an array containing objects each representing a repository.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Container Registry
         """
         if registry_name is None:
-            raise ValueError("Missing required parameter 'registry_name'")
+            raise ValueError("Missing required parameter 'registry_name'.")
         url = f"{self.base_url}/v2/registry/{registry_name}/repositories"
         query_params = {k: v for k, v in [('per_page', per_page), ('page', page)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def registry_list_repositories_v2(self, registry_name, per_page=None, page=None, page_token=None) -> Any:
+    def registry_list_repositories_v(self, registry_name: str, per_page: Optional[int] = None, page: Optional[int] = None, page_token: Optional[str] = None) -> Any:
         """
         List All Container Registry Repositories (V2)
 
@@ -8264,18 +11105,27 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: The response body will be a JSON object with a key of `repositories`. This will be set to an array containing objects each representing a repository.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Container Registry
         """
         if registry_name is None:
-            raise ValueError("Missing required parameter 'registry_name'")
+            raise ValueError("Missing required parameter 'registry_name'.")
         url = f"{self.base_url}/v2/registry/{registry_name}/repositoriesV2"
         query_params = {k: v for k, v in [('per_page', per_page), ('page', page), ('page_token', page_token)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def registry_list_repository_tags(self, registry_name, repository_name, per_page=None, page=None) -> Any:
+    def registry_list_repository_tags(self, registry_name: str, repository_name: str, per_page: Optional[int] = None, page: Optional[int] = None) -> Any:
         """
         List All Container Registry Repository Tags
 
@@ -8288,20 +11138,29 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: The response body will be a JSON object with a key of `tags`. This will be set to an array containing objects each representing a tag.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Container Registry
         """
         if registry_name is None:
-            raise ValueError("Missing required parameter 'registry_name'")
+            raise ValueError("Missing required parameter 'registry_name'.")
         if repository_name is None:
-            raise ValueError("Missing required parameter 'repository_name'")
+            raise ValueError("Missing required parameter 'repository_name'.")
         url = f"{self.base_url}/v2/registry/{registry_name}/repositories/{repository_name}/tags"
         query_params = {k: v for k, v in [('per_page', per_page), ('page', page)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def registry_delete_repository_tag(self, registry_name, repository_name, repository_tag) -> Any:
+    def registry_delete_repository_tag(self, registry_name: str, repository_name: str, repository_tag: str) -> Any:
         """
         Delete Container Registry Repository Tag
 
@@ -8313,22 +11172,31 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: The action was successful and the response body is empty.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Container Registry
         """
         if registry_name is None:
-            raise ValueError("Missing required parameter 'registry_name'")
+            raise ValueError("Missing required parameter 'registry_name'.")
         if repository_name is None:
-            raise ValueError("Missing required parameter 'repository_name'")
+            raise ValueError("Missing required parameter 'repository_name'.")
         if repository_tag is None:
-            raise ValueError("Missing required parameter 'repository_tag'")
+            raise ValueError("Missing required parameter 'repository_tag'.")
         url = f"{self.base_url}/v2/registry/{registry_name}/repositories/{repository_name}/tags/{repository_tag}"
         query_params = {}
         response = self._delete(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def registry_list_repository_manifests(self, registry_name, repository_name, per_page=None, page=None) -> Any:
+    def get_repository_digests(self, registry_name: str, repository_name: str, per_page: Optional[int] = None, page: Optional[int] = None) -> Any:
         """
         List All Container Registry Repository Manifests
 
@@ -8341,20 +11209,29 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: The response body will be a JSON object with a key of `manifests`. This will be set to an array containing objects each representing a manifest.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Container Registry
         """
         if registry_name is None:
-            raise ValueError("Missing required parameter 'registry_name'")
+            raise ValueError("Missing required parameter 'registry_name'.")
         if repository_name is None:
-            raise ValueError("Missing required parameter 'repository_name'")
+            raise ValueError("Missing required parameter 'repository_name'.")
         url = f"{self.base_url}/v2/registry/{registry_name}/repositories/{repository_name}/digests"
         query_params = {k: v for k, v in [('per_page', per_page), ('page', page)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def registry_delete_repository_manifest(self, registry_name, repository_name, manifest_digest) -> Any:
+    def delete_manifest_digest(self, registry_name: str, repository_name: str, manifest_digest: str) -> Any:
         """
         Delete Container Registry Repository Manifest
 
@@ -8366,43 +11243,67 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: The action was successful and the response body is empty.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Container Registry
         """
         if registry_name is None:
-            raise ValueError("Missing required parameter 'registry_name'")
+            raise ValueError("Missing required parameter 'registry_name'.")
         if repository_name is None:
-            raise ValueError("Missing required parameter 'repository_name'")
+            raise ValueError("Missing required parameter 'repository_name'.")
         if manifest_digest is None:
-            raise ValueError("Missing required parameter 'manifest_digest'")
+            raise ValueError("Missing required parameter 'manifest_digest'.")
         url = f"{self.base_url}/v2/registry/{registry_name}/repositories/{repository_name}/digests/{manifest_digest}"
         query_params = {}
         response = self._delete(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def registry_run_garbage_collection(self, registry_name) -> dict[str, Any]:
+    def registry_run_garbage_collection(self, registry_name: str, type: Optional[str] = None) -> dict[str, Any]:
         """
         Start Garbage Collection
 
         Args:
             registry_name (string): registry_name
+            type (string): Type of the garbage collection to run against this registry Example: 'unreferenced blobs only'.
 
         Returns:
             dict[str, Any]: The response will be a JSON object with a key of `garbage_collection`. This will be a json object with attributes representing the currently-active garbage collection.
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
 
         Tags:
             Container Registry
         """
         if registry_name is None:
-            raise ValueError("Missing required parameter 'registry_name'")
+            raise ValueError("Missing required parameter 'registry_name'.")
+        request_body_data = None
+        request_body_data = {
+            'type': type,
+        }
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
         url = f"{self.base_url}/v2/registry/{registry_name}/garbage-collection"
         query_params = {}
-        response = self._post(url, data={}, params=query_params)
+        response = self._post(url, data=request_body_data, params=query_params, content_type='application/json')
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def registry_get_garbage_collection(self, registry_name) -> dict[str, Any]:
+    def registry_get_garbage_collection(self, registry_name: str) -> dict[str, Any]:
         """
         Get Active Garbage Collection
 
@@ -8412,18 +11313,27 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: The response will be a JSON object with a key of `garbage_collection`. This will be a json object with attributes representing the currently-active garbage collection.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Container Registry
         """
         if registry_name is None:
-            raise ValueError("Missing required parameter 'registry_name'")
+            raise ValueError("Missing required parameter 'registry_name'.")
         url = f"{self.base_url}/v2/registry/{registry_name}/garbage-collection"
         query_params = {}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def registry_list_garbage_collections(self, registry_name, per_page=None, page=None) -> dict[str, Any]:
+    def list_registry_garbage_collections(self, registry_name: str, per_page: Optional[int] = None, page: Optional[int] = None) -> dict[str, Any]:
         """
         List Garbage Collections
 
@@ -8435,18 +11345,27 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: The response will be a JSON object with a key of `garbage_collections`. This will be set to an array containing objects representing each past garbage collection. Each will contain the standard Garbage Collection attributes.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Container Registry
         """
         if registry_name is None:
-            raise ValueError("Missing required parameter 'registry_name'")
+            raise ValueError("Missing required parameter 'registry_name'.")
         url = f"{self.base_url}/v2/registry/{registry_name}/garbage-collections"
         query_params = {k: v for k, v in [('per_page', per_page), ('page', page)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def registry_update_garbage_collection(self, registry_name, garbage_collection_uuid, cancel=None) -> dict[str, Any]:
+    def update_garbage_collection(self, registry_name: str, garbage_collection_uuid: str, cancel: Optional[bool] = None) -> dict[str, Any]:
         """
         Update Garbage Collection
 
@@ -8458,22 +11377,32 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: The response will be a JSON object with a key of `garbage_collection`. This will be a json object with attributes representing the currently-active garbage collection.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Container Registry
         """
         if registry_name is None:
-            raise ValueError("Missing required parameter 'registry_name'")
+            raise ValueError("Missing required parameter 'registry_name'.")
         if garbage_collection_uuid is None:
-            raise ValueError("Missing required parameter 'garbage_collection_uuid'")
-        request_body = {
+            raise ValueError("Missing required parameter 'garbage_collection_uuid'.")
+        request_body_data = None
+        request_body_data = {
             'cancel': cancel,
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
         url = f"{self.base_url}/v2/registry/{registry_name}/garbage-collection/{garbage_collection_uuid}"
         query_params = {}
-        response = self._put(url, data=request_body, params=query_params)
+        response = self._put(url, data=request_body_data, params=query_params, content_type='application/json')
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
     def registry_get_options(self) -> dict[str, Any]:
         """
@@ -8482,6 +11411,10 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: The response will be a JSON object with a key called `options` which contains a key called `subscription_tiers` listing the available tiers.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Container Registry
         """
@@ -8489,7 +11422,12 @@ class DigitaloceanApp(APIApplication):
         query_params = {}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
     def droplets_list_neighbors_ids(self) -> dict[str, Any]:
         """
@@ -8498,6 +11436,10 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: A JSON object with an `neighbor_ids` key.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Droplets
         """
@@ -8505,9 +11447,14 @@ class DigitaloceanApp(APIApplication):
         query_params = {}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def reserved_ips_list(self, per_page=None, page=None) -> Any:
+    def reserved_ips_list(self, per_page: Optional[int] = None, page: Optional[int] = None) -> Any:
         """
         List All Reserved IPs
 
@@ -8518,6 +11465,10 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: The response will be a JSON object with a key called `reserved_ips`. This will be set to an array of reserved IP objects, each of which will contain the standard reserved IP attributes
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Reserved IPs
         """
@@ -8525,9 +11476,52 @@ class DigitaloceanApp(APIApplication):
         query_params = {k: v for k, v in [('per_page', per_page), ('page', page)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def reserved_ips_get(self, reserved_ip) -> dict[str, Any]:
+    def reserved_ips_create(self, droplet_id: Optional[int] = None, region: Optional[str] = None, project_id: Optional[str] = None) -> dict[str, Any]:
+        """
+        Create a New Reserved IP
+
+        Args:
+            droplet_id (integer): The ID of the Droplet that the reserved IP will be assigned to. Example: '2457247'.
+            region (string): The slug identifier for the region the reserved IP will be reserved to. Example: 'nyc3'.
+            project_id (string): The UUID of the project to which the reserved IP will be assigned. Example: '746c6152-2fa2-11ed-92d3-27aaa54e4988'.
+
+        Returns:
+            dict[str, Any]: The response will be a JSON object with a key called `reserved_ip`. The value of this will be an object that contains the standard attributes associated with a reserved IP.
+        When assigning a reserved IP to a Droplet at same time as it created, the response's `links` object will contain links to both the Droplet and the assignment action. The latter can be used to check the status of the action.
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
+        Tags:
+            Reserved IPs
+        """
+        request_body_data = None
+        request_body_data = {
+            'droplet_id': droplet_id,
+            'region': region,
+            'project_id': project_id,
+        }
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
+        url = f"{self.base_url}/v2/reserved_ips"
+        query_params = {}
+        response = self._post(url, data=request_body_data, params=query_params, content_type='application/json')
+        response.raise_for_status()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
+
+    def reserved_ips_get(self, reserved_ip: str) -> dict[str, Any]:
         """
         Retrieve an Existing Reserved IP
 
@@ -8537,18 +11531,27 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: The response will be a JSON object with a key called `reserved_ip`. The value of this will be an object that contains the standard attributes associated with a reserved IP.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Reserved IPs
         """
         if reserved_ip is None:
-            raise ValueError("Missing required parameter 'reserved_ip'")
+            raise ValueError("Missing required parameter 'reserved_ip'.")
         url = f"{self.base_url}/v2/reserved_ips/{reserved_ip}"
         query_params = {}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def reserved_ips_delete(self, reserved_ip) -> Any:
+    def reserved_ips_delete(self, reserved_ip: str) -> Any:
         """
         Delete a Reserved IP
 
@@ -8558,18 +11561,27 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: The action was successful and the response body is empty.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Reserved IPs
         """
         if reserved_ip is None:
-            raise ValueError("Missing required parameter 'reserved_ip'")
+            raise ValueError("Missing required parameter 'reserved_ip'.")
         url = f"{self.base_url}/v2/reserved_ips/{reserved_ip}"
         query_params = {}
         response = self._delete(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def reserved_ips_actions_list(self, reserved_ip) -> Any:
+    def reserved_ips_actions_list(self, reserved_ip: str) -> Any:
         """
         List All Actions for a Reserved IP
 
@@ -8579,18 +11591,65 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: The results will be returned as a JSON object with an `actions` key. This will be set to an array filled with action objects containing the standard reserved IP action attributes.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Reserved IP Actions
         """
         if reserved_ip is None:
-            raise ValueError("Missing required parameter 'reserved_ip'")
+            raise ValueError("Missing required parameter 'reserved_ip'.")
         url = f"{self.base_url}/v2/reserved_ips/{reserved_ip}/actions"
         query_params = {}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def reserved_ips_actions_get(self, reserved_ip, action_id) -> Any:
+    def reserved_ips_actions_post(self, reserved_ip: str, type: Optional[str] = None, droplet_id: Optional[int] = None) -> Any:
+        """
+        Initiate a Reserved IP Action
+
+        Args:
+            reserved_ip (string): reserved_ip
+            type (string): The type of action to initiate for the reserved IP.
+            droplet_id (integer): The ID of the Droplet that the reserved IP will be assigned to. Example: '758604968'.
+
+        Returns:
+            Any: The response will be an object with a key called `action`. The value of this will be an object that contains the standard reserved IP action attributes.
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
+        Tags:
+            Reserved IP Actions
+        """
+        if reserved_ip is None:
+            raise ValueError("Missing required parameter 'reserved_ip'.")
+        request_body_data = None
+        request_body_data = {
+            'type': type,
+            'droplet_id': droplet_id,
+        }
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
+        url = f"{self.base_url}/v2/reserved_ips/{reserved_ip}/actions"
+        query_params = {}
+        response = self._post(url, data=request_body_data, params=query_params, content_type='application/json')
+        response.raise_for_status()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
+
+    def reserved_ips_actions_get(self, reserved_ip: str, action_id: str) -> Any:
         """
         Retrieve an Existing Reserved IP Action
 
@@ -8601,20 +11660,29 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: The response will be an object with a key called `action`. The value of this will be an object that contains the standard reserved IP action attributes.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Reserved IP Actions
         """
         if reserved_ip is None:
-            raise ValueError("Missing required parameter 'reserved_ip'")
+            raise ValueError("Missing required parameter 'reserved_ip'.")
         if action_id is None:
-            raise ValueError("Missing required parameter 'action_id'")
+            raise ValueError("Missing required parameter 'action_id'.")
         url = f"{self.base_url}/v2/reserved_ips/{reserved_ip}/actions/{action_id}"
         query_params = {}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def reserved_ipv6_list(self, per_page=None, page=None) -> Any:
+    def reserved_ipv_list(self, per_page: Optional[int] = None, page: Optional[int] = None) -> Any:
         """
         [Public Preview] List All Reserved IPv6s
 
@@ -8625,6 +11693,10 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: The response will be a JSON object with a key called `reserved_ipv6s`. This will be set to an array of reserved IP objects, each of which will contain the standard reserved IP attributes
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             [Public Preview] Reserved IPv6
         """
@@ -8632,9 +11704,14 @@ class DigitaloceanApp(APIApplication):
         query_params = {k: v for k, v in [('per_page', per_page), ('page', page)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def reserved_ipv6_create(self, region_slug) -> Any:
+    def reserved_ipv_create(self, region_slug: str) -> Any:
         """
         [Public Preview] Create a New Reserved IPv6
 
@@ -8644,20 +11721,30 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: The response will be a JSON object with key `reserved_ipv6`. The value of this will be an object that contains the standard attributes associated with a reserved IPv6.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             [Public Preview] Reserved IPv6
         """
-        request_body = {
+        request_body_data = None
+        request_body_data = {
             'region_slug': region_slug,
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
         url = f"{self.base_url}/v2/reserved_ipv6"
         query_params = {}
-        response = self._post(url, data=request_body, params=query_params)
+        response = self._post(url, data=request_body_data, params=query_params, content_type='application/json')
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def reserved_ipv6_get(self, reserved_ipv6) -> dict[str, Any]:
+    def reserved_ipv_get(self, reserved_ipv6: str) -> dict[str, Any]:
         """
         [Public Preview] Retrieve an Existing Reserved IPv6
 
@@ -8667,18 +11754,27 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: The response will be a JSON object with key `reserved_ipv6`. The value of this will be an object that contains the standard attributes associated with a reserved IPv6.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             [Public Preview] Reserved IPv6
         """
         if reserved_ipv6 is None:
-            raise ValueError("Missing required parameter 'reserved_ipv6'")
+            raise ValueError("Missing required parameter 'reserved_ipv6'.")
         url = f"{self.base_url}/v2/reserved_ipv6/{reserved_ipv6}"
         query_params = {}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def reserved_ipv6_delete(self, reserved_ipv6) -> Any:
+    def reserved_ipv_delete(self, reserved_ipv6: str) -> Any:
         """
         [Public Preview] Delete a Reserved IPv6
 
@@ -8688,18 +11784,65 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: The action was successful and the response body is empty.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             [Public Preview] Reserved IPv6
         """
         if reserved_ipv6 is None:
-            raise ValueError("Missing required parameter 'reserved_ipv6'")
+            raise ValueError("Missing required parameter 'reserved_ipv6'.")
         url = f"{self.base_url}/v2/reserved_ipv6/{reserved_ipv6}"
         query_params = {}
         response = self._delete(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def sizes_list(self, per_page=None, page=None) -> Any:
+    def reserved_ipv_actions_post(self, reserved_ipv6: str, type: Optional[str] = None, droplet_id: Optional[int] = None) -> Any:
+        """
+        [Public Preview] Initiate a Reserved IPv6 Action
+
+        Args:
+            reserved_ipv6 (string): reserved_ipv6
+            type (string): The type of action to initiate for the reserved IPv6.
+            droplet_id (integer): The ID of the Droplet that the reserved IPv6 will be assigned to. Example: '758604968'.
+
+        Returns:
+            Any: The response will be an object with a key called `action`. The value of this will be an object that contains the standard reserved IP action attributes.
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
+        Tags:
+            [Public Preview] Reserved IPv6 Actions
+        """
+        if reserved_ipv6 is None:
+            raise ValueError("Missing required parameter 'reserved_ipv6'.")
+        request_body_data = None
+        request_body_data = {
+            'type': type,
+            'droplet_id': droplet_id,
+        }
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
+        url = f"{self.base_url}/v2/reserved_ipv6/{reserved_ipv6}/actions"
+        query_params = {}
+        response = self._post(url, data=request_body_data, params=query_params, content_type='application/json')
+        response.raise_for_status()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
+
+    def sizes_list(self, per_page: Optional[int] = None, page: Optional[int] = None) -> Any:
         """
         List All Droplet Sizes
 
@@ -8710,6 +11853,10 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: A JSON object with a key called `sizes`. The value of this will be an array of `size` objects each of which contain the standard size attributes.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Sizes
         """
@@ -8717,9 +11864,14 @@ class DigitaloceanApp(APIApplication):
         query_params = {k: v for k, v in [('per_page', per_page), ('page', page)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def snapshots_list(self, per_page=None, page=None, resource_type=None) -> Any:
+    def snapshots_list(self, per_page: Optional[int] = None, page: Optional[int] = None, resource_type: Optional[str] = None) -> Any:
         """
         List All Snapshots
 
@@ -8731,6 +11883,10 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: A JSON object with a key of `snapshots`.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Snapshots
         """
@@ -8738,9 +11894,14 @@ class DigitaloceanApp(APIApplication):
         query_params = {k: v for k, v in [('per_page', per_page), ('page', page), ('resource_type', resource_type)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def snapshots_get(self, snapshot_id) -> Any:
+    def snapshots_get(self, snapshot_id: str) -> Any:
         """
         Retrieve an Existing Snapshot
 
@@ -8750,18 +11911,27 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: A JSON object with a key called `snapshot`.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Snapshots
         """
         if snapshot_id is None:
-            raise ValueError("Missing required parameter 'snapshot_id'")
+            raise ValueError("Missing required parameter 'snapshot_id'.")
         url = f"{self.base_url}/v2/snapshots/{snapshot_id}"
         query_params = {}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def snapshots_delete(self, snapshot_id) -> Any:
+    def snapshots_delete(self, snapshot_id: str) -> Any:
         """
         Delete a Snapshot
 
@@ -8771,18 +11941,27 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: The action was successful and the response body is empty.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Snapshots
         """
         if snapshot_id is None:
-            raise ValueError("Missing required parameter 'snapshot_id'")
+            raise ValueError("Missing required parameter 'snapshot_id'.")
         url = f"{self.base_url}/v2/snapshots/{snapshot_id}"
         query_params = {}
         response = self._delete(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def spaces_key_list(self, per_page=None, page=None, sort=None, sort_direction=None, name=None, bucket=None, permission=None) -> Any:
+    def spaces_key_list(self, per_page: Optional[int] = None, page: Optional[int] = None, sort: Optional[str] = None, sort_direction: Optional[str] = None, name: Optional[str] = None, bucket: Optional[str] = None, permission: Optional[str] = None) -> Any:
         """
         List Spaces Access Keys
 
@@ -8798,6 +11977,10 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: A JSON response containing a list of keys.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Spaces Keys
         """
@@ -8805,50 +11988,53 @@ class DigitaloceanApp(APIApplication):
         query_params = {k: v for k, v in [('per_page', per_page), ('page', page), ('sort', sort), ('sort_direction', sort_direction), ('name', name), ('bucket', bucket), ('permission', permission)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def spaces_key_create(self, name=None, grants=None, access_key=None, created_at=None) -> Any:
+    def spaces_key_create(self, name: Optional[str] = None, grants: Optional[List[dict[str, Any]]] = None, access_key: Optional[str] = None, created_at: Optional[str] = None) -> Any:
         """
         Create a New Spaces Access Key
 
         Args:
             name (string): The access key's name. Example: 'my-access-key'.
-            grants (array): The list of permissions for the access key.
+            grants (array): The list of permissions for the access key. Example: [{'bucket': 'my-bucket', 'permission': 'read'}].
             access_key (string): The Access Key ID used to access a bucket. Example: 'DOACCESSKEYEXAMPLE'.
-            created_at (string): The date and time the key was created.
-                Example:
-                ```json
-                {
-                  "name": "read-only-key",
-                  "grants": [
-                    {
-                      "bucket": "my-bucket",
-                      "permission": "read"
-                    }
-                  ]
-                }
-                ```
+            created_at (string): The date and time the key was created. Example: '2018-07-19T15:04:16Z'.
 
         Returns:
             Any: A JSON response containing details about the new key.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Spaces Keys
         """
-        request_body = {
+        request_body_data = None
+        request_body_data = {
             'name': name,
             'grants': grants,
             'access_key': access_key,
             'created_at': created_at,
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
         url = f"{self.base_url}/v2/spaces/keys"
         query_params = {}
-        response = self._post(url, data=request_body, params=query_params)
+        response = self._post(url, data=request_body_data, params=query_params, content_type='application/json')
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def spaces_key_get(self, access_key) -> Any:
+    def spaces_key_get(self, access_key: str) -> Any:
         """
         Get a Spaces Access Key
 
@@ -8858,18 +12044,27 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: A JSON response containing details about the key.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Spaces Keys
         """
         if access_key is None:
-            raise ValueError("Missing required parameter 'access_key'")
+            raise ValueError("Missing required parameter 'access_key'.")
         url = f"{self.base_url}/v2/spaces/keys/{access_key}"
         query_params = {}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def spaces_key_delete(self, access_key) -> Any:
+    def spaces_key_delete(self, access_key: str) -> Any:
         """
         Delete a Spaces Access Key
 
@@ -8879,18 +12074,27 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: The action was successful and the response body is empty.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Spaces Keys
         """
         if access_key is None:
-            raise ValueError("Missing required parameter 'access_key'")
+            raise ValueError("Missing required parameter 'access_key'.")
         url = f"{self.base_url}/v2/spaces/keys/{access_key}"
         query_params = {}
         response = self._delete(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def spaces_key_update(self, access_key, name=None, grants=None, access_key_body=None, created_at=None) -> Any:
+    def spaces_key_update(self, access_key: str, name: Optional[str] = None, grants: Optional[List[dict[str, Any]]] = None, access_key_body: Optional[str] = None, created_at: Optional[str] = None) -> Any:
         """
         Update Spaces Access Keys
 
@@ -8899,36 +12103,40 @@ class DigitaloceanApp(APIApplication):
             name (string): The access key's name. Example: 'my-access-key'.
             grants (array): The list of permissions for the access key.
             access_key_body (string): The Access Key ID used to access a bucket. Example: 'DOACCESSKEYEXAMPLE'.
-            created_at (string): The date and time the key was created.
-                Example:
-                ```json
-                {
-                  "name": "new-key-name"
-                }
-                ```
+            created_at (string): The date and time the key was created. Example: '2018-07-19T15:04:16Z'.
 
         Returns:
             Any: The response will be a JSON object
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
 
         Tags:
             Spaces Keys
         """
         if access_key is None:
-            raise ValueError("Missing required parameter 'access_key'")
-        request_body = {
+            raise ValueError("Missing required parameter 'access_key'.")
+        request_body_data = None
+        request_body_data = {
             'name': name,
             'grants': grants,
             'access_key': access_key_body,
             'created_at': created_at,
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
         url = f"{self.base_url}/v2/spaces/keys/{access_key}"
         query_params = {}
-        response = self._put(url, data=request_body, params=query_params)
+        response = self._put(url, data=request_body_data, params=query_params, content_type='application/json')
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def spaces_key_patch(self, access_key, name=None, grants=None, access_key_body=None, created_at=None) -> Any:
+    def spaces_key_patch(self, access_key: str, name: Optional[str] = None, grants: Optional[List[dict[str, Any]]] = None, access_key_body: Optional[str] = None, created_at: Optional[str] = None) -> Any:
         """
         Update Spaces Access Keys
 
@@ -8937,36 +12145,40 @@ class DigitaloceanApp(APIApplication):
             name (string): The access key's name. Example: 'my-access-key'.
             grants (array): The list of permissions for the access key.
             access_key_body (string): The Access Key ID used to access a bucket. Example: 'DOACCESSKEYEXAMPLE'.
-            created_at (string): The date and time the key was created.
-                Example:
-                ```json
-                {
-                  "name": "new-key-name"
-                }
-                ```
+            created_at (string): The date and time the key was created. Example: '2018-07-19T15:04:16Z'.
 
         Returns:
             Any: The response will be a JSON object
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
 
         Tags:
             Spaces Keys
         """
         if access_key is None:
-            raise ValueError("Missing required parameter 'access_key'")
-        request_body = {
+            raise ValueError("Missing required parameter 'access_key'.")
+        request_body_data = None
+        request_body_data = {
             'name': name,
             'grants': grants,
             'access_key': access_key_body,
             'created_at': created_at,
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
         url = f"{self.base_url}/v2/spaces/keys/{access_key}"
         query_params = {}
-        response = self._patch(url, data=request_body, params=query_params)
+        response = self._patch(url, data=request_body_data, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def tags_list(self, per_page=None, page=None) -> Any:
+    def tags_list(self, per_page: Optional[int] = None, page: Optional[int] = None) -> Any:
         """
         List All Tags
 
@@ -8977,6 +12189,10 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: To list all of your tags, you can send a `GET` request to `/v2/tags`.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Tags
         """
@@ -8984,9 +12200,14 @@ class DigitaloceanApp(APIApplication):
         query_params = {k: v for k, v in [('per_page', per_page), ('page', page)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def tags_create(self, name=None, resources=None) -> Any:
+    def tags_create(self, name: Optional[str] = None, resources: Optional[dict[str, Any]] = None) -> Any:
         """
         Create a New Tag
 
@@ -9005,21 +12226,31 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: The response will be a JSON object with a key called tag.  The value of this will be a tag object containing the standard tag attributes
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Tags
         """
-        request_body = {
+        request_body_data = None
+        request_body_data = {
             'name': name,
             'resources': resources,
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
         url = f"{self.base_url}/v2/tags"
         query_params = {}
-        response = self._post(url, data=request_body, params=query_params)
+        response = self._post(url, data=request_body_data, params=query_params, content_type='application/json')
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def tags_get(self, tag_id) -> dict[str, Any]:
+    def tags_get(self, tag_id: str) -> dict[str, Any]:
         """
         Retrieve a Tag
 
@@ -9029,18 +12260,27 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: The response will be a JSON object with a key called `tag`.  The value of this will be a tag object containing the standard tag attributes.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Tags
         """
         if tag_id is None:
-            raise ValueError("Missing required parameter 'tag_id'")
+            raise ValueError("Missing required parameter 'tag_id'.")
         url = f"{self.base_url}/v2/tags/{tag_id}"
         query_params = {}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def tags_delete(self, tag_id) -> Any:
+    def tags_delete(self, tag_id: str) -> Any:
         """
         Delete a Tag
 
@@ -9050,18 +12290,27 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: The action was successful and the response body is empty.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Tags
         """
         if tag_id is None:
-            raise ValueError("Missing required parameter 'tag_id'")
+            raise ValueError("Missing required parameter 'tag_id'.")
         url = f"{self.base_url}/v2/tags/{tag_id}"
         query_params = {}
         response = self._delete(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def tags_assign_resources(self, tag_id, resources) -> Any:
+    def tags_assign_resources(self, tag_id: str, resources: List[Any]) -> Any:
         """
         Tag a Resource
 
@@ -9072,22 +12321,32 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: The action was successful and the response body is empty.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Tags
         """
         if tag_id is None:
-            raise ValueError("Missing required parameter 'tag_id'")
-        request_body = {
+            raise ValueError("Missing required parameter 'tag_id'.")
+        request_body_data = None
+        request_body_data = {
             'resources': resources,
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
         url = f"{self.base_url}/v2/tags/{tag_id}/resources"
         query_params = {}
-        response = self._post(url, data=request_body, params=query_params)
+        response = self._post(url, data=request_body_data, params=query_params, content_type='application/json')
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def tags_unassign_resources(self, tag_id, resources) -> Any:
+    def tags_unassign_resources(self, tag_id: str, resources: List[Any]) -> Any:
         """
         Untag a Resource
 
@@ -9098,22 +12357,31 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: The action was successful and the response body is empty.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Tags
         """
         if tag_id is None:
-            raise ValueError("Missing required parameter 'tag_id'")
-        request_body = {
+            raise ValueError("Missing required parameter 'tag_id'.")
+        request_body_data = {
             'resources': resources,
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
         url = f"{self.base_url}/v2/tags/{tag_id}/resources"
         query_params = {}
         response = self._delete(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def volumes_list(self, name=None, region=None, per_page=None, page=None) -> Any:
+    def volumes_list(self, name: Optional[str] = None, region: Optional[str] = None, per_page: Optional[int] = None, page: Optional[int] = None) -> Any:
         """
         List All Block Storage Volumes
 
@@ -9126,6 +12394,10 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: The response will be a JSON object with a key called `volumes`. This will be set to an array of volume objects, each of which will contain the standard volume attributes.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Block Storage
         """
@@ -9133,9 +12405,67 @@ class DigitaloceanApp(APIApplication):
         query_params = {k: v for k, v in [('name', name), ('region', region), ('per_page', per_page), ('page', page)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def volumes_delete_by_name(self, name=None, region=None) -> Any:
+    def volumes_create(self, id: Optional[str] = None, droplet_ids: Optional[List[int]] = None, name: Optional[str] = None, description: Optional[str] = None, size_gigabytes: Optional[int] = None, created_at: Optional[str] = None, tags: Optional[List[str]] = None, snapshot_id: Optional[str] = None, filesystem_type: Optional[str] = None, region: Optional[str] = None, filesystem_label: Optional[Any] = None) -> Any:
+        """
+        Create a New Block Storage Volume
+
+        Args:
+            id (string): The unique identifier for the block storage volume. Example: '506f78a4-e098-11e5-ad9f-000f53306ae1'.
+            droplet_ids (array): An array containing the IDs of the Droplets the volume is attached to. Note that at this time, a volume can only be attached to a single Droplet. Example: '[]'.
+            name (string): A human-readable name for the block storage volume. Must be lowercase and be composed only of numbers, letters and "-", up to a limit of 64 characters. The name must begin with a letter. Example: 'example'.
+            description (string): An optional free-form text field to describe a block storage volume. Example: 'Block store for examples'.
+            size_gigabytes (integer): The size of the block storage volume in GiB (1024^3). This field does not apply  when creating a volume from a snapshot. Example: '10'.
+            created_at (string): A time value given in ISO8601 combined date and time format that represents when the block storage volume was created. Example: '2020-03-02T17:00:49Z'.
+            tags (array): A flat array of tag names as strings to be applied to the resource. Tag names may be for either existing or new tags. Example: "['base-image', 'prod']".
+            snapshot_id (string): The unique identifier for the volume snapshot from which to create the volume. Example: 'b0798135-fb76-11eb-946a-0a58ac146f33'.
+            filesystem_type (string): The name of the filesystem type to be used on the volume. When provided, the volume will automatically be formatted to the specified filesystem type. Currently, the available options are `ext4` and `xfs`. Pre-formatted volumes are automatically mounted when attached to Ubuntu, Debian, Fedora, Fedora Atomic, and CentOS Droplets created on or after April 26, 2018. Attaching pre-formatted volumes to other Droplets is not recommended. Example: 'ext4'.
+            region (string): The slug identifier for the region where the resource will initially be  available. Example: 'nyc3'.
+            filesystem_label (string): filesystem_label Example: 'ext4_volume_01'.
+
+        Returns:
+            Any: The response will be a JSON object with a key called `volume`. The value will be an object containing the standard attributes associated with a volume.
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
+        Tags:
+            Block Storage
+        """
+        request_body_data = None
+        request_body_data = {
+            'id': id,
+            'droplet_ids': droplet_ids,
+            'name': name,
+            'description': description,
+            'size_gigabytes': size_gigabytes,
+            'created_at': created_at,
+            'tags': tags,
+            'snapshot_id': snapshot_id,
+            'filesystem_type': filesystem_type,
+            'region': region,
+            'filesystem_label': filesystem_label,
+        }
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
+        url = f"{self.base_url}/v2/volumes"
+        query_params = {}
+        response = self._post(url, data=request_body_data, params=query_params, content_type='application/json')
+        response.raise_for_status()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
+
+    def volumes_delete_by_name(self, name: Optional[str] = None, region: Optional[str] = None) -> Any:
         """
         Delete a Block Storage Volume by Name
 
@@ -9146,6 +12476,10 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: The action was successful and the response body is empty.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Block Storage
         """
@@ -9153,9 +12487,55 @@ class DigitaloceanApp(APIApplication):
         query_params = {k: v for k, v in [('name', name), ('region', region)] if v is not None}
         response = self._delete(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def volume_snapshots_get_by_id(self, snapshot_id) -> Any:
+    def volume_actions_post(self, per_page: Optional[int] = None, page: Optional[int] = None, type: Optional[str] = None, region: Optional[str] = None, droplet_id: Optional[int] = None, tags: Optional[List[str]] = None) -> Any:
+        """
+        Initiate A Block Storage Action By Volume Name
+
+        Args:
+            per_page (integer): Number of items returned per page Example: '2'.
+            page (integer): Which 'page' of paginated results to return. Example: '1'.
+            type (string): The volume action to initiate. Example: 'attach'.
+            region (string): The slug identifier for the region where the resource will initially be  available. Example: 'nyc3'.
+            droplet_id (integer): The unique identifier for the Droplet the volume will be attached or detached from. Example: '11612190'.
+            tags (array): A flat array of tag names as strings to be applied to the resource. Tag names may be for either existing or new tags. Example: "['base-image', 'prod']".
+
+        Returns:
+            Any: The response will be an object with a key called `action`. The value of this will be an object that contains the standard volume action attributes
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
+        Tags:
+            Block Storage Actions
+        """
+        request_body_data = None
+        request_body_data = {
+            'type': type,
+            'region': region,
+            'droplet_id': droplet_id,
+            'tags': tags,
+        }
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
+        url = f"{self.base_url}/v2/volumes/actions"
+        query_params = {k: v for k, v in [('per_page', per_page), ('page', page)] if v is not None}
+        response = self._post(url, data=request_body_data, params=query_params, content_type='application/json')
+        response.raise_for_status()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
+
+    def volume_snapshots_get_by_id(self, snapshot_id: str) -> Any:
         """
         Retrieve an Existing Volume Snapshot
 
@@ -9165,18 +12545,27 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: You will get back a JSON object that has a `snapshot` key. This will contain the standard snapshot attributes
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Block Storage
         """
         if snapshot_id is None:
-            raise ValueError("Missing required parameter 'snapshot_id'")
+            raise ValueError("Missing required parameter 'snapshot_id'.")
         url = f"{self.base_url}/v2/volumes/snapshots/{snapshot_id}"
         query_params = {}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def volume_snapshots_delete_by_id(self, snapshot_id) -> Any:
+    def volume_snapshots_delete_by_id(self, snapshot_id: str) -> Any:
         """
         Delete a Volume Snapshot
 
@@ -9186,18 +12575,27 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: The action was successful and the response body is empty.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Block Storage
         """
         if snapshot_id is None:
-            raise ValueError("Missing required parameter 'snapshot_id'")
+            raise ValueError("Missing required parameter 'snapshot_id'.")
         url = f"{self.base_url}/v2/volumes/snapshots/{snapshot_id}"
         query_params = {}
         response = self._delete(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def volumes_get(self, volume_id) -> Any:
+    def volumes_get(self, volume_id: str) -> Any:
         """
         Retrieve an Existing Block Storage Volume
 
@@ -9207,18 +12605,27 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: The response will be a JSON object with a key called `volume`. The value will be an object containing the standard attributes associated with a volume.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Block Storage
         """
         if volume_id is None:
-            raise ValueError("Missing required parameter 'volume_id'")
+            raise ValueError("Missing required parameter 'volume_id'.")
         url = f"{self.base_url}/v2/volumes/{volume_id}"
         query_params = {}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def volumes_delete(self, volume_id) -> Any:
+    def volumes_delete(self, volume_id: str) -> Any:
         """
         Delete a Block Storage Volume
 
@@ -9228,18 +12635,27 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: The action was successful and the response body is empty.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Block Storage
         """
         if volume_id is None:
-            raise ValueError("Missing required parameter 'volume_id'")
+            raise ValueError("Missing required parameter 'volume_id'.")
         url = f"{self.base_url}/v2/volumes/{volume_id}"
         query_params = {}
         response = self._delete(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def volume_actions_list(self, volume_id, per_page=None, page=None) -> Any:
+    def volume_actions_list(self, volume_id: str, per_page: Optional[int] = None, page: Optional[int] = None) -> Any:
         """
         List All Actions for a Volume
 
@@ -9251,18 +12667,73 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: The response will be an object with a key called `action`. The value of this will be an object that contains the standard volume action attributes.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Block Storage Actions
         """
         if volume_id is None:
-            raise ValueError("Missing required parameter 'volume_id'")
+            raise ValueError("Missing required parameter 'volume_id'.")
         url = f"{self.base_url}/v2/volumes/{volume_id}/actions"
         query_params = {k: v for k, v in [('per_page', per_page), ('page', page)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def volume_actions_get(self, volume_id, action_id, per_page=None, page=None) -> Any:
+    def volume_actions_post_by_id(self, volume_id: str, per_page: Optional[int] = None, page: Optional[int] = None, type: Optional[str] = None, region: Optional[str] = None, droplet_id: Optional[int] = None, tags: Optional[List[str]] = None, size_gigabytes: Optional[int] = None) -> Any:
+        """
+        Initiate A Block Storage Action By Volume Id
+
+        Args:
+            volume_id (string): volume_id
+            per_page (integer): Number of items returned per page Example: '2'.
+            page (integer): Which 'page' of paginated results to return. Example: '1'.
+            type (string): The volume action to initiate. Example: 'attach'.
+            region (string): The slug identifier for the region where the resource will initially be  available. Example: 'nyc3'.
+            droplet_id (integer): The unique identifier for the Droplet the volume will be attached or detached from. Example: '11612190'.
+            tags (array): A flat array of tag names as strings to be applied to the resource. Tag names may be for either existing or new tags. Example: "['base-image', 'prod']".
+            size_gigabytes (integer): The new size of the block storage volume in GiB (1024^3).
+
+        Returns:
+            Any: The response will be an object with a key called `action`. The value of this will be an object that contains the standard volume action attributes
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
+        Tags:
+            Block Storage Actions
+        """
+        if volume_id is None:
+            raise ValueError("Missing required parameter 'volume_id'.")
+        request_body_data = None
+        request_body_data = {
+            'type': type,
+            'region': region,
+            'droplet_id': droplet_id,
+            'tags': tags,
+            'size_gigabytes': size_gigabytes,
+        }
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
+        url = f"{self.base_url}/v2/volumes/{volume_id}/actions"
+        query_params = {k: v for k, v in [('per_page', per_page), ('page', page)] if v is not None}
+        response = self._post(url, data=request_body_data, params=query_params, content_type='application/json')
+        response.raise_for_status()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
+
+    def volume_actions_get(self, volume_id: str, action_id: str, per_page: Optional[int] = None, page: Optional[int] = None) -> Any:
         """
         Retrieve an Existing Volume Action
 
@@ -9275,20 +12746,29 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: The response will be an object with a key called `action`. The value of this will be an object that contains the standard volume action attributes
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Block Storage Actions
         """
         if volume_id is None:
-            raise ValueError("Missing required parameter 'volume_id'")
+            raise ValueError("Missing required parameter 'volume_id'.")
         if action_id is None:
-            raise ValueError("Missing required parameter 'action_id'")
+            raise ValueError("Missing required parameter 'action_id'.")
         url = f"{self.base_url}/v2/volumes/{volume_id}/actions/{action_id}"
         query_params = {k: v for k, v in [('per_page', per_page), ('page', page)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def volume_snapshots_list(self, volume_id, per_page=None, page=None) -> Any:
+    def volume_snapshots_list(self, volume_id: str, per_page: Optional[int] = None, page: Optional[int] = None) -> Any:
         """
         List Snapshots for a Volume
 
@@ -9300,52 +12780,65 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: You will get back a JSON object that has a `snapshots` key. This will be set to an array of snapshot objects, each of which contain the standard snapshot attributes
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Block Storage
         """
         if volume_id is None:
-            raise ValueError("Missing required parameter 'volume_id'")
+            raise ValueError("Missing required parameter 'volume_id'.")
         url = f"{self.base_url}/v2/volumes/{volume_id}/snapshots"
         query_params = {k: v for k, v in [('per_page', per_page), ('page', page)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def volume_snapshots_create(self, volume_id, name, tags=None) -> Any:
+    def volume_snapshots_create(self, volume_id: str, name: str, tags: Optional[List[str]] = None) -> Any:
         """
         Create Snapshot from a Volume
 
         Args:
             volume_id (string): volume_id
             name (string): A human-readable name for the volume snapshot. Example: 'big-data-snapshot1475261774'.
-            tags (array): A flat array of tag names as strings to be applied to the resource. Tag names may be for either existing or new tags.
-                Example:
-                ```json
-                {
-                  "name": "big-data-snapshot1475261774"
-                }
-                ```
+            tags (array): A flat array of tag names as strings to be applied to the resource. Tag names may be for either existing or new tags. Example: "['base-image', 'prod']".
 
         Returns:
             Any: You will get back a JSON object that has a `snapshot` key. This will contain the standard snapshot attributes
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
 
         Tags:
             Block Storage
         """
         if volume_id is None:
-            raise ValueError("Missing required parameter 'volume_id'")
-        request_body = {
+            raise ValueError("Missing required parameter 'volume_id'.")
+        request_body_data = None
+        request_body_data = {
             'name': name,
             'tags': tags,
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
         url = f"{self.base_url}/v2/volumes/{volume_id}/snapshots"
         query_params = {}
-        response = self._post(url, data=request_body, params=query_params)
+        response = self._post(url, data=request_body_data, params=query_params, content_type='application/json')
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def vpcs_list(self, per_page=None, page=None) -> Any:
+    def vpcs_list(self, per_page: Optional[int] = None, page: Optional[int] = None) -> Any:
         """
         List All VPCs
 
@@ -9356,6 +12849,10 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: The response will be a JSON object with a key called `vpcs`. This will be set to an array of objects, each of which will contain the standard attributes associated with a VPC
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             VPCs
         """
@@ -9363,9 +12860,14 @@ class DigitaloceanApp(APIApplication):
         query_params = {k: v for k, v in [('per_page', per_page), ('page', page)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def vpcs_create(self, name, region, description=None, ip_range=None) -> dict[str, Any]:
+    def vpcs_create(self, name: str, region: str, description: Optional[str] = None, ip_range: Optional[str] = None) -> dict[str, Any]:
         """
         Create a New VPC
 
@@ -9378,23 +12880,33 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: The response will be a JSON object with a key called `vpc`. The value of this will be an object that contains the standard attributes associated with a VPC.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             VPCs
         """
-        request_body = {
+        request_body_data = None
+        request_body_data = {
             'name': name,
             'description': description,
             'region': region,
             'ip_range': ip_range,
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
         url = f"{self.base_url}/v2/vpcs"
         query_params = {}
-        response = self._post(url, data=request_body, params=query_params)
+        response = self._post(url, data=request_body_data, params=query_params, content_type='application/json')
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def vpcs_get(self, vpc_id) -> dict[str, Any]:
+    def vpcs_get(self, vpc_id: str) -> dict[str, Any]:
         """
         Retrieve an Existing VPC
 
@@ -9404,18 +12916,27 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: The response will be a JSON object with a key called `vpc`. The value of this will be an object that contains the standard attributes associated with a VPC.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             VPCs
         """
         if vpc_id is None:
-            raise ValueError("Missing required parameter 'vpc_id'")
+            raise ValueError("Missing required parameter 'vpc_id'.")
         url = f"{self.base_url}/v2/vpcs/{vpc_id}"
         query_params = {}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def vpcs_update(self, vpc_id, name, description=None, default=None) -> dict[str, Any]:
+    def vpcs_update(self, vpc_id: str, name: str, description: Optional[str] = None, default: Optional[bool] = None) -> dict[str, Any]:
         """
         Update a VPC
 
@@ -9428,24 +12949,34 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: The response will be a JSON object with a key called `vpc`. The value of this will be an object that contains the standard attributes associated with a VPC.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             VPCs
         """
         if vpc_id is None:
-            raise ValueError("Missing required parameter 'vpc_id'")
-        request_body = {
+            raise ValueError("Missing required parameter 'vpc_id'.")
+        request_body_data = None
+        request_body_data = {
             'name': name,
             'description': description,
             'default': default,
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
         url = f"{self.base_url}/v2/vpcs/{vpc_id}"
         query_params = {}
-        response = self._put(url, data=request_body, params=query_params)
+        response = self._put(url, data=request_body_data, params=query_params, content_type='application/json')
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def vpcs_patch(self, vpc_id, name=None, description=None, default=None) -> dict[str, Any]:
+    def vpcs_patch(self, vpc_id: str, name: Optional[str] = None, description: Optional[str] = None, default: Optional[bool] = None) -> dict[str, Any]:
         """
         Partially Update a VPC
 
@@ -9458,24 +12989,34 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: The response will be a JSON object with a key called `vpc`. The value of this will be an object that contains the standard attributes associated with a VPC.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             VPCs
         """
         if vpc_id is None:
-            raise ValueError("Missing required parameter 'vpc_id'")
-        request_body = {
+            raise ValueError("Missing required parameter 'vpc_id'.")
+        request_body_data = None
+        request_body_data = {
             'name': name,
             'description': description,
             'default': default,
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
         url = f"{self.base_url}/v2/vpcs/{vpc_id}"
         query_params = {}
-        response = self._patch(url, data=request_body, params=query_params)
+        response = self._patch(url, data=request_body_data, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def vpcs_delete(self, vpc_id) -> Any:
+    def vpcs_delete(self, vpc_id: str) -> Any:
         """
         Delete a VPC
 
@@ -9485,18 +13026,27 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: The action was successful and the response body is empty.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             VPCs
         """
         if vpc_id is None:
-            raise ValueError("Missing required parameter 'vpc_id'")
+            raise ValueError("Missing required parameter 'vpc_id'.")
         url = f"{self.base_url}/v2/vpcs/{vpc_id}"
         query_params = {}
         response = self._delete(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def vpcs_list_members(self, vpc_id, resource_type=None, per_page=None, page=None) -> Any:
+    def vpcs_list_members(self, vpc_id: str, resource_type: Optional[str] = None, per_page: Optional[int] = None, page: Optional[int] = None) -> Any:
         """
         List the Member Resources of a VPC
 
@@ -9509,18 +13059,27 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: The response will be a JSON object with a key called members. This will be set to an array of objects, each of which will contain the standard attributes associated with a VPC member.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             VPCs
         """
         if vpc_id is None:
-            raise ValueError("Missing required parameter 'vpc_id'")
+            raise ValueError("Missing required parameter 'vpc_id'.")
         url = f"{self.base_url}/v2/vpcs/{vpc_id}/members"
         query_params = {k: v for k, v in [('resource_type', resource_type), ('per_page', per_page), ('page', page)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def vpcs_list_peerings(self, vpc_id, per_page=None, page=None) -> Any:
+    def vpcs_list_peerings(self, vpc_id: str, per_page: Optional[int] = None, page: Optional[int] = None) -> Any:
         """
         List the Peerings of a VPC
 
@@ -9532,18 +13091,27 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: The response will be a JSON object with a key called `peerings`. This  will be set to an array of objects, each of which will contain the standard  attributes associated with a VPC peering.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             VPCs
         """
         if vpc_id is None:
-            raise ValueError("Missing required parameter 'vpc_id'")
+            raise ValueError("Missing required parameter 'vpc_id'.")
         url = f"{self.base_url}/v2/vpcs/{vpc_id}/peerings"
         query_params = {k: v for k, v in [('per_page', per_page), ('page', page)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def vpcs_create_peerings(self, vpc_id, name, vpc_id_body) -> dict[str, Any]:
+    def vpcs_create_peerings(self, vpc_id: str, name: str, vpc_id_body: str) -> dict[str, Any]:
         """
         Create a Peering with a VPC
 
@@ -9555,23 +13123,33 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: The response will be a JSON object with a key called `peering`, containing  the standard attributes associated with a VPC peering.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             VPCs
         """
         if vpc_id is None:
-            raise ValueError("Missing required parameter 'vpc_id'")
-        request_body = {
+            raise ValueError("Missing required parameter 'vpc_id'.")
+        request_body_data = None
+        request_body_data = {
             'name': name,
             'vpc_id': vpc_id_body,
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
         url = f"{self.base_url}/v2/vpcs/{vpc_id}/peerings"
         query_params = {}
-        response = self._post(url, data=request_body, params=query_params)
+        response = self._post(url, data=request_body_data, params=query_params, content_type='application/json')
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def vpcs_patch_peerings(self, vpc_id, vpc_peering_id, name) -> dict[str, Any]:
+    def vpcs_patch_peerings(self, vpc_id: str, vpc_peering_id: str, name: str) -> dict[str, Any]:
         """
         Update a VPC Peering
 
@@ -9583,24 +13161,34 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: The response will be a JSON object with a key called `peering`, containing  the standard attributes associated with a VPC peering.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             VPCs
         """
         if vpc_id is None:
-            raise ValueError("Missing required parameter 'vpc_id'")
+            raise ValueError("Missing required parameter 'vpc_id'.")
         if vpc_peering_id is None:
-            raise ValueError("Missing required parameter 'vpc_peering_id'")
-        request_body = {
+            raise ValueError("Missing required parameter 'vpc_peering_id'.")
+        request_body_data = None
+        request_body_data = {
             'name': name,
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
         url = f"{self.base_url}/v2/vpcs/{vpc_id}/peerings/{vpc_peering_id}"
         query_params = {}
-        response = self._patch(url, data=request_body, params=query_params)
+        response = self._patch(url, data=request_body_data, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def vpc_peerings_list(self, per_page=None, page=None, region=None) -> Any:
+    def vpc_peerings_list(self, per_page: Optional[int] = None, page: Optional[int] = None, region: Optional[str] = None) -> Any:
         """
         List All VPC Peerings
 
@@ -9612,6 +13200,10 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: The response will be a JSON object with a key called `vpc_peerings`. This  will be set to an array of objects, each of which will contain the standard  attributes associated with a VPC peering.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             VPC Peerings
         """
@@ -9619,9 +13211,14 @@ class DigitaloceanApp(APIApplication):
         query_params = {k: v for k, v in [('per_page', per_page), ('page', page), ('region', region)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def vpc_peerings_create(self, name, vpc_ids) -> dict[str, Any]:
+    def vpc_peerings_create(self, name: str, vpc_ids: List[str]) -> dict[str, Any]:
         """
         Create a New VPC Peering
 
@@ -9632,21 +13229,31 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: The response will be a JSON object with a key called `vpc_peering`. The value of this will be an object that contains the standard attributes associated with a VPC peering.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             VPC Peerings
         """
-        request_body = {
+        request_body_data = None
+        request_body_data = {
             'name': name,
             'vpc_ids': vpc_ids,
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
         url = f"{self.base_url}/v2/vpc_peerings"
         query_params = {}
-        response = self._post(url, data=request_body, params=query_params)
+        response = self._post(url, data=request_body_data, params=query_params, content_type='application/json')
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def vpc_peerings_get(self, vpc_peering_id) -> dict[str, Any]:
+    def vpc_peerings_get(self, vpc_peering_id: str) -> dict[str, Any]:
         """
         Retrieve an Existing VPC Peering
 
@@ -9656,18 +13263,27 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: The response will be a JSON object with a key called `vpc_peering`. The value of this will be an object that contains the standard attributes associated with a VPC peering.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             VPC Peerings
         """
         if vpc_peering_id is None:
-            raise ValueError("Missing required parameter 'vpc_peering_id'")
+            raise ValueError("Missing required parameter 'vpc_peering_id'.")
         url = f"{self.base_url}/v2/vpc_peerings/{vpc_peering_id}"
         query_params = {}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def vpc_peerings_patch(self, vpc_peering_id, name) -> dict[str, Any]:
+    def vpc_peerings_patch(self, vpc_peering_id: str, name: str) -> dict[str, Any]:
         """
         Update a VPC peering
 
@@ -9678,22 +13294,32 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: The response will be a JSON object with a key called `vpc_peering`. The value of this will be an object that contains the standard attributes associated with a VPC peering.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             VPC Peerings
         """
         if vpc_peering_id is None:
-            raise ValueError("Missing required parameter 'vpc_peering_id'")
-        request_body = {
+            raise ValueError("Missing required parameter 'vpc_peering_id'.")
+        request_body_data = None
+        request_body_data = {
             'name': name,
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
         url = f"{self.base_url}/v2/vpc_peerings/{vpc_peering_id}"
         query_params = {}
-        response = self._patch(url, data=request_body, params=query_params)
+        response = self._patch(url, data=request_body_data, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def vpc_peerings_delete(self, vpc_peering_id) -> dict[str, Any]:
+    def vpc_peerings_delete(self, vpc_peering_id: str) -> dict[str, Any]:
         """
         Delete a VPC peering
 
@@ -9703,18 +13329,27 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: The response will be a JSON object with a key called `vpc_peering`. The value of this will be an object that contains the standard attributes associated with a VPC peering.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             VPC Peerings
         """
         if vpc_peering_id is None:
-            raise ValueError("Missing required parameter 'vpc_peering_id'")
+            raise ValueError("Missing required parameter 'vpc_peering_id'.")
         url = f"{self.base_url}/v2/vpc_peerings/{vpc_peering_id}"
         query_params = {}
         response = self._delete(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def uptime_list_checks(self, per_page=None, page=None) -> Any:
+    def uptime_list_checks(self, per_page: Optional[int] = None, page: Optional[int] = None) -> Any:
         """
         List All Checks
 
@@ -9725,6 +13360,10 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: The response will be a JSON object with a key called `checks`. This will be set to an array of objects, each of which will contain the standard attributes associated with an uptime check
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Uptime
         """
@@ -9732,9 +13371,14 @@ class DigitaloceanApp(APIApplication):
         query_params = {k: v for k, v in [('per_page', per_page), ('page', page)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def uptime_create_check(self, name, type, target, regions, enabled) -> dict[str, Any]:
+    def uptime_create_check(self, name: str, type: str, target: str, regions: List[str], enabled: bool) -> dict[str, Any]:
         """
         Create a New Check
 
@@ -9748,24 +13392,34 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: The response will be a JSON object with a key called `check`. The value of this will be an object that contains the standard attributes associated with an uptime check.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Uptime
         """
-        request_body = {
+        request_body_data = None
+        request_body_data = {
             'name': name,
             'type': type,
             'target': target,
             'regions': regions,
             'enabled': enabled,
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
         url = f"{self.base_url}/v2/uptime/checks"
         query_params = {}
-        response = self._post(url, data=request_body, params=query_params)
+        response = self._post(url, data=request_body_data, params=query_params, content_type='application/json')
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def uptime_get_check(self, check_id) -> dict[str, Any]:
+    def uptime_get_check(self, check_id: str) -> dict[str, Any]:
         """
         Retrieve an Existing Check
 
@@ -9775,18 +13429,27 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: The response will be a JSON object with a key called `check`. The value of this will be an object that contains the standard attributes associated with an uptime check.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Uptime
         """
         if check_id is None:
-            raise ValueError("Missing required parameter 'check_id'")
+            raise ValueError("Missing required parameter 'check_id'.")
         url = f"{self.base_url}/v2/uptime/checks/{check_id}"
         query_params = {}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def uptime_update_check(self, check_id, name=None, type=None, target=None, regions=None, enabled=None) -> dict[str, Any]:
+    def uptime_update_check(self, check_id: str, name: Optional[str] = None, type: Optional[str] = None, target: Optional[str] = None, regions: Optional[List[str]] = None, enabled: Optional[bool] = None) -> dict[str, Any]:
         """
         Update a Check
 
@@ -9801,26 +13464,36 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: The response will be a JSON object with a key called `check`. The value of this will be an object that contains the standard attributes associated with an uptime check.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Uptime
         """
         if check_id is None:
-            raise ValueError("Missing required parameter 'check_id'")
-        request_body = {
+            raise ValueError("Missing required parameter 'check_id'.")
+        request_body_data = None
+        request_body_data = {
             'name': name,
             'type': type,
             'target': target,
             'regions': regions,
             'enabled': enabled,
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
         url = f"{self.base_url}/v2/uptime/checks/{check_id}"
         query_params = {}
-        response = self._put(url, data=request_body, params=query_params)
+        response = self._put(url, data=request_body_data, params=query_params, content_type='application/json')
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def uptime_delete_check(self, check_id) -> Any:
+    def uptime_delete_check(self, check_id: str) -> Any:
         """
         Delete a Check
 
@@ -9830,18 +13503,27 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: The action was successful and the response body is empty.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Uptime
         """
         if check_id is None:
-            raise ValueError("Missing required parameter 'check_id'")
+            raise ValueError("Missing required parameter 'check_id'.")
         url = f"{self.base_url}/v2/uptime/checks/{check_id}"
         query_params = {}
         response = self._delete(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def uptime_get_check_state(self, check_id) -> dict[str, Any]:
+    def uptime_get_check_state(self, check_id: str) -> dict[str, Any]:
         """
         Retrieve Check State
 
@@ -9851,18 +13533,27 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: The response will be a JSON object with a key called `state`. The value of this will be an object that contains the standard attributes associated with an uptime check's state.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Uptime
         """
         if check_id is None:
-            raise ValueError("Missing required parameter 'check_id'")
+            raise ValueError("Missing required parameter 'check_id'.")
         url = f"{self.base_url}/v2/uptime/checks/{check_id}/state"
         query_params = {}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def uptime_list_alerts(self, check_id, per_page=None, page=None) -> Any:
+    def uptime_list_alerts(self, check_id: str, per_page: Optional[int] = None, page: Optional[int] = None) -> Any:
         """
         List All Alerts
 
@@ -9874,18 +13565,27 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: The response will be a JSON object with a key called `alerts`. This will be set to an array of objects, each of which will contain the standard attributes associated with an uptime alert.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Uptime
         """
         if check_id is None:
-            raise ValueError("Missing required parameter 'check_id'")
+            raise ValueError("Missing required parameter 'check_id'.")
         url = f"{self.base_url}/v2/uptime/checks/{check_id}/alerts"
         query_params = {k: v for k, v in [('per_page', per_page), ('page', page)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def uptime_create_alert(self, check_id, name, type, notifications, period, id=None, threshold=None, comparison=None) -> dict[str, Any]:
+    def uptime_create_alert(self, check_id: str, name: str, type: str, notifications: dict[str, Any], period: str, id: Optional[str] = None, threshold: Optional[int] = None, comparison: Optional[str] = None) -> dict[str, Any]:
         """
         Create a New Alert
 
@@ -9902,12 +13602,17 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: The response will be a JSON object with a key called `alert`. The value of this will be an object that contains the standard attributes associated with an uptime alert.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Uptime
         """
         if check_id is None:
-            raise ValueError("Missing required parameter 'check_id'")
-        request_body = {
+            raise ValueError("Missing required parameter 'check_id'.")
+        request_body_data = None
+        request_body_data = {
             'id': id,
             'name': name,
             'type': type,
@@ -9916,14 +13621,19 @@ class DigitaloceanApp(APIApplication):
             'notifications': notifications,
             'period': period,
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
         url = f"{self.base_url}/v2/uptime/checks/{check_id}/alerts"
         query_params = {}
-        response = self._post(url, data=request_body, params=query_params)
+        response = self._post(url, data=request_body_data, params=query_params, content_type='application/json')
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def uptime_get_alert(self, check_id, alert_id) -> dict[str, Any]:
+    def uptime_get_alert(self, check_id: str, alert_id: str) -> dict[str, Any]:
         """
         Retrieve an Existing Alert
 
@@ -9934,20 +13644,29 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: The response will be a JSON object with a key called `alert`. The value of this will be an object that contains the standard attributes associated with an uptime alert.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Uptime
         """
         if check_id is None:
-            raise ValueError("Missing required parameter 'check_id'")
+            raise ValueError("Missing required parameter 'check_id'.")
         if alert_id is None:
-            raise ValueError("Missing required parameter 'alert_id'")
+            raise ValueError("Missing required parameter 'alert_id'.")
         url = f"{self.base_url}/v2/uptime/checks/{check_id}/alerts/{alert_id}"
         query_params = {}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def uptime_update_alert(self, check_id, alert_id, name, type, notifications, period, threshold=None, comparison=None) -> dict[str, Any]:
+    def uptime_update_alert(self, check_id: str, alert_id: str, name: str, type: str, notifications: dict[str, Any], period: str, threshold: Optional[int] = None, comparison: Optional[str] = None) -> dict[str, Any]:
         """
         Update an Alert
 
@@ -9964,14 +13683,19 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: The response will be a JSON object with a key called `alert`. The value of this will be an object that contains the standard attributes associated with an uptime alert.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Uptime
         """
         if check_id is None:
-            raise ValueError("Missing required parameter 'check_id'")
+            raise ValueError("Missing required parameter 'check_id'.")
         if alert_id is None:
-            raise ValueError("Missing required parameter 'alert_id'")
-        request_body = {
+            raise ValueError("Missing required parameter 'alert_id'.")
+        request_body_data = None
+        request_body_data = {
             'name': name,
             'type': type,
             'threshold': threshold,
@@ -9979,14 +13703,19 @@ class DigitaloceanApp(APIApplication):
             'notifications': notifications,
             'period': period,
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
         url = f"{self.base_url}/v2/uptime/checks/{check_id}/alerts/{alert_id}"
         query_params = {}
-        response = self._put(url, data=request_body, params=query_params)
+        response = self._put(url, data=request_body_data, params=query_params, content_type='application/json')
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def uptime_delete_alert(self, check_id, alert_id) -> Any:
+    def uptime_delete_alert(self, check_id: str, alert_id: str) -> Any:
         """
         Delete an Alert
 
@@ -9997,20 +13726,29 @@ class DigitaloceanApp(APIApplication):
         Returns:
             Any: The action was successful and the response body is empty.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             Uptime
         """
         if check_id is None:
-            raise ValueError("Missing required parameter 'check_id'")
+            raise ValueError("Missing required parameter 'check_id'.")
         if alert_id is None:
-            raise ValueError("Missing required parameter 'alert_id'")
+            raise ValueError("Missing required parameter 'alert_id'.")
         url = f"{self.base_url}/v2/uptime/checks/{check_id}/alerts/{alert_id}"
         query_params = {}
         response = self._delete(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def genai_list_agents(self, only_deployed=None, page=None, per_page=None) -> dict[str, Any]:
+    def genai_list_agents(self, only_deployed: Optional[bool] = None, page: Optional[int] = None, per_page: Optional[int] = None) -> dict[str, Any]:
         """
         List Agents
 
@@ -10022,6 +13760,10 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: A successful response.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             GenAI Platform (Public Preview)
         """
@@ -10029,9 +13771,14 @@ class DigitaloceanApp(APIApplication):
         query_params = {k: v for k, v in [('only_deployed', only_deployed), ('page', page), ('per_page', per_page)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def genai_create_agent(self, anthropic_key_uuid=None, description=None, instruction=None, knowledge_base_uuid=None, model_uuid=None, name=None, open_ai_key_uuid=None, project_id=None, region=None, tags=None) -> dict[str, Any]:
+    def genai_create_agent(self, anthropic_key_uuid: Optional[str] = None, description: Optional[str] = None, instruction: Optional[str] = None, knowledge_base_uuid: Optional[List[str]] = None, model_uuid: Optional[str] = None, name: Optional[str] = None, open_ai_key_uuid: Optional[str] = None, project_id: Optional[str] = None, region: Optional[str] = None, tags: Optional[List[str]] = None) -> dict[str, Any]:
         """
         Create an Agent
 
@@ -10050,10 +13797,15 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: A successful response.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             GenAI Platform (Public Preview)
         """
-        request_body = {
+        request_body_data = None
+        request_body_data = {
             'anthropic_key_uuid': anthropic_key_uuid,
             'description': description,
             'instruction': instruction,
@@ -10065,14 +13817,19 @@ class DigitaloceanApp(APIApplication):
             'region': region,
             'tags': tags,
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
         url = f"{self.base_url}/v2/gen-ai/agents"
         query_params = {}
-        response = self._post(url, data=request_body, params=query_params)
+        response = self._post(url, data=request_body_data, params=query_params, content_type='application/json')
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def genai_list_agent_api_keys(self, agent_uuid, page=None, per_page=None) -> dict[str, Any]:
+    def genai_list_agent_api_keys(self, agent_uuid: str, page: Optional[int] = None, per_page: Optional[int] = None) -> dict[str, Any]:
         """
         List Agent API Keys
 
@@ -10084,18 +13841,27 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: A successful response.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             GenAI Platform (Public Preview)
         """
         if agent_uuid is None:
-            raise ValueError("Missing required parameter 'agent_uuid'")
+            raise ValueError("Missing required parameter 'agent_uuid'.")
         url = f"{self.base_url}/v2/gen-ai/agents/{agent_uuid}/api_keys"
         query_params = {k: v for k, v in [('page', page), ('per_page', per_page)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def genai_create_agent_api_key(self, agent_uuid, agent_uuid_body=None, name=None) -> dict[str, Any]:
+    def genai_create_agent_api_key(self, agent_uuid: str, agent_uuid_body: Optional[str] = None, name: Optional[str] = None) -> dict[str, Any]:
         """
         Create an Agent API Key
 
@@ -10107,23 +13873,33 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: A successful response.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             GenAI Platform (Public Preview)
         """
         if agent_uuid is None:
-            raise ValueError("Missing required parameter 'agent_uuid'")
-        request_body = {
+            raise ValueError("Missing required parameter 'agent_uuid'.")
+        request_body_data = None
+        request_body_data = {
             'agent_uuid': agent_uuid_body,
             'name': name,
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
         url = f"{self.base_url}/v2/gen-ai/agents/{agent_uuid}/api_keys"
         query_params = {}
-        response = self._post(url, data=request_body, params=query_params)
+        response = self._post(url, data=request_body_data, params=query_params, content_type='application/json')
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def genai_update_agent_api_key(self, agent_uuid, api_key_uuid, agent_uuid_body=None, api_key_uuid_body=None, name=None) -> dict[str, Any]:
+    def genai_update_agent_api_key(self, agent_uuid: str, api_key_uuid: str, agent_uuid_body: Optional[str] = None, api_key_uuid_body: Optional[str] = None, name: Optional[str] = None) -> dict[str, Any]:
         """
         Update API Key for an Agent
 
@@ -10131,32 +13907,42 @@ class DigitaloceanApp(APIApplication):
             agent_uuid (string): agent_uuid
             api_key_uuid (string): api_key_uuid
             agent_uuid_body (string): Agent id Example: '"12345678-1234-1234-1234-123456789012"'.
-            api_key_uuid_body (string): Api key id Example: '"12345678-1234-1234-1234-123456789012"'.
+            api_key_uuid_body (string): API key ID Example: '"12345678-1234-1234-1234-123456789012"'.
             name (string): Name Example: '"Production Key"'.
 
         Returns:
             dict[str, Any]: A successful response.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             GenAI Platform (Public Preview)
         """
         if agent_uuid is None:
-            raise ValueError("Missing required parameter 'agent_uuid'")
+            raise ValueError("Missing required parameter 'agent_uuid'.")
         if api_key_uuid is None:
-            raise ValueError("Missing required parameter 'api_key_uuid'")
-        request_body = {
+            raise ValueError("Missing required parameter 'api_key_uuid'.")
+        request_body_data = None
+        request_body_data = {
             'agent_uuid': agent_uuid_body,
             'api_key_uuid': api_key_uuid_body,
             'name': name,
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
         url = f"{self.base_url}/v2/gen-ai/agents/{agent_uuid}/api_keys/{api_key_uuid}"
         query_params = {}
-        response = self._put(url, data=request_body, params=query_params)
+        response = self._put(url, data=request_body_data, params=query_params, content_type='application/json')
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def genai_delete_agent_api_key(self, agent_uuid, api_key_uuid) -> dict[str, Any]:
+    def genai_delete_agent_api_key(self, agent_uuid: str, api_key_uuid: str) -> dict[str, Any]:
         """
         Delete API Key for an Agent
 
@@ -10167,20 +13953,29 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: A successful response.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             GenAI Platform (Public Preview)
         """
         if agent_uuid is None:
-            raise ValueError("Missing required parameter 'agent_uuid'")
+            raise ValueError("Missing required parameter 'agent_uuid'.")
         if api_key_uuid is None:
-            raise ValueError("Missing required parameter 'api_key_uuid'")
+            raise ValueError("Missing required parameter 'api_key_uuid'.")
         url = f"{self.base_url}/v2/gen-ai/agents/{agent_uuid}/api_keys/{api_key_uuid}"
         query_params = {}
         response = self._delete(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def genai_regenerate_agent_api_key(self, agent_uuid, api_key_uuid) -> dict[str, Any]:
+    def genai_regenerate_agent_api_key(self, agent_uuid: str, api_key_uuid: str) -> dict[str, Any]:
         """
         Regenerate API Key for an Agent
 
@@ -10191,20 +13986,30 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: A successful response.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             GenAI Platform (Public Preview)
         """
         if agent_uuid is None:
-            raise ValueError("Missing required parameter 'agent_uuid'")
+            raise ValueError("Missing required parameter 'agent_uuid'.")
         if api_key_uuid is None:
-            raise ValueError("Missing required parameter 'api_key_uuid'")
+            raise ValueError("Missing required parameter 'api_key_uuid'.")
+        request_body_data = None
         url = f"{self.base_url}/v2/gen-ai/agents/{agent_uuid}/api_keys/{api_key_uuid}/regenerate"
         query_params = {}
-        response = self._put(url, data={}, params=query_params)
+        response = self._put(url, data=request_body_data, params=query_params, content_type='application/json')
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def genai_attach_agent_function(self, agent_uuid, agent_uuid_body=None, description=None, faas_name=None, faas_namespace=None, function_name=None, input_schema=None, output_schema=None) -> dict[str, Any]:
+    def genai_attach_agent_function(self, agent_uuid: str, agent_uuid_body: Optional[str] = None, description: Optional[str] = None, faas_name: Optional[str] = None, faas_namespace: Optional[str] = None, function_name: Optional[str] = None, input_schema: Optional[dict[str, Any]] = None, output_schema: Optional[dict[str, Any]] = None) -> dict[str, Any]:
         """
         Add Function Route to an Agent
 
@@ -10221,12 +14026,17 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: A successful response.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             GenAI Platform (Public Preview)
         """
         if agent_uuid is None:
-            raise ValueError("Missing required parameter 'agent_uuid'")
-        request_body = {
+            raise ValueError("Missing required parameter 'agent_uuid'.")
+        request_body_data = None
+        request_body_data = {
             'agent_uuid': agent_uuid_body,
             'description': description,
             'faas_name': faas_name,
@@ -10235,14 +14045,19 @@ class DigitaloceanApp(APIApplication):
             'input_schema': input_schema,
             'output_schema': output_schema,
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
         url = f"{self.base_url}/v2/gen-ai/agents/{agent_uuid}/functions"
         query_params = {}
-        response = self._post(url, data=request_body, params=query_params)
+        response = self._post(url, data=request_body_data, params=query_params, content_type='application/json')
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def genai_update_agent_function(self, agent_uuid, function_uuid, agent_uuid_body=None, description=None, faas_name=None, faas_namespace=None, function_name=None, function_uuid_body=None, input_schema=None, output_schema=None) -> dict[str, Any]:
+    def genai_update_agent_function(self, agent_uuid: str, function_uuid: str, agent_uuid_body: Optional[str] = None, description: Optional[str] = None, faas_name: Optional[str] = None, faas_namespace: Optional[str] = None, function_name: Optional[str] = None, function_uuid_body: Optional[str] = None, input_schema: Optional[dict[str, Any]] = None, output_schema: Optional[dict[str, Any]] = None) -> dict[str, Any]:
         """
         Update Function Route for an Agent
 
@@ -10261,14 +14076,19 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: A successful response.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             GenAI Platform (Public Preview)
         """
         if agent_uuid is None:
-            raise ValueError("Missing required parameter 'agent_uuid'")
+            raise ValueError("Missing required parameter 'agent_uuid'.")
         if function_uuid is None:
-            raise ValueError("Missing required parameter 'function_uuid'")
-        request_body = {
+            raise ValueError("Missing required parameter 'function_uuid'.")
+        request_body_data = None
+        request_body_data = {
             'agent_uuid': agent_uuid_body,
             'description': description,
             'faas_name': faas_name,
@@ -10278,14 +14098,19 @@ class DigitaloceanApp(APIApplication):
             'input_schema': input_schema,
             'output_schema': output_schema,
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
         url = f"{self.base_url}/v2/gen-ai/agents/{agent_uuid}/functions/{function_uuid}"
         query_params = {}
-        response = self._put(url, data=request_body, params=query_params)
+        response = self._put(url, data=request_body_data, params=query_params, content_type='application/json')
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def genai_detach_agent_function(self, agent_uuid, function_uuid) -> dict[str, Any]:
+    def genai_detach_agent_function(self, agent_uuid: str, function_uuid: str) -> dict[str, Any]:
         """
         Delete Function Route for an Agent
 
@@ -10296,20 +14121,29 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: A successful response.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             GenAI Platform (Public Preview)
         """
         if agent_uuid is None:
-            raise ValueError("Missing required parameter 'agent_uuid'")
+            raise ValueError("Missing required parameter 'agent_uuid'.")
         if function_uuid is None:
-            raise ValueError("Missing required parameter 'function_uuid'")
+            raise ValueError("Missing required parameter 'function_uuid'.")
         url = f"{self.base_url}/v2/gen-ai/agents/{agent_uuid}/functions/{function_uuid}"
         query_params = {}
         response = self._delete(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def genai_attach_knowledge_bases(self, agent_uuid) -> dict[str, Any]:
+    def genai_attach_knowledge_bases(self, agent_uuid: str) -> dict[str, Any]:
         """
         Attach Knowledge Bases to an Agent
 
@@ -10319,18 +14153,28 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: A successful response.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             GenAI Platform (Public Preview)
         """
         if agent_uuid is None:
-            raise ValueError("Missing required parameter 'agent_uuid'")
+            raise ValueError("Missing required parameter 'agent_uuid'.")
+        request_body_data = None
         url = f"{self.base_url}/v2/gen-ai/agents/{agent_uuid}/knowledge_bases"
         query_params = {}
-        response = self._post(url, data={}, params=query_params)
+        response = self._post(url, data=request_body_data, params=query_params, content_type='application/json')
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def genai_attach_knowledge_base(self, agent_uuid, knowledge_base_uuid) -> dict[str, Any]:
+    def genai_attach_knowledge_base(self, agent_uuid: str, knowledge_base_uuid: str) -> dict[str, Any]:
         """
         Attach Knowledge Base to an Agent
 
@@ -10341,20 +14185,30 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: A successful response.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             GenAI Platform (Public Preview)
         """
         if agent_uuid is None:
-            raise ValueError("Missing required parameter 'agent_uuid'")
+            raise ValueError("Missing required parameter 'agent_uuid'.")
         if knowledge_base_uuid is None:
-            raise ValueError("Missing required parameter 'knowledge_base_uuid'")
+            raise ValueError("Missing required parameter 'knowledge_base_uuid'.")
+        request_body_data = None
         url = f"{self.base_url}/v2/gen-ai/agents/{agent_uuid}/knowledge_bases/{knowledge_base_uuid}"
         query_params = {}
-        response = self._post(url, data={}, params=query_params)
+        response = self._post(url, data=request_body_data, params=query_params, content_type='application/json')
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def genai_detach_knowledge_base(self, agent_uuid, knowledge_base_uuid) -> dict[str, Any]:
+    def genai_detach_knowledge_base(self, agent_uuid: str, knowledge_base_uuid: str) -> dict[str, Any]:
         """
         Detach Knowledge Base from an Agent
 
@@ -10365,20 +14219,29 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: A successful response.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             GenAI Platform (Public Preview)
         """
         if agent_uuid is None:
-            raise ValueError("Missing required parameter 'agent_uuid'")
+            raise ValueError("Missing required parameter 'agent_uuid'.")
         if knowledge_base_uuid is None:
-            raise ValueError("Missing required parameter 'knowledge_base_uuid'")
+            raise ValueError("Missing required parameter 'knowledge_base_uuid'.")
         url = f"{self.base_url}/v2/gen-ai/agents/{agent_uuid}/knowledge_bases/{knowledge_base_uuid}"
         query_params = {}
         response = self._delete(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def genai_attach_agent(self, parent_agent_uuid, child_agent_uuid, child_agent_uuid_body=None, if_case=None, parent_agent_uuid_body=None, route_name=None) -> dict[str, Any]:
+    def genai_attach_agent(self, parent_agent_uuid: str, child_agent_uuid: str, child_agent_uuid_body: Optional[str] = None, if_case: Optional[str] = None, parent_agent_uuid_body: Optional[str] = None, route_name: Optional[str] = None) -> dict[str, Any]:
         """
         Add Agent Route to an Agent
 
@@ -10393,27 +14256,37 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: A successful response.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             GenAI Platform (Public Preview)
         """
         if parent_agent_uuid is None:
-            raise ValueError("Missing required parameter 'parent_agent_uuid'")
+            raise ValueError("Missing required parameter 'parent_agent_uuid'.")
         if child_agent_uuid is None:
-            raise ValueError("Missing required parameter 'child_agent_uuid'")
-        request_body = {
+            raise ValueError("Missing required parameter 'child_agent_uuid'.")
+        request_body_data = None
+        request_body_data = {
             'child_agent_uuid': child_agent_uuid_body,
             'if_case': if_case,
             'parent_agent_uuid': parent_agent_uuid_body,
             'route_name': route_name,
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
         url = f"{self.base_url}/v2/gen-ai/agents/{parent_agent_uuid}/child_agents/{child_agent_uuid}"
         query_params = {}
-        response = self._post(url, data=request_body, params=query_params)
+        response = self._post(url, data=request_body_data, params=query_params, content_type='application/json')
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def genai_update_attached_agent(self, parent_agent_uuid, child_agent_uuid, child_agent_uuid_body=None, if_case=None, parent_agent_uuid_body=None, route_name=None, uuid=None) -> dict[str, Any]:
+    def genai_update_attached_agent(self, parent_agent_uuid: str, child_agent_uuid: str, child_agent_uuid_body: Optional[str] = None, if_case: Optional[str] = None, parent_agent_uuid_body: Optional[str] = None, route_name: Optional[str] = None, uuid: Optional[str] = None) -> dict[str, Any]:
         """
         Update Agent Route for an Agent
 
@@ -10429,28 +14302,38 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: A successful response.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             GenAI Platform (Public Preview)
         """
         if parent_agent_uuid is None:
-            raise ValueError("Missing required parameter 'parent_agent_uuid'")
+            raise ValueError("Missing required parameter 'parent_agent_uuid'.")
         if child_agent_uuid is None:
-            raise ValueError("Missing required parameter 'child_agent_uuid'")
-        request_body = {
+            raise ValueError("Missing required parameter 'child_agent_uuid'.")
+        request_body_data = None
+        request_body_data = {
             'child_agent_uuid': child_agent_uuid_body,
             'if_case': if_case,
             'parent_agent_uuid': parent_agent_uuid_body,
             'route_name': route_name,
             'uuid': uuid,
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
         url = f"{self.base_url}/v2/gen-ai/agents/{parent_agent_uuid}/child_agents/{child_agent_uuid}"
         query_params = {}
-        response = self._put(url, data=request_body, params=query_params)
+        response = self._put(url, data=request_body_data, params=query_params, content_type='application/json')
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def genai_detach_agent(self, parent_agent_uuid, child_agent_uuid) -> dict[str, Any]:
+    def genai_detach_agent(self, parent_agent_uuid: str, child_agent_uuid: str) -> dict[str, Any]:
         """
         Delete Agent Route for an Agent
 
@@ -10461,20 +14344,29 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: A successful response.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             GenAI Platform (Public Preview)
         """
         if parent_agent_uuid is None:
-            raise ValueError("Missing required parameter 'parent_agent_uuid'")
+            raise ValueError("Missing required parameter 'parent_agent_uuid'.")
         if child_agent_uuid is None:
-            raise ValueError("Missing required parameter 'child_agent_uuid'")
+            raise ValueError("Missing required parameter 'child_agent_uuid'.")
         url = f"{self.base_url}/v2/gen-ai/agents/{parent_agent_uuid}/child_agents/{child_agent_uuid}"
         query_params = {}
         response = self._delete(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def genai_get_agent(self, uuid) -> dict[str, Any]:
+    def genai_get_agent(self, uuid: str) -> dict[str, Any]:
         """
         Retrieve an Existing Agent
 
@@ -10484,18 +14376,27 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: A successful response.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             GenAI Platform (Public Preview)
         """
         if uuid is None:
-            raise ValueError("Missing required parameter 'uuid'")
+            raise ValueError("Missing required parameter 'uuid'.")
         url = f"{self.base_url}/v2/gen-ai/agents/{uuid}"
         query_params = {}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def genai_update_agent(self, uuid, anthropic_key_uuid=None, description=None, instruction=None, k=None, max_tokens=None, model_uuid=None, name=None, open_ai_key_uuid=None, project_id=None, retrieval_method=None, tags=None, temperature=None, top_p=None, uuid_body=None) -> dict[str, Any]:
+    def genai_update_agent(self, uuid: str, anthropic_key_uuid: Optional[str] = None, description: Optional[str] = None, instruction: Optional[str] = None, k: Optional[int] = None, max_tokens: Optional[int] = None, model_uuid: Optional[str] = None, name: Optional[str] = None, open_ai_key_uuid: Optional[str] = None, project_id: Optional[str] = None, provide_citations: Optional[bool] = None, retrieval_method: Optional[str] = None, tags: Optional[List[str]] = None, temperature: Optional[float] = None, top_p: Optional[float] = None, uuid_body: Optional[str] = None) -> dict[str, Any]:
         """
         Update an Agent
 
@@ -10510,6 +14411,7 @@ class DigitaloceanApp(APIApplication):
             name (string): Agent name Example: '"My New Agent Name"'.
             open_ai_key_uuid (string): Optional OpenAI key uuid for use with OpenAI models Example: '"12345678-1234-1234-1234-123456789012"'.
             project_id (string): The id of the DigitalOcean project this agent will belong to Example: '"12345678-1234-1234-1234-123456789012"'.
+            provide_citations (boolean): provide_citations Example: 'True'.
             retrieval_method (string): - RETRIEVAL_METHOD_UNKNOWN: The retrieval method is unknown
          - RETRIEVAL_METHOD_REWRITE: The retrieval method is rewrite
          - RETRIEVAL_METHOD_STEP_BACK: The retrieval method is step back
@@ -10523,12 +14425,17 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: A successful response.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             GenAI Platform (Public Preview)
         """
         if uuid is None:
-            raise ValueError("Missing required parameter 'uuid'")
-        request_body = {
+            raise ValueError("Missing required parameter 'uuid'.")
+        request_body_data = None
+        request_body_data = {
             'anthropic_key_uuid': anthropic_key_uuid,
             'description': description,
             'instruction': instruction,
@@ -10538,20 +14445,26 @@ class DigitaloceanApp(APIApplication):
             'name': name,
             'open_ai_key_uuid': open_ai_key_uuid,
             'project_id': project_id,
+            'provide_citations': provide_citations,
             'retrieval_method': retrieval_method,
             'tags': tags,
             'temperature': temperature,
             'top_p': top_p,
             'uuid': uuid_body,
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
         url = f"{self.base_url}/v2/gen-ai/agents/{uuid}"
         query_params = {}
-        response = self._put(url, data=request_body, params=query_params)
+        response = self._put(url, data=request_body_data, params=query_params, content_type='application/json')
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def genai_delete_agent(self, uuid) -> dict[str, Any]:
+    def genai_delete_agent(self, uuid: str) -> dict[str, Any]:
         """
         Delete an Agent
 
@@ -10561,18 +14474,27 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: A successful response.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             GenAI Platform (Public Preview)
         """
         if uuid is None:
-            raise ValueError("Missing required parameter 'uuid'")
+            raise ValueError("Missing required parameter 'uuid'.")
         url = f"{self.base_url}/v2/gen-ai/agents/{uuid}"
         query_params = {}
         response = self._delete(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def genai_get_agent_children(self, uuid) -> dict[str, Any]:
+    def genai_get_agent_children(self, uuid: str) -> dict[str, Any]:
         """
         View Agent Routes
 
@@ -10582,18 +14504,27 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: A successful response.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             GenAI Platform (Public Preview)
         """
         if uuid is None:
-            raise ValueError("Missing required parameter 'uuid'")
+            raise ValueError("Missing required parameter 'uuid'.")
         url = f"{self.base_url}/v2/gen-ai/agents/{uuid}/child_agents"
         query_params = {}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def genai_update_agent_deployment_visibility(self, uuid, uuid_body=None, visibility=None) -> dict[str, Any]:
+    def update_deployment_visibility(self, uuid: str, uuid_body: Optional[str] = None, visibility: Optional[str] = None) -> dict[str, Any]:
         """
         Update Agent Status
 
@@ -10609,23 +14540,33 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: A successful response.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             GenAI Platform (Public Preview)
         """
         if uuid is None:
-            raise ValueError("Missing required parameter 'uuid'")
-        request_body = {
+            raise ValueError("Missing required parameter 'uuid'.")
+        request_body_data = None
+        request_body_data = {
             'uuid': uuid_body,
             'visibility': visibility,
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
         url = f"{self.base_url}/v2/gen-ai/agents/{uuid}/deployment_visibility"
         query_params = {}
-        response = self._put(url, data=request_body, params=query_params)
+        response = self._put(url, data=request_body_data, params=query_params, content_type='application/json')
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def genai_list_agent_versions(self, uuid, page=None, per_page=None) -> dict[str, Any]:
+    def genai_list_agent_versions(self, uuid: str, page: Optional[int] = None, per_page: Optional[int] = None) -> dict[str, Any]:
         """
         List Agent Versions
 
@@ -10637,46 +14578,65 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: A successful response.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             GenAI Platform (Public Preview)
         """
         if uuid is None:
-            raise ValueError("Missing required parameter 'uuid'")
+            raise ValueError("Missing required parameter 'uuid'.")
         url = f"{self.base_url}/v2/gen-ai/agents/{uuid}/versions"
         query_params = {k: v for k, v in [('page', page), ('per_page', per_page)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def genai_rollback_to_agent_version(self, uuid, uuid_body=None, version_hash=None) -> dict[str, Any]:
+    def update_agent_version_by_uuid(self, uuid: str, uuid_body: Optional[str] = None, version_hash: Optional[str] = None) -> dict[str, Any]:
         """
         Rollback to Agent Version
 
         Args:
             uuid (string): uuid
-            uuid_body (string): uuid Example: '"12345678-1234-1234-1234-123456789012"'.
-            version_hash (string): version_hash Example: 'c3658d8b5c05494cd03ce042926ef08157889ed54b1b74b5ee0b3d66dcee4b73'.
+            uuid_body (string): Agent unique identifier Example: '"12345678-1234-1234-1234-123456789012"'.
+            version_hash (string): Unique identifier Example: 'c3658d8b5c05494cd03ce042926ef08157889ed54b1b74b5ee0b3d66dcee4b73'.
 
         Returns:
             dict[str, Any]: A successful response.
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
 
         Tags:
             GenAI Platform (Public Preview)
         """
         if uuid is None:
-            raise ValueError("Missing required parameter 'uuid'")
-        request_body = {
+            raise ValueError("Missing required parameter 'uuid'.")
+        request_body_data = None
+        request_body_data = {
             'uuid': uuid_body,
             'version_hash': version_hash,
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
         url = f"{self.base_url}/v2/gen-ai/agents/{uuid}/versions"
         query_params = {}
-        response = self._put(url, data=request_body, params=query_params)
+        response = self._put(url, data=request_body_data, params=query_params, content_type='application/json')
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def genai_list_anthropic_api_keys(self, page=None, per_page=None) -> dict[str, Any]:
+    def genai_list_anthropic_api_keys(self, page: Optional[int] = None, per_page: Optional[int] = None) -> dict[str, Any]:
         """
         List Anthropic API Keys
 
@@ -10687,6 +14647,10 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: A successful response.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             GenAI Platform (Public Preview)
         """
@@ -10694,9 +14658,14 @@ class DigitaloceanApp(APIApplication):
         query_params = {k: v for k, v in [('page', page), ('per_page', per_page)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def genai_create_anthropic_api_key(self, api_key=None, name=None) -> dict[str, Any]:
+    def genai_create_anthropic_api_key(self, api_key: Optional[str] = None, name: Optional[str] = None) -> dict[str, Any]:
         """
         Create Anthropic API Key
 
@@ -10707,21 +14676,31 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: A successful response.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             GenAI Platform (Public Preview)
         """
-        request_body = {
+        request_body_data = None
+        request_body_data = {
             'api_key': api_key,
             'name': name,
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
         url = f"{self.base_url}/v2/gen-ai/anthropic/keys"
         query_params = {}
-        response = self._post(url, data=request_body, params=query_params)
+        response = self._post(url, data=request_body_data, params=query_params, content_type='application/json')
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def genai_get_anthropic_api_key(self, api_key_uuid) -> dict[str, Any]:
+    def genai_get_anthropic_api_key(self, api_key_uuid: str) -> dict[str, Any]:
         """
         Get Anthropic API Key
 
@@ -10731,18 +14710,27 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: A successful response.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             GenAI Platform (Public Preview)
         """
         if api_key_uuid is None:
-            raise ValueError("Missing required parameter 'api_key_uuid'")
+            raise ValueError("Missing required parameter 'api_key_uuid'.")
         url = f"{self.base_url}/v2/gen-ai/anthropic/keys/{api_key_uuid}"
         query_params = {}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def genai_update_anthropic_api_key(self, api_key_uuid, api_key=None, api_key_uuid_body=None, name=None) -> dict[str, Any]:
+    def genai_update_anthropic_api_key(self, api_key_uuid: str, api_key: Optional[str] = None, api_key_uuid_body: Optional[str] = None, name: Optional[str] = None) -> dict[str, Any]:
         """
         Update Anthropic API Key
 
@@ -10755,24 +14743,34 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: A successful response.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             GenAI Platform (Public Preview)
         """
         if api_key_uuid is None:
-            raise ValueError("Missing required parameter 'api_key_uuid'")
-        request_body = {
+            raise ValueError("Missing required parameter 'api_key_uuid'.")
+        request_body_data = None
+        request_body_data = {
             'api_key': api_key,
             'api_key_uuid': api_key_uuid_body,
             'name': name,
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
         url = f"{self.base_url}/v2/gen-ai/anthropic/keys/{api_key_uuid}"
         query_params = {}
-        response = self._put(url, data=request_body, params=query_params)
+        response = self._put(url, data=request_body_data, params=query_params, content_type='application/json')
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def genai_delete_anthropic_api_key(self, api_key_uuid) -> dict[str, Any]:
+    def genai_delete_anthropic_api_key(self, api_key_uuid: str) -> dict[str, Any]:
         """
         Delete Anthropic API Key
 
@@ -10782,18 +14780,27 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: A successful response.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             GenAI Platform (Public Preview)
         """
         if api_key_uuid is None:
-            raise ValueError("Missing required parameter 'api_key_uuid'")
+            raise ValueError("Missing required parameter 'api_key_uuid'.")
         url = f"{self.base_url}/v2/gen-ai/anthropic/keys/{api_key_uuid}"
         query_params = {}
         response = self._delete(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def genai_list_agents_by_anthropic_key(self, uuid, page=None, per_page=None) -> dict[str, Any]:
+    def list_agents_by_key_uuid(self, uuid: str, page: Optional[int] = None, per_page: Optional[int] = None) -> dict[str, Any]:
         """
         List agents by Anthropic key
 
@@ -10805,18 +14812,27 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: A successful response.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             GenAI Platform (Public Preview)
         """
         if uuid is None:
-            raise ValueError("Missing required parameter 'uuid'")
+            raise ValueError("Missing required parameter 'uuid'.")
         url = f"{self.base_url}/v2/gen-ai/anthropic/keys/{uuid}/agents"
         query_params = {k: v for k, v in [('page', page), ('per_page', per_page)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def genai_list_indexing_jobs(self, page=None, per_page=None) -> dict[str, Any]:
+    def genai_list_indexing_jobs(self, page: Optional[int] = None, per_page: Optional[int] = None) -> dict[str, Any]:
         """
         List Indexing Jobs for a Knowledge Base
 
@@ -10827,6 +14843,10 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: A successful response.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             GenAI Platform (Public Preview)
         """
@@ -10834,9 +14854,14 @@ class DigitaloceanApp(APIApplication):
         query_params = {k: v for k, v in [('page', page), ('per_page', per_page)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def genai_create_indexing_job(self, data_source_uuids=None, knowledge_base_uuid=None) -> dict[str, Any]:
+    def genai_create_indexing_job(self, data_source_uuids: Optional[List[str]] = None, knowledge_base_uuid: Optional[str] = None) -> dict[str, Any]:
         """
         Start Indexing Job for a Knowledge Base
 
@@ -10847,21 +14872,31 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: A successful response.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             GenAI Platform (Public Preview)
         """
-        request_body = {
+        request_body_data = None
+        request_body_data = {
             'data_source_uuids': data_source_uuids,
             'knowledge_base_uuid': knowledge_base_uuid,
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
         url = f"{self.base_url}/v2/gen-ai/indexing_jobs"
         query_params = {}
-        response = self._post(url, data=request_body, params=query_params)
+        response = self._post(url, data=request_body_data, params=query_params, content_type='application/json')
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def genai_list_indexing_job_data_sources(self, indexing_job_uuid) -> dict[str, Any]:
+    def list_job_data_sources(self, indexing_job_uuid: str) -> dict[str, Any]:
         """
         List Data Sources for Indexing Job for a Knowledge Base
 
@@ -10871,18 +14906,27 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: A successful response.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             GenAI Platform (Public Preview)
         """
         if indexing_job_uuid is None:
-            raise ValueError("Missing required parameter 'indexing_job_uuid'")
+            raise ValueError("Missing required parameter 'indexing_job_uuid'.")
         url = f"{self.base_url}/v2/gen-ai/indexing_jobs/{indexing_job_uuid}/data_sources"
         query_params = {}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def genai_get_indexing_job(self, uuid) -> dict[str, Any]:
+    def genai_get_indexing_job(self, uuid: str) -> dict[str, Any]:
         """
         Retrieve Status of Indexing Job for a Knowledge Base
 
@@ -10892,18 +14936,27 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: A successful response.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             GenAI Platform (Public Preview)
         """
         if uuid is None:
-            raise ValueError("Missing required parameter 'uuid'")
+            raise ValueError("Missing required parameter 'uuid'.")
         url = f"{self.base_url}/v2/gen-ai/indexing_jobs/{uuid}"
         query_params = {}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def genai_cancel_indexing_job(self, uuid, uuid_body=None) -> dict[str, Any]:
+    def genai_cancel_indexing_job(self, uuid: str, uuid_body: Optional[str] = None) -> dict[str, Any]:
         """
         Cancel Indexing Job for a Knowledge Base
 
@@ -10914,22 +14967,32 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: A successful response.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             GenAI Platform (Public Preview)
         """
         if uuid is None:
-            raise ValueError("Missing required parameter 'uuid'")
-        request_body = {
+            raise ValueError("Missing required parameter 'uuid'.")
+        request_body_data = None
+        request_body_data = {
             'uuid': uuid_body,
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
         url = f"{self.base_url}/v2/gen-ai/indexing_jobs/{uuid}/cancel"
         query_params = {}
-        response = self._put(url, data=request_body, params=query_params)
+        response = self._put(url, data=request_body_data, params=query_params, content_type='application/json')
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def genai_list_knowledge_bases(self, page=None, per_page=None) -> dict[str, Any]:
+    def genai_list_knowledge_bases(self, page: Optional[int] = None, per_page: Optional[int] = None) -> dict[str, Any]:
         """
         List Knowledge Bases
 
@@ -10940,6 +15003,10 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: A successful response.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             GenAI Platform (Public Preview)
         """
@@ -10947,9 +15014,14 @@ class DigitaloceanApp(APIApplication):
         query_params = {k: v for k, v in [('page', page), ('per_page', per_page)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def genai_create_knowledge_base(self, database_id=None, datasources=None, embedding_model_uuid=None, name=None, project_id=None, region=None, tags=None, vpc_uuid=None) -> dict[str, Any]:
+    def genai_create_knowledge_base(self, database_id: Optional[str] = None, datasources: Optional[List[dict[str, Any]]] = None, embedding_model_uuid: Optional[str] = None, name: Optional[str] = None, project_id: Optional[str] = None, region: Optional[str] = None, tags: Optional[List[str]] = None, vpc_uuid: Optional[str] = None) -> dict[str, Any]:
         """
         Create a Knowledge Base
 
@@ -10968,10 +15040,15 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: A successful response.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             GenAI Platform (Public Preview)
         """
-        request_body = {
+        request_body_data = None
+        request_body_data = {
             'database_id': database_id,
             'datasources': datasources,
             'embedding_model_uuid': embedding_model_uuid,
@@ -10981,14 +15058,19 @@ class DigitaloceanApp(APIApplication):
             'tags': tags,
             'vpc_uuid': vpc_uuid,
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
         url = f"{self.base_url}/v2/gen-ai/knowledge_bases"
         query_params = {}
-        response = self._post(url, data=request_body, params=query_params)
+        response = self._post(url, data=request_body_data, params=query_params, content_type='application/json')
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def genai_list_knowledge_base_data_sources(self, knowledge_base_uuid, page=None, per_page=None) -> dict[str, Any]:
+    def list_data_source_by_knowledge_base(self, knowledge_base_uuid: str, page: Optional[int] = None, per_page: Optional[int] = None) -> dict[str, Any]:
         """
         List Data Sources for a Knowledge Base
 
@@ -11000,18 +15082,27 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: A successful response.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             GenAI Platform (Public Preview)
         """
         if knowledge_base_uuid is None:
-            raise ValueError("Missing required parameter 'knowledge_base_uuid'")
+            raise ValueError("Missing required parameter 'knowledge_base_uuid'.")
         url = f"{self.base_url}/v2/gen-ai/knowledge_bases/{knowledge_base_uuid}/data_sources"
         query_params = {k: v for k, v in [('page', page), ('per_page', per_page)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def genai_create_knowledge_base_data_source(self, knowledge_base_uuid, knowledge_base_uuid_body=None, spaces_data_source=None, web_crawler_data_source=None) -> dict[str, Any]:
+    def add_data_source(self, knowledge_base_uuid: str, knowledge_base_uuid_body: Optional[str] = None, spaces_data_source: Optional[dict[str, Any]] = None, web_crawler_data_source: Optional[dict[str, Any]] = None) -> dict[str, Any]:
         """
         Add Data Source to a Knowledge Base
 
@@ -11024,24 +15115,34 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: A successful response.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             GenAI Platform (Public Preview)
         """
         if knowledge_base_uuid is None:
-            raise ValueError("Missing required parameter 'knowledge_base_uuid'")
-        request_body = {
+            raise ValueError("Missing required parameter 'knowledge_base_uuid'.")
+        request_body_data = None
+        request_body_data = {
             'knowledge_base_uuid': knowledge_base_uuid_body,
             'spaces_data_source': spaces_data_source,
             'web_crawler_data_source': web_crawler_data_source,
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
         url = f"{self.base_url}/v2/gen-ai/knowledge_bases/{knowledge_base_uuid}/data_sources"
         query_params = {}
-        response = self._post(url, data=request_body, params=query_params)
+        response = self._post(url, data=request_body_data, params=query_params, content_type='application/json')
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def genai_delete_knowledge_base_data_source(self, knowledge_base_uuid, data_source_uuid) -> dict[str, Any]:
+    def delete_data_source_by_uuid(self, knowledge_base_uuid: str, data_source_uuid: str) -> dict[str, Any]:
         """
         Delete a Data Source from a Knowledge Base
 
@@ -11052,20 +15153,29 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: A successful response.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             GenAI Platform (Public Preview)
         """
         if knowledge_base_uuid is None:
-            raise ValueError("Missing required parameter 'knowledge_base_uuid'")
+            raise ValueError("Missing required parameter 'knowledge_base_uuid'.")
         if data_source_uuid is None:
-            raise ValueError("Missing required parameter 'data_source_uuid'")
+            raise ValueError("Missing required parameter 'data_source_uuid'.")
         url = f"{self.base_url}/v2/gen-ai/knowledge_bases/{knowledge_base_uuid}/data_sources/{data_source_uuid}"
         query_params = {}
         response = self._delete(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def genai_get_knowledge_base(self, uuid) -> dict[str, Any]:
+    def genai_get_knowledge_base(self, uuid: str) -> dict[str, Any]:
         """
         Retrieve Information About an Existing Knowledge Base
 
@@ -11075,18 +15185,27 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: A successful response.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             GenAI Platform (Public Preview)
         """
         if uuid is None:
-            raise ValueError("Missing required parameter 'uuid'")
+            raise ValueError("Missing required parameter 'uuid'.")
         url = f"{self.base_url}/v2/gen-ai/knowledge_bases/{uuid}"
         query_params = {}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def genai_update_knowledge_base(self, uuid, database_id=None, embedding_model_uuid=None, name=None, project_id=None, tags=None, uuid_body=None) -> dict[str, Any]:
+    def genai_update_knowledge_base(self, uuid: str, database_id: Optional[str] = None, embedding_model_uuid: Optional[str] = None, name: Optional[str] = None, project_id: Optional[str] = None, tags: Optional[List[str]] = None, uuid_body: Optional[str] = None) -> dict[str, Any]:
         """
         Update a Knowledge Base
 
@@ -11102,12 +15221,17 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: A successful response.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             GenAI Platform (Public Preview)
         """
         if uuid is None:
-            raise ValueError("Missing required parameter 'uuid'")
-        request_body = {
+            raise ValueError("Missing required parameter 'uuid'.")
+        request_body_data = None
+        request_body_data = {
             'database_id': database_id,
             'embedding_model_uuid': embedding_model_uuid,
             'name': name,
@@ -11115,14 +15239,19 @@ class DigitaloceanApp(APIApplication):
             'tags': tags,
             'uuid': uuid_body,
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
         url = f"{self.base_url}/v2/gen-ai/knowledge_bases/{uuid}"
         query_params = {}
-        response = self._put(url, data=request_body, params=query_params)
+        response = self._put(url, data=request_body_data, params=query_params, content_type='application/json')
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def genai_delete_knowledge_base(self, uuid) -> dict[str, Any]:
+    def genai_delete_knowledge_base(self, uuid: str) -> dict[str, Any]:
         """
         Delete a Knowledge Base
 
@@ -11132,18 +15261,27 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: A successful response.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             GenAI Platform (Public Preview)
         """
         if uuid is None:
-            raise ValueError("Missing required parameter 'uuid'")
+            raise ValueError("Missing required parameter 'uuid'.")
         url = f"{self.base_url}/v2/gen-ai/knowledge_bases/{uuid}"
         query_params = {}
         response = self._delete(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def genai_list_models(self, usecases=None, public_only=None, page=None, per_page=None) -> dict[str, Any]:
+    def genai_list_models(self, usecases: Optional[List[str]] = None, public_only: Optional[bool] = None, page: Optional[int] = None, per_page: Optional[int] = None) -> dict[str, Any]:
         """
         List Available Models
 
@@ -11155,13 +15293,18 @@ class DigitaloceanApp(APIApplication):
          - MODEL_USECASE_FINETUNED: The model maybe used for fine tuning
          - MODEL_USECASE_KNOWLEDGEBASE: The model maybe used for knowledge bases (embedding models)
          - MODEL_USECASE_GUARDRAIL: The model maybe used for guardrails
-         - MODEL_USECASE_REASONING: The model usecase for reasoning Example: "['MODEL_USECASE_UNKNOWN']".
+         - MODEL_USECASE_REASONING: The model usecase for reasoning
+         - MODEL_USECASE_SERVERLESS: The model usecase for serverless inference Example: "['MODEL_USECASE_UNKNOWN']".
             public_only (boolean): Only include models that are publicly available. Example: 'True'.
             page (integer): Page number. Example: '1'.
             per_page (integer): Items per page. Example: '1'.
 
         Returns:
             dict[str, Any]: A successful response.
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
 
         Tags:
             GenAI Platform (Public Preview)
@@ -11170,9 +15313,175 @@ class DigitaloceanApp(APIApplication):
         query_params = {k: v for k, v in [('usecases', usecases), ('public_only', public_only), ('page', page), ('per_page', per_page)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def genai_list_openai_api_keys(self, page=None, per_page=None) -> dict[str, Any]:
+    def genai_list_model_api_keys(self, page: Optional[int] = None, per_page: Optional[int] = None) -> dict[str, Any]:
+        """
+        List Model API Keys
+
+        Args:
+            page (integer): Page number. Example: '1'.
+            per_page (integer): Items per page. Example: '1'.
+
+        Returns:
+            dict[str, Any]: A successful response.
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
+        Tags:
+            GenAI Platform (Public Preview)
+        """
+        url = f"{self.base_url}/v2/gen-ai/models/api_keys"
+        query_params = {k: v for k, v in [('page', page), ('per_page', per_page)] if v is not None}
+        response = self._get(url, params=query_params)
+        response.raise_for_status()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
+
+    def genai_create_model_api_key(self, name: Optional[str] = None) -> dict[str, Any]:
+        """
+        Create a Model API Key
+
+        Args:
+            name (string): A human friendly name to identify the key Example: 'Production Key'.
+
+        Returns:
+            dict[str, Any]: A successful response.
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
+        Tags:
+            GenAI Platform (Public Preview)
+        """
+        request_body_data = None
+        request_body_data = {
+            'name': name,
+        }
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
+        url = f"{self.base_url}/v2/gen-ai/models/api_keys"
+        query_params = {}
+        response = self._post(url, data=request_body_data, params=query_params, content_type='application/json')
+        response.raise_for_status()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
+
+    def genai_update_model_api_key(self, api_key_uuid: str, api_key_uuid_body: Optional[str] = None, name: Optional[str] = None) -> dict[str, Any]:
+        """
+        Update API Key for a Model
+
+        Args:
+            api_key_uuid (string): api_key_uuid
+            api_key_uuid_body (string): API key ID Example: '"12345678-1234-1234-1234-123456789012"'.
+            name (string): Name Example: '"Production Key"'.
+
+        Returns:
+            dict[str, Any]: A successful response.
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
+        Tags:
+            GenAI Platform (Public Preview)
+        """
+        if api_key_uuid is None:
+            raise ValueError("Missing required parameter 'api_key_uuid'.")
+        request_body_data = None
+        request_body_data = {
+            'api_key_uuid': api_key_uuid_body,
+            'name': name,
+        }
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
+        url = f"{self.base_url}/v2/gen-ai/models/api_keys/{api_key_uuid}"
+        query_params = {}
+        response = self._put(url, data=request_body_data, params=query_params, content_type='application/json')
+        response.raise_for_status()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
+
+    def genai_delete_model_api_key(self, api_key_uuid: str) -> dict[str, Any]:
+        """
+        Delete API Key for a Model
+
+        Args:
+            api_key_uuid (string): api_key_uuid
+
+        Returns:
+            dict[str, Any]: A successful response.
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
+        Tags:
+            GenAI Platform (Public Preview)
+        """
+        if api_key_uuid is None:
+            raise ValueError("Missing required parameter 'api_key_uuid'.")
+        url = f"{self.base_url}/v2/gen-ai/models/api_keys/{api_key_uuid}"
+        query_params = {}
+        response = self._delete(url, params=query_params)
+        response.raise_for_status()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
+
+    def genai_regenerate_model_api_key(self, api_key_uuid: str) -> dict[str, Any]:
+        """
+        Regenerate API Key for a Model
+
+        Args:
+            api_key_uuid (string): api_key_uuid
+
+        Returns:
+            dict[str, Any]: A successful response.
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
+        Tags:
+            GenAI Platform (Public Preview)
+        """
+        if api_key_uuid is None:
+            raise ValueError("Missing required parameter 'api_key_uuid'.")
+        request_body_data = None
+        url = f"{self.base_url}/v2/gen-ai/models/api_keys/{api_key_uuid}/regenerate"
+        query_params = {}
+        response = self._put(url, data=request_body_data, params=query_params, content_type='application/json')
+        response.raise_for_status()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
+
+    def genai_list_openai_api_keys(self, page: Optional[int] = None, per_page: Optional[int] = None) -> dict[str, Any]:
         """
         List OpenAI API Keys
 
@@ -11183,6 +15492,10 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: A successful response.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             GenAI Platform (Public Preview)
         """
@@ -11190,9 +15503,14 @@ class DigitaloceanApp(APIApplication):
         query_params = {k: v for k, v in [('page', page), ('per_page', per_page)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def genai_create_openai_api_key(self, api_key=None, name=None) -> dict[str, Any]:
+    def genai_create_openai_api_key(self, api_key: Optional[str] = None, name: Optional[str] = None) -> dict[str, Any]:
         """
         Create OpenAI API Key
 
@@ -11203,21 +15521,31 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: A successful response.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             GenAI Platform (Public Preview)
         """
-        request_body = {
+        request_body_data = None
+        request_body_data = {
             'api_key': api_key,
             'name': name,
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
         url = f"{self.base_url}/v2/gen-ai/openai/keys"
         query_params = {}
-        response = self._post(url, data=request_body, params=query_params)
+        response = self._post(url, data=request_body_data, params=query_params, content_type='application/json')
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def genai_get_openai_api_key(self, api_key_uuid) -> dict[str, Any]:
+    def genai_get_openai_api_key(self, api_key_uuid: str) -> dict[str, Any]:
         """
         Get OpenAI API Key
 
@@ -11227,18 +15555,27 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: A successful response.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             GenAI Platform (Public Preview)
         """
         if api_key_uuid is None:
-            raise ValueError("Missing required parameter 'api_key_uuid'")
+            raise ValueError("Missing required parameter 'api_key_uuid'.")
         url = f"{self.base_url}/v2/gen-ai/openai/keys/{api_key_uuid}"
         query_params = {}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def genai_update_openai_api_key(self, api_key_uuid, api_key=None, api_key_uuid_body=None, name=None) -> dict[str, Any]:
+    def genai_update_openai_api_key(self, api_key_uuid: str, api_key: Optional[str] = None, api_key_uuid_body: Optional[str] = None, name: Optional[str] = None) -> dict[str, Any]:
         """
         Update OpenAI API Key
 
@@ -11251,24 +15588,34 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: A successful response.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             GenAI Platform (Public Preview)
         """
         if api_key_uuid is None:
-            raise ValueError("Missing required parameter 'api_key_uuid'")
-        request_body = {
+            raise ValueError("Missing required parameter 'api_key_uuid'.")
+        request_body_data = None
+        request_body_data = {
             'api_key': api_key,
             'api_key_uuid': api_key_uuid_body,
             'name': name,
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
         url = f"{self.base_url}/v2/gen-ai/openai/keys/{api_key_uuid}"
         query_params = {}
-        response = self._put(url, data=request_body, params=query_params)
+        response = self._put(url, data=request_body_data, params=query_params, content_type='application/json')
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def genai_delete_openai_api_key(self, api_key_uuid) -> dict[str, Any]:
+    def genai_delete_openai_api_key(self, api_key_uuid: str) -> dict[str, Any]:
         """
         Delete OpenAI API Key
 
@@ -11278,18 +15625,27 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: A successful response.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             GenAI Platform (Public Preview)
         """
         if api_key_uuid is None:
-            raise ValueError("Missing required parameter 'api_key_uuid'")
+            raise ValueError("Missing required parameter 'api_key_uuid'.")
         url = f"{self.base_url}/v2/gen-ai/openai/keys/{api_key_uuid}"
         query_params = {}
         response = self._delete(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def genai_list_agents_by_openai_key(self, uuid, page=None, per_page=None) -> dict[str, Any]:
+    def get_agents_by_key_uuid(self, uuid: str, page: Optional[int] = None, per_page: Optional[int] = None) -> dict[str, Any]:
         """
         List agents by OpenAI key
 
@@ -11301,18 +15657,27 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: A successful response.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             GenAI Platform (Public Preview)
         """
         if uuid is None:
-            raise ValueError("Missing required parameter 'uuid'")
+            raise ValueError("Missing required parameter 'uuid'.")
         url = f"{self.base_url}/v2/gen-ai/openai/keys/{uuid}/agents"
         query_params = {k: v for k, v in [('page', page), ('per_page', per_page)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def genai_list_datacenter_regions(self, serves_inference=None, serves_batch=None) -> dict[str, Any]:
+    def genai_list_datacenter_regions(self, serves_inference: Optional[bool] = None, serves_batch: Optional[bool] = None) -> dict[str, Any]:
         """
         List Datacenter Regions
 
@@ -11323,6 +15688,10 @@ class DigitaloceanApp(APIApplication):
         Returns:
             dict[str, Any]: A successful response.
 
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
         Tags:
             GenAI Platform (Public Preview)
         """
@@ -11330,7 +15699,12 @@ class DigitaloceanApp(APIApplication):
         query_params = {k: v for k, v in [('serves_inference', serves_inference), ('serves_batch', serves_batch)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
     def list_tools(self):
         return [
@@ -11350,8 +15724,9 @@ class DigitaloceanApp(APIApplication):
             self.apps_get,
             self.apps_update,
             self.apps_restart,
-            self.apps_get_logs_active_deployment,
-            self.apps_get_exec_active_deployment,
+            self.get_app_component_logs,
+            self.get_component_execution_details,
+            self.apps_get_instances,
             self.apps_list_deployments,
             self.apps_create_deployment,
             self.apps_get_deployment,
@@ -11359,7 +15734,7 @@ class DigitaloceanApp(APIApplication):
             self.apps_get_logs,
             self.apps_get_logs_aggregate,
             self.apps_get_exec,
-            self.apps_get_logs_active_deployment_aggregate,
+            self.get_app_logs,
             self.apps_list_instance_sizes,
             self.apps_get_instance_size,
             self.apps_list_regions,
@@ -11370,8 +15745,8 @@ class DigitaloceanApp(APIApplication):
             self.apps_validate_rollback,
             self.apps_commit_rollback,
             self.apps_revert_rollback,
-            self.apps_get_metrics_bandwidth_daily,
-            self.apps_list_metrics_bandwidth_daily,
+            self.get_app_bandwidth_daily,
+            self.create_daily_bandwidth_metrics,
             self.apps_get_health,
             self.cdn_list_endpoints,
             self.cdn_create_endpoint,
@@ -11380,6 +15755,7 @@ class DigitaloceanApp(APIApplication):
             self.cdn_delete_endpoint,
             self.cdn_purge_cache,
             self.certificates_list,
+            self.certificates_create,
             self.certificates_get,
             self.certificates_delete,
             self.balance_get,
@@ -11398,13 +15774,13 @@ class DigitaloceanApp(APIApplication):
             self.databases_patch_config,
             self.databases_get_ca,
             self.databases_get_migration_status,
-            self.databases_update_online_migration,
-            self.databases_delete_online_migration,
+            self.start_online_migration,
+            self.delete_online_migration_by_id,
             self.databases_update_region,
             self.databases_update_cluster_size,
             self.databases_list_firewall_rules,
-            self.databases_update_firewall_rules,
-            self.databases_update_maintenance_window,
+            self.update_database_cluster_firewall,
+            self.update_database_maintenance,
             self.databases_install_update,
             self.databases_list_backups,
             self.databases_list_replicas,
@@ -11426,10 +15802,10 @@ class DigitaloceanApp(APIApplication):
             self.databases_list_connection_pools,
             self.databases_add_connection_pool,
             self.databases_get_connection_pool,
-            self.databases_update_connection_pool,
-            self.databases_delete_connection_pool,
+            self.update_database_pool,
+            self.delete_pool,
             self.databases_get_eviction_policy,
-            self.databases_update_eviction_policy,
+            self.update_eviction_policy,
             self.databases_get_sql_mode,
             self.databases_update_sql_mode,
             self.databases_update_major_version,
@@ -11443,44 +15819,48 @@ class DigitaloceanApp(APIApplication):
             self.databases_get_logsink,
             self.databases_update_logsink,
             self.databases_delete_logsink,
-            self.databases_get_cluster_metrics_credentials,
-            self.databases_update_cluster_metrics_credentials,
-            self.databases_list_opeasearch_indexes,
-            self.databases_delete_opensearch_index,
+            self.get_database_metrics_credentials,
+            self.update_database_credentials,
+            self.list_database_indexes,
+            self.delete_database_index_by_name,
             self.domains_list,
             self.domains_create,
             self.domains_get,
             self.domains_delete,
             self.domains_list_records,
+            self.domains_create_record,
             self.domains_get_record,
             self.domains_patch_record,
             self.domains_update_record,
             self.domains_delete_record,
             self.droplets_list,
+            self.droplets_create,
             self.droplets_destroy_by_tag,
             self.droplets_get,
             self.droplets_destroy,
             self.droplets_list_backups,
             self.droplets_get_backup_policy,
             self.droplets_list_backup_policies,
-            self.droplets_list_supported_backup_policies,
+            self.list_supported_policies,
             self.droplets_list_snapshots,
             self.droplet_actions_list,
+            self.droplet_actions_post,
+            self.droplet_actions_post_by_tag,
             self.droplet_actions_get,
             self.droplets_list_kernels,
             self.droplets_list_firewalls,
             self.droplets_list_neighbors,
-            self.droplets_list_associated_resources,
-            self.droplets_destroy_with_associated_resources_selective,
-            self.droplets_destroy_with_associated_resources_dangerous,
-            self.droplets_get_destroy_associated_resources_status,
-            self.droplets_destroy_retry_with_associated_resources,
+            self.destroy_droplet_with_resources,
+            self.destroy_select,
+            self.delete_droplet_resources,
+            self.get_droplet_status,
+            self.retry_droplet_with_resources,
             self.autoscalepools_list,
             self.autoscalepools_create,
             self.autoscalepools_get,
             self.autoscalepools_update,
             self.autoscalepools_delete,
-            self.autoscalepools_delete_dangerous,
+            self.delete_autoscale_pool_dangerously,
             self.autoscalepools_list_members,
             self.autoscalepools_list_history,
             self.firewalls_list,
@@ -11495,9 +15875,11 @@ class DigitaloceanApp(APIApplication):
             self.firewalls_add_rules,
             self.firewalls_delete_rules,
             self.floating_ips_list,
+            self.floating_ips_create,
             self.floating_ips_get,
             self.floating_ips_delete,
             self.floating_ips_action_list,
+            self.floating_ips_action_post,
             self.floating_ips_action_get,
             self.functions_list_namespaces,
             self.functions_create_namespace,
@@ -11514,18 +15896,19 @@ class DigitaloceanApp(APIApplication):
             self.images_update,
             self.images_delete,
             self.image_actions_list,
+            self.image_actions_post,
             self.image_actions_get,
             self.kubernetes_list_clusters,
             self.kubernetes_create_cluster,
             self.kubernetes_get_cluster,
             self.kubernetes_update_cluster,
             self.kubernetes_delete_cluster,
-            self.kubernetes_list_associated_resources,
-            self.kubernetes_destroy_associated_resources_selective,
-            self.kubernetes_destroy_associated_resources_dangerous,
+            self.destroy_cluster_resources,
+            self.delete_cluster_resources,
+            self.destroy_cluster_with_resources,
             self.kubernetes_get_kubeconfig,
             self.kubernetes_get_credentials,
-            self.kubernetes_get_available_upgrades,
+            self.get_cluster_upgrades,
             self.kubernetes_upgrade_cluster,
             self.kubernetes_list_node_pools,
             self.kubernetes_add_node_pool,
@@ -11537,70 +15920,72 @@ class DigitaloceanApp(APIApplication):
             self.kubernetes_get_cluster_user,
             self.kubernetes_list_options,
             self.kubernetes_run_cluster_lint,
-            self.kubernetes_get_cluster_lint_results,
+            self.get_cluster_lint,
             self.kubernetes_add_registry,
             self.kubernetes_remove_registry,
             self.kubernetes_get_status_messages,
+            self.load_balancers_create,
             self.load_balancers_list,
             self.load_balancers_get,
+            self.load_balancers_update,
             self.load_balancers_delete,
             self.load_balancers_delete_cache,
             self.load_balancers_add_droplets,
             self.load_balancers_remove_droplets,
-            self.load_balancers_add_forwarding_rules,
-            self.load_balancers_remove_forwarding_rules,
+            self.add_forwarding_rule,
+            self.delete_lb_forwarding_rules,
             self.monitoring_list_alert_policy,
             self.monitoring_create_alert_policy,
             self.monitoring_get_alert_policy,
             self.monitoring_update_alert_policy,
             self.monitoring_delete_alert_policy,
-            self.monitoring_get_droplet_bandwidth_metrics,
-            self.monitoring_get_droplet_cpu_metrics,
-            self.monitoring_get_droplet_filesystem_free_metrics,
-            self.monitoring_get_droplet_filesystem_size_metrics,
-            self.monitoring_get_droplet_load1_metrics,
-            self.monitoring_get_droplet_load5_metrics,
-            self.monitoring_get_droplet_load15_metrics,
-            self.monitoring_get_droplet_memory_cached_metrics,
-            self.monitoring_get_droplet_memory_free_metrics,
-            self.monitoring_get_droplet_memory_total_metrics,
-            self.monitoring_get_droplet_memory_available_metrics,
-            self.monitoring_get_app_memory_percentage_metrics,
-            self.monitoring_get_app_cpupercentage_metrics,
-            self.monitoring_get_app_restart_count_metrics_yml,
-            self.monitoring_get_lb_frontend_connections_current,
-            self.monitoring_get_lb_frontend_connections_limit,
-            self.monitoring_get_lb_frontend_cpu_utilization,
-            self.monitoring_get_lb_frontend_firewall_dropped_bytes,
-            self.monitoring_get_lb_frontend_firewall_dropped_packets,
-            self.monitoring_get_lb_frontend_http_responses,
-            self.monitoring_get_lb_frontend_http_requests_per_second,
-            self.monitoring_get_lb_frontend_network_throughput_http,
-            self.monitoring_get_lb_frontend_network_throughput_udp,
-            self.monitoring_get_lb_frontend_network_throughput_tcp,
-            self.monitoring_get_lb_frontend_nlb_tcp_network_throughput,
-            self.monitoring_get_lb_frontend_nlb_udp_network_throughput,
-            self.monitoring_get_lb_frontend_tls_connections_current,
-            self.monitoring_get_lb_frontend_tls_connections_limit,
-            self.monitoring_get_lb_frontend_tls_connections_exceeding_rate_limit,
-            self.monitoring_get_lb_droplets_http_session_duration_avg,
-            self.monitoring_get_lb_droplets_http_session_duration_50p,
-            self.monitoring_get_lb_droplets_http_session_duration_95p,
-            self.monitoring_get_lb_droplets_http_response_time_avg,
-            self.monitoring_get_lb_droplets_http_response_time_50p,
-            self.monitoring_get_lb_droplets_http_response_time_95p,
-            self.monitoring_get_lb_droplets_http_response_time_99p,
-            self.monitoring_get_lb_droplets_queue_size,
-            self.monitoring_get_lb_droplets_http_responses,
-            self.monitoring_get_lb_droplets_connections,
-            self.monitoring_get_lb_droplets_health_checks,
-            self.monitoring_get_lb_droplets_downtime,
-            self.monitoring_get_droplet_autoscale_current_instances,
-            self.monitoring_get_droplet_autoscale_target_instances,
-            self.monitoring_get_droplet_autoscale_current_cpu_utilization_yml,
-            self.monitoring_get_droplet_autoscale_target_cpu_utilization,
-            self.monitoring_get_droplet_autoscale_current_memory_utilization,
-            self.monitoring_get_droplet_autoscale_target_memory_utilization,
+            self.get_droplet_bandwidth_metrics,
+            self.get_droplet_cpu_metrics,
+            self.get_droplet_filesystem_free,
+            self.get_droplet_filesystem_size,
+            self.get_droplet_load_metrics,
+            self.get_droplet_load5_metrics,
+            self.get_droplet_load_metric,
+            self.get_droplet_memory_cached,
+            self.get_droplet_memory_free,
+            self.get_droplet_memory_total,
+            self.get_droplet_memory_available,
+            self.get_app_memory_percentage,
+            self.get_app_cpu_metrics,
+            self.get_app_restart_count,
+            self.get_frontend_connections,
+            self.get_lb_frontend_connections_limit,
+            self.get_frontend_cpu_utilization,
+            self.get_frontend_firewall_bytes,
+            self.get_lb_frontend_fw_dropped_pkts,
+            self.get_load_balancer_responses,
+            self.fetch_frontend_request_rate,
+            self.get_frontend_network_throughput,
+            self.get_frontend_udp_throughput,
+            self.get_frontend_tcp_throughput,
+            self.get_frontend_nlb_tcp_throughput,
+            self.get_nlb_udp_throughput,
+            self.get_frontend_tls_connections,
+            self.get_frontend_tls_connections_limit,
+            self.get_tls_exceeding_rate_limit,
+            self.get_droplet_session_duration_avg,
+            self.get_droplet_session_duration_50p,
+            self.get_droplet_session_duration_95p,
+            self.get_droplet_response_time,
+            self.get_droplet_http_response_time,
+            self.get_droplets_http_response_timep_95p,
+            self.get_droplets_http_response_timep_99p,
+            self.get_droplet_queue_size,
+            self.get_droplet_responses,
+            self.get_droplet_connections,
+            self.get_droplet_health_checks,
+            self.get_load_balancer_downtime,
+            self.get_current_autoscale_instances,
+            self.list_target_instances,
+            self.get_droplet_cpu_utilization,
+            self.get_droplet_target_cpu_utilization,
+            self.get_droplet_memory_utilization,
+            self.get_autoscale_memory_target,
             self.monitoring_create_destination,
             self.monitoring_list_destinations,
             self.monitoring_get_destination,
@@ -11613,12 +15998,13 @@ class DigitaloceanApp(APIApplication):
             self.partner_attachments_list,
             self.partner_attachments_create,
             self.partner_attachments_get,
+            self.partner_attachments_patch,
             self.partner_attachments_delete,
-            self.partner_attachments_get_bgp_auth_key,
-            self.partner_attachments_list_remote_routes,
-            self.partner_attachments_update_remote_routes,
-            self.partner_attachments_get_service_key,
-            self.partner_attachments_create_service_key,
+            self.get_bgp_auth_key_by_pa_id,
+            self.get_partner_network_remote_routes,
+            self.update_remote_routes,
+            self.get_partner_service_key,
+            self.create_service_key,
             self.projects_list,
             self.projects_create,
             self.projects_get_default,
@@ -11630,8 +16016,8 @@ class DigitaloceanApp(APIApplication):
             self.projects_delete,
             self.projects_list_resources,
             self.projects_assign_resources,
-            self.projects_list_resources_default,
-            self.projects_assign_resources_default,
+            self.list_project_resources,
+            self.create_default_project_resource,
             self.regions_list,
             self.registry_get,
             self.registry_create,
@@ -11641,26 +16027,29 @@ class DigitaloceanApp(APIApplication):
             self.registry_get_docker_credentials,
             self.registry_validate_name,
             self.registry_list_repositories,
-            self.registry_list_repositories_v2,
+            self.registry_list_repositories_v,
             self.registry_list_repository_tags,
             self.registry_delete_repository_tag,
-            self.registry_list_repository_manifests,
-            self.registry_delete_repository_manifest,
+            self.get_repository_digests,
+            self.delete_manifest_digest,
             self.registry_run_garbage_collection,
             self.registry_get_garbage_collection,
-            self.registry_list_garbage_collections,
-            self.registry_update_garbage_collection,
+            self.list_registry_garbage_collections,
+            self.update_garbage_collection,
             self.registry_get_options,
             self.droplets_list_neighbors_ids,
             self.reserved_ips_list,
+            self.reserved_ips_create,
             self.reserved_ips_get,
             self.reserved_ips_delete,
             self.reserved_ips_actions_list,
+            self.reserved_ips_actions_post,
             self.reserved_ips_actions_get,
-            self.reserved_ipv6_list,
-            self.reserved_ipv6_create,
-            self.reserved_ipv6_get,
-            self.reserved_ipv6_delete,
+            self.reserved_ipv_list,
+            self.reserved_ipv_create,
+            self.reserved_ipv_get,
+            self.reserved_ipv_delete,
+            self.reserved_ipv_actions_post,
             self.sizes_list,
             self.snapshots_list,
             self.snapshots_get,
@@ -11678,12 +16067,15 @@ class DigitaloceanApp(APIApplication):
             self.tags_assign_resources,
             self.tags_unassign_resources,
             self.volumes_list,
+            self.volumes_create,
             self.volumes_delete_by_name,
+            self.volume_actions_post,
             self.volume_snapshots_get_by_id,
             self.volume_snapshots_delete_by_id,
             self.volumes_get,
             self.volumes_delete,
             self.volume_actions_list,
+            self.volume_actions_post_by_id,
             self.volume_actions_get,
             self.volume_snapshots_list,
             self.volume_snapshots_create,
@@ -11733,34 +16125,39 @@ class DigitaloceanApp(APIApplication):
             self.genai_update_agent,
             self.genai_delete_agent,
             self.genai_get_agent_children,
-            self.genai_update_agent_deployment_visibility,
+            self.update_deployment_visibility,
             self.genai_list_agent_versions,
-            self.genai_rollback_to_agent_version,
+            self.update_agent_version_by_uuid,
             self.genai_list_anthropic_api_keys,
             self.genai_create_anthropic_api_key,
             self.genai_get_anthropic_api_key,
             self.genai_update_anthropic_api_key,
             self.genai_delete_anthropic_api_key,
-            self.genai_list_agents_by_anthropic_key,
+            self.list_agents_by_key_uuid,
             self.genai_list_indexing_jobs,
             self.genai_create_indexing_job,
-            self.genai_list_indexing_job_data_sources,
+            self.list_job_data_sources,
             self.genai_get_indexing_job,
             self.genai_cancel_indexing_job,
             self.genai_list_knowledge_bases,
             self.genai_create_knowledge_base,
-            self.genai_list_knowledge_base_data_sources,
-            self.genai_create_knowledge_base_data_source,
-            self.genai_delete_knowledge_base_data_source,
+            self.list_data_source_by_knowledge_base,
+            self.add_data_source,
+            self.delete_data_source_by_uuid,
             self.genai_get_knowledge_base,
             self.genai_update_knowledge_base,
             self.genai_delete_knowledge_base,
             self.genai_list_models,
+            self.genai_list_model_api_keys,
+            self.genai_create_model_api_key,
+            self.genai_update_model_api_key,
+            self.genai_delete_model_api_key,
+            self.genai_regenerate_model_api_key,
             self.genai_list_openai_api_keys,
             self.genai_create_openai_api_key,
             self.genai_get_openai_api_key,
             self.genai_update_openai_api_key,
             self.genai_delete_openai_api_key,
-            self.genai_list_agents_by_openai_key,
+            self.get_agents_by_key_uuid,
             self.genai_list_datacenter_regions
         ]

@@ -1030,7 +1030,7 @@ wheels = [
 
 [[package]]
 name = "mcp"
-version = "1.8.0"
+version = "1.9.2"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "anyio" },
@@ -1043,9 +1043,9 @@ dependencies = [
     { name = "starlette" },
     { name = "uvicorn", marker = "sys_platform != 'emscripten'" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/ff/97/0a3e08559557b0ac5799f9fb535fbe5a4e4dcdd66ce9d32e7a74b4d0534d/mcp-1.8.0.tar.gz", hash = "sha256:263dfb700540b726c093f0c3e043f66aded0730d0b51f04eb0a3eb90055fe49b", size = 264641, upload-time = "2025-05-08T20:09:06.255Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/ea/03/77c49cce3ace96e6787af624611b627b2828f0dca0f8df6f330a10eea51e/mcp-1.9.2.tar.gz", hash = "sha256:3c7651c053d635fd235990a12e84509fe32780cd359a5bbef352e20d4d963c05", size = 333066, upload-time = "2025-05-29T14:42:17.76Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/b2/b2/4ac3bd17b1fdd65658f18de4eb0c703517ee0b483dc5f56467802a9197e0/mcp-1.8.0-py3-none-any.whl", hash = "sha256:889d9d3b4f12b7da59e7a3933a0acadae1fce498bfcd220defb590aa291a1334", size = 119544, upload-time = "2025-05-08T20:09:04.458Z" },
+    { url = "https://files.pythonhosted.org/packages/5d/a6/8f5ee9da9f67c0fd8933f63d6105f02eabdac8a8c0926728368ffbb6744d/mcp-1.9.2-py3-none-any.whl", hash = "sha256:bc29f7fd67d157fef378f89a4210384f5fecf1168d0feb12d22929818723f978", size = 131083, upload-time = "2025-05-29T14:42:16.211Z" },
 ]
 
 [[package]]
@@ -2021,7 +2021,7 @@ wheels = [
 
 [[package]]
 name = "universal-mcp"
-version = "0.1.15"
+version = "0.1.20"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "cookiecutter" },
@@ -2040,14 +2040,14 @@ dependencies = [
     { name = "rich" },
     { name = "typer" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/37/a3/b1d489844f9bb29c7d596445bd084292018f63c04af6b68aeb893f4d75de/universal_mcp-0.1.15.tar.gz", hash = "sha256:71cdd82abbdcb6a250dd59e9926aa8512adec7cce0b14beaa531412a1bcda4b0", size = 66075, upload-time = "2025-05-07T17:50:51.727Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/90/c6/c1058274059cb1e37cc9f4fb54c25159f4d132651152c86b7a11e7895df3/universal_mcp-0.1.20.tar.gz", hash = "sha256:2657ccddca2f26682395736ad4a248f090c577e3a511e03a867a3bb712b6de3c", size = 74895, upload-time = "2025-05-22T09:56:36.262Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/b7/d5/f3fe511daf793c74242ad169288a95c240d3f90dcafc8a1964595d7c0bc1/universal_mcp-0.1.15-py3-none-any.whl", hash = "sha256:5b320666a4fa677e1ed4f5ceb6b784f1c7a7e5a7f6753fbb46659a7c5f431303", size = 76433, upload-time = "2025-05-07T17:50:50.576Z" },
+    { url = "https://files.pythonhosted.org/packages/0a/70/661dcb6a57be211a100f406b24c422171d19b61eafa8c543bf4fdeb9535c/universal_mcp-0.1.20-py3-none-any.whl", hash = "sha256:e1ec741bc2bbd2ee89cefd6789c66a2d972ab3b0bc901fe7fc038267b440fc00", size = 84790, upload-time = "2025-05-22T09:56:35.234Z" },
 ]
 
 [[package]]
 name = "universal-mcp-digitalocean"
-version = "0.1.0"
+version = "0.1.1"
 source = { editable = "." }
 dependencies = [
     { name = "universal-mcp" },
@@ -2069,7 +2069,7 @@ requires-dist = [
     { name = "pytest", marker = "extra == 'test'", specifier = ">=7.0.0,<9.0.0" },
     { name = "pytest-cov", marker = "extra == 'test'" },
     { name = "ruff", marker = "extra == 'dev'" },
-    { name = "universal-mcp", specifier = ">=0.1.15" },
+    { name = "universal-mcp", specifier = "==0.1.20" },
 ]
 provides-extras = ["test", "dev"]
 
