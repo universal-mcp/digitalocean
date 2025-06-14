@@ -338,7 +338,7 @@ class DigitaloceanApp(APIApplication):
             JSONDecodeError: Raised if the response body cannot be parsed as JSON.
 
         Tags:
-            Apps
+            Apps, important
         """
         url = f"{self.base_url}/v2/apps"
         query_params = {k: v for k, v in [('page', page), ('per_page', per_page), ('with_projects', with_projects)] if v is not None}
@@ -1893,7 +1893,7 @@ class DigitaloceanApp(APIApplication):
             JSONDecodeError: Raised if the response body cannot be parsed as JSON.
 
         Tags:
-            Databases
+            Databases, important
         """
         url = f"{self.base_url}/v2/databases/options"
         query_params = {}
@@ -2984,7 +2984,7 @@ class DigitaloceanApp(APIApplication):
             JSONDecodeError: Raised if the response body cannot be parsed as JSON.
 
         Tags:
-            Databases
+            Databases, important
         """
         if database_cluster_uuid is None:
             raise ValueError("Missing required parameter 'database_cluster_uuid'.")
@@ -3969,7 +3969,7 @@ class DigitaloceanApp(APIApplication):
             JSONDecodeError: Raised if the response body cannot be parsed as JSON.
 
         Tags:
-            Domains
+            Domains, important
         """
         url = f"{self.base_url}/v2/domains"
         query_params = {k: v for k, v in [('per_page', per_page), ('page', page)] if v is not None}
@@ -4000,7 +4000,7 @@ class DigitaloceanApp(APIApplication):
             JSONDecodeError: Raised if the response body cannot be parsed as JSON.
 
         Tags:
-            Domains
+            Domains, important
         """
         request_body_data = None
         request_body_data = {
@@ -4368,7 +4368,7 @@ class DigitaloceanApp(APIApplication):
             JSONDecodeError: Raised if the response body cannot be parsed as JSON.
 
         Tags:
-            Droplets
+            Droplets, important
         """
         url = f"{self.base_url}/v2/droplets"
         query_params = {k: v for k, v in [('per_page', per_page), ('page', page), ('tag_name', tag_name), ('name', name), ('type', type)] if v is not None}
@@ -6315,7 +6315,7 @@ class DigitaloceanApp(APIApplication):
             JSONDecodeError: Raised if the response body cannot be parsed as JSON.
 
         Tags:
-            Images
+            Images, important
         """
         url = f"{self.base_url}/v2/images"
         query_params = {k: v for k, v in [('type', type), ('private', private), ('tag_name', tag_name), ('per_page', per_page), ('page', page)] if v is not None}
@@ -10266,7 +10266,7 @@ class DigitaloceanApp(APIApplication):
             JSONDecodeError: Raised if the response body cannot be parsed as JSON.
 
         Tags:
-            Projects
+            Projects, important
         """
         url = f"{self.base_url}/v2/projects"
         query_params = {k: v for k, v in [('per_page', per_page), ('page', page)] if v is not None}
@@ -10317,7 +10317,7 @@ class DigitaloceanApp(APIApplication):
             JSONDecodeError: Raised if the response body cannot be parsed as JSON.
 
         Tags:
-            Projects
+            Projects, important
         """
         request_body_data = None
         request_body_data = {
@@ -12399,7 +12399,7 @@ class DigitaloceanApp(APIApplication):
             JSONDecodeError: Raised if the response body cannot be parsed as JSON.
 
         Tags:
-            Block Storage
+            Block Storage, important
         """
         url = f"{self.base_url}/v2/volumes"
         query_params = {k: v for k, v in [('name', name), ('region', region), ('per_page', per_page), ('page', page)] if v is not None}
@@ -12437,7 +12437,7 @@ class DigitaloceanApp(APIApplication):
             JSONDecodeError: Raised if the response body cannot be parsed as JSON.
 
         Tags:
-            Block Storage
+            Block Storage, important
         """
         request_body_data = None
         request_body_data = {
